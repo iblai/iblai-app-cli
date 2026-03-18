@@ -1,0 +1,211 @@
+'use client';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams } from 'next/navigation';
+import { useAdvancedChat } from '@iblai/iblai-js/web-utils';
+import { ChatMessages } from './chat-messages';
+import { ChatInputForm } from './chat-input-form';
+import { WelcomeScreenV2 } from './welcome-v2';
+import { useUsername, useAxdToken } from '@/hooks/use-user';
+import { redirectToAuthSpa } from '@/lib/utils';
+import { config } from '@/lib/config';
+import { useGetMentorPublicSettingsQuery } from '@iblai/iblai-js/data-layer';
+import { ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+const SESSION_CACHE_KEY = 'agent_cached_session_ids';
+
+function getCachedSessionIds(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_CACHE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+export function Chat() {
+  const params = useParams();
+  const tenantKey = params.tenantKey as string;
+  const agentId = params.agentId as string;
+  const [input, setInput] = useState('');
+
+  const username = useUsername();
+  const token = useAxdToken();
+  const wsBaseUrl = config.wsUrl();
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
+
+  // Read cached session ID from localStorage
+  const [cachedSessionId] = useState(() => getCachedSessionIds());
+
+  const { data: mentorPublicSettings } = useGetMentorPublicSettingsQuery(
+    {
+      mentor: agentId,
+      org: tenantKey,
+      // @ts-ignore
+      userId: username ?? 'anonymous',
+    },
+    {
+      skip: !agentId || !tenantKey,
+    }
+  );
+
+  const mentorName = mentorPublicSettings?.mentor || 'Agent';
+  const profileImage = mentorPublicSettings?.profile_image || '';
+  // @ts-ignore - disclaimer may exist in the API response
+  const disclaimer = (mentorPublicSettings?.disclaimer as string) || '';
+
+  const {
+    messages,
+    sendMessage,
+    isStreaming,
+    isPending,
+    sessionId,
+    stopGenerating,
+    isLoadingChats,
+  } = useAdvancedChat({
+    mentorId: agentId,
+    tenantKey,
+    username,
+    token,
+    wsUrl: `${wsBaseUrl}/ws/langflow/`,
+    stopGenerationWsUrl: `${wsBaseUrl}/ws/langflow-stop-generation/`,
+    redirectToAuthSpa,
+    cachedSessionId,
+    onStartNewChat: (newSessionId: string) => {
+      // Persist new session ID
+      try {
+        const cached = getCachedSessionIds();
+        cached[agentId] = newSessionId;
+        localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(cached));
+      } catch {
+        // ignore
+      }
+    },
+  });
+
+  const handleSubmit = async (message: string) => {
+    if (!sessionId) {
+      console.warn('Session not ready yet, please wait...');
+      return;
+    }
+    setInput('');
+    sendMessage('chat', message);
+
+    // Persist session ID when sending first message
+    try {
+      const cached = getCachedSessionIds();
+      if (cached[agentId] !== sessionId) {
+        cached[agentId] = sessionId;
+        localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(cached));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const isChatReady = !!sessionId && !isPending;
+  const hasMessages = messages && messages.length > 0;
+
+  const scrollToBottom = useCallback(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, []);
+
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setIsScrolledUp(!isAtBottom);
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isStreaming, scrollToBottom]);
+
+  useEffect(() => {
+    if (!hasMessages) {
+      setIsScrolledUp(false);
+    }
+  }, [hasMessages]);
+
+  return (
+    <div className="relative flex h-full flex-col bg-white rounded-t-lg w-full px-2">
+      {!hasMessages && !isLoadingChats ? (
+        <div className="flex-1 h-full overflow-y-auto">
+          <WelcomeScreenV2
+            onSubmit={handleSubmit}
+            sessionId={sessionId}
+            input={input}
+            setInput={setInput}
+            isLoading={isPending || !isChatReady}
+            disabled={isStreaming || !isChatReady}
+            mentorName={mentorName}
+            profileImage={profileImage}
+          />
+        </div>
+      ) : (
+        <>
+          <div
+            ref={chatContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto min-h-0"
+          >
+            <div className="py-6 w-full mx-auto max-w-4xl">
+              <ChatMessages
+                messages={messages}
+                isStreaming={isStreaming}
+                isPending={isPending}
+                mentorName={mentorName}
+                profileImage={profileImage}
+                sessionId={sessionId}
+                mentorId={agentId}
+                tenantKey={tenantKey}
+                onRetry={(content) => handleSubmit(content)}
+              />
+            </div>
+          </div>
+
+          {isScrolledUp && hasMessages && (
+            <div className="sticky bottom-4 w-full flex justify-center z-10 pointer-events-none bg-transparent h-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      scrollToBottom();
+                    }}
+                    className="rounded-md h-10 w-10 bg-white shadow-md border border-gray-200 hover:bg-gray-100 pointer-events-auto absolute bottom-4"
+                  >
+                    <ChevronDown className="h-5 w-5 text-gray-600" />
+                    <span className="sr-only">Scroll to bottom</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Scroll to Bottom</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+
+          <div className="shrink-0 pb-3.5">
+            <ChatInputForm
+              input={input}
+              setInput={setInput}
+              onSubmit={handleSubmit}
+              isLoading={isPending || !isChatReady}
+              disabled={isStreaming || !isChatReady}
+              isStreaming={isStreaming}
+              stopGenerating={stopGenerating}
+              disclaimer={disclaimer}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

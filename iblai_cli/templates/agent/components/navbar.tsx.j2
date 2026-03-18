@@ -1,0 +1,168 @@
+"use client";
+
+import React from "react";
+import { useParams } from "next/navigation";
+import {
+  PenSquare,
+  User,
+  ChevronDown,
+  Menu,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useUsername } from "@/hooks/use-user";
+import { useGetMentorPublicSettingsQuery } from "@iblai/iblai-js/data-layer";
+import { NotificationDropdown } from "@iblai/iblai-js/web-containers";
+import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
+import { chatActions, clearFiles } from "@iblai/iblai-js/web-utils";
+import { useAppDispatch } from "@/lib/hooks";
+import { redirectToAuthSpa } from "@/lib/utils";
+import { config } from "@/lib/config";
+
+export function Navbar() {
+  const params = useParams();
+  const tenantKey = params.tenantKey as string;
+  const agentId = params.agentId as string;
+  const dispatch = useAppDispatch();
+
+  const username = useUsername();
+  const isAuthenticated = !!username && username !== "anonymous";
+  const { toggleSidebar, open: openSidebar, isMobile } = useSidebar();
+
+  const { data: mentorPublicSettings } = useGetMentorPublicSettingsQuery(
+    {
+      mentor: agentId,
+      org: tenantKey,
+      // @ts-ignore
+      userId: username ?? "anonymous",
+    },
+    {
+      skip: !agentId || !tenantKey,
+    }
+  );
+
+  const mentorName = mentorPublicSettings?.mentor || "Agent";
+
+  const handleNewChat = () => {
+    dispatch(clearFiles(undefined));
+    dispatch(chatActions.setShouldStartNewChat(true));
+  };
+
+  const handleLogout = async () => {
+    await redirectToAuthSpa(window.location.href, tenantKey, true, false);
+  };
+
+  const handleLogin = async () => {
+    await redirectToAuthSpa(window.location.href, tenantKey, false, true);
+  };
+
+  const menuItems = [
+    {
+      icon: PenSquare,
+      label: "New Chat",
+      onClick: handleNewChat,
+    },
+  ];
+
+  return (
+    <nav className="flex h-16 items-center bg-white pr-4 z-10 border-b border-[#D0E0FF]">
+      <div className="flex items-center">
+        {isMobile && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-4 cursor-pointer"
+                onClick={toggleSidebar}
+                aria-label={openSidebar ? "Close sidebar" : "Open sidebar"}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Toggle Sidebar</TooltipContent>
+          </Tooltip>
+        )}
+
+        <div className="flex items-center pl-2 md:pl-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-[#646464] transition-colors hover:text-[#484848]"
+                aria-label="Selected mentor dropdown button"
+              >
+                <User className="h-4 w-4 text-[#646464]" />
+                <span className="hidden sm:block">{mentorName}</span>
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="center"
+              className="w-[180px] rounded-md border border-gray-200 bg-white p-2 shadow-lg"
+            >
+              {menuItems.map((item, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  className="flex cursor-pointer items-center rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={item.onClick}
+                >
+                  <item.icon className="mr-3 h-4 w-4 text-gray-600" />
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="ml-auto flex items-center gap-0 xl:gap-6">
+        {isAuthenticated && (
+          <NotificationDropdown
+            org={tenantKey}
+            userId={username ?? ""}
+            isAdmin={false}
+          />
+        )}
+
+        {isAuthenticated ? (
+          <UserProfileDropdown
+            username={username || undefined}
+            tenantKey={tenantKey}
+            mentorId={agentId}
+            showTenantSwitcher={false}
+            showAccountTab={false}
+            showHelpLink={false}
+            showLearnerModeSwitch={false}
+            enableGravatarOnProfilePic={true}
+            onLogout={handleLogout}
+            currentSPA={config.platform() || "agent"}
+            authURL={config.authUrl()}
+            onTenantUpdate={() => {}}
+            currentPlatformBaseDomain=""
+          />
+        ) : (
+          <div className="flex gap-x-2">
+            <Button
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={handleLogin}
+            >
+              Log in
+            </Button>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}

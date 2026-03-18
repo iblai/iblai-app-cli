@@ -1,0 +1,145 @@
+"use client";
+
+import { ReactNode, useCallback, useEffect, useState } from "react";
+import { usePathname, useParams, useRouter } from "next/navigation";
+import { AuthProvider, TenantProvider, MentorProvider } from "@iblai/iblai-js/web-utils";
+import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
+import type { StorageService } from "@iblai/iblai-js/data-layer";
+import { redirectToAuthSpa } from "@/lib/utils";
+import { config } from "@/lib/config";
+import { useUsername } from "@/hooks/use-user";
+
+class LocalStorageService implements StorageService {
+  private static instance: LocalStorageService;
+  private constructor() {}
+
+  public static getInstance(): LocalStorageService {
+    if (!LocalStorageService.instance) {
+      LocalStorageService.instance = new LocalStorageService();
+    }
+    return LocalStorageService.instance;
+  }
+
+  async getItem<T>(key: string): Promise<T | null> {
+    return window.localStorage.getItem(key) as T;
+  }
+
+  async setItem<T>(key: string, item: T): Promise<void> {
+    window.localStorage.setItem(key, item as unknown as string);
+  }
+
+  async removeItem(key: string): Promise<void> {
+    window.localStorage.removeItem(key);
+  }
+}
+
+function hasNonExpiredAuthToken(): boolean {
+  const token = window.localStorage.getItem("axd_token");
+  if (!token) return true;
+
+  const tokenExpiry = window.localStorage.getItem("axd_token_expires");
+  if (!tokenExpiry) return true;
+
+  return new Date(tokenExpiry) > new Date();
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const pathname = usePathname();
+  const params = useParams();
+  const router = useRouter();
+  const username = useUsername();
+  const mainTenantKey = config.mainTenantKey();
+
+  const loadDataLayer = () => {
+    initializeDataLayer(
+      config.dmUrl(),
+      config.lmsUrl(),
+      LocalStorageService.getInstance(),
+      {
+        401: () => {
+          console.log("[auth-redirect] API returned 401 Unauthorized");
+          redirectToAuthSpa(undefined, undefined, true);
+        },
+      }
+    );
+    setIsInitialized(true);
+  };
+
+  useEffect(() => {
+    if (typeof (window as any).__ENV__ !== "undefined") {
+      loadDataLayer();
+    } else {
+      const script = document.createElement("script");
+      script.src = "/env.js";
+      script.async = false;
+      script.onload = () => loadDataLayer();
+      script.onerror = () => loadDataLayer();
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  const handleTenantSwitch = useCallback(async (tenant: string) => {
+    localStorage.setItem("ibl_current_tenant", JSON.stringify({ key: tenant }));
+    router.push(`/platform/${tenant}/${config.defaultAgentId()}`);
+  }, [router]);
+
+  const saveCurrentTenant = useCallback((tenant: unknown) => {
+    localStorage.setItem("ibl_current_tenant", JSON.stringify(tenant));
+  }, []);
+
+  const saveUserTenants = useCallback((tenants: unknown[]) => {
+    localStorage.setItem("tenants", JSON.stringify(tenants));
+  }, []);
+
+  const handleRedirectToAuth = useCallback(() => {
+    redirectToAuthSpa();
+  }, []);
+
+  const handleRedirectToMentor = useCallback(
+    (tenantKey: string, mentorId: string) => {
+      router.push(`/platform/${tenantKey}/${mentorId}`);
+    },
+    [router]
+  );
+
+  const handleRedirectHome = useCallback(() => {
+    router.push("/");
+  }, [router]);
+
+  if (!isInitialized) {
+    return null;
+  }
+
+  return (
+    <AuthProvider
+      redirectToAuthSpa={redirectToAuthSpa}
+      hasNonExpiredAuthToken={hasNonExpiredAuthToken}
+      username={username}
+      pathname={pathname}
+      middleware={new Map()}
+    >
+      <TenantProvider
+        currentTenant={mainTenantKey}
+        requestedTenant={(params.tenantKey as string) || mainTenantKey}
+        handleTenantSwitch={handleTenantSwitch}
+        saveCurrentTenant={saveCurrentTenant}
+        saveUserTenants={saveUserTenants}
+      >
+        <MentorProvider
+          redirectToAuthSpa={handleRedirectToAuth}
+          redirectToMentor={handleRedirectToMentor}
+          redirectToNoMentorsPage={handleRedirectHome}
+          redirectToCreateMentor={handleRedirectHome}
+          username={username}
+          isAdmin={false}
+          mainTenantKey={mainTenantKey}
+          requestedMentorId={(params.agentId as string) || config.defaultAgentId()}
+          skip={true}
+        >
+          {children}
+        </MentorProvider>
+      </TenantProvider>
+    </AuthProvider>
+  );
+}

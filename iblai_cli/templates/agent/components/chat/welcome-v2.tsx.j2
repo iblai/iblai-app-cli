@@ -1,0 +1,83 @@
+'use client';
+
+import { useParams } from 'next/navigation';
+import { ConversationStarters } from '@iblai/iblai-js/web-containers/next';
+import { useGetGuidedPromptsQuery } from '@iblai/iblai-js/data-layer';
+import { useUsername } from '@/hooks/use-user';
+import { ChatInputForm } from './chat-input-form';
+
+interface WelcomeScreenProps {
+  onSubmit: (message: string) => void;
+  sessionId?: string;
+  input: string;
+  setInput: (value: string) => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+  mentorName?: string;
+  profileImage?: string;
+}
+
+export function WelcomeScreenV2({
+  onSubmit,
+  sessionId,
+  input,
+  setInput,
+  isLoading,
+  disabled,
+  mentorName = 'Agent',
+}: WelcomeScreenProps) {
+  const params = useParams();
+  const tenantKey = params.tenantKey as string;
+  const username = useUsername();
+  const realUsername = username ?? 'anonymous';
+
+  const { data: guidedPrompts } = useGetGuidedPromptsQuery(
+    {
+      org: tenantKey,
+      sessionId: sessionId ?? '',
+      // @ts-ignore
+      userId: realUsername,
+    },
+    {
+      skip: !tenantKey || !sessionId || !realUsername,
+    },
+  );
+
+  return (
+    <div className="py-6 w-full">
+      {/* Mentor Branding */}
+      <div className="flex flex-col items-center mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <h1 className="text-center bg-gradient-to-r from-[#38A1E5] to-[#7284FF] text-transparent bg-clip-text font-bold text-3xl">
+            {mentorName}
+          </h1>
+        </div>
+
+        <div className="text-center mb-6">
+          <p className="text-gray-600 text-lg max-w-3xl">
+            Hello, I&apos;m {mentorName}. How may I help you today?
+          </p>
+        </div>
+
+        {/* Chat Input Form */}
+        <div className="w-full max-w-4xl">
+          <ChatInputForm
+            input={input}
+            setInput={setInput}
+            onSubmit={onSubmit}
+            isLoading={isLoading}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
+      {/* Conversation Starters */}
+      <div className="mb-12">
+        <ConversationStarters
+          onTemplateSelect={onSubmit}
+          guidedPrompts={guidedPrompts?.results ?? []}
+        />
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,32 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+
+export default function TenantPage() {
+  const router = useRouter();
+  const params = useParams();
+  const tenantKey = params.tenantKey as string;
+
+  useEffect(() => {
+    // If no specific agent is provided, redirect to default agent if configured
+    {% if has_mentor_id %}
+    router.push(`/platform/${tenantKey}/{{ mentor_id }}`);
+    {% else %}
+    // If no default agent, show selection page or redirect to auth
+    const defaultAgentId = process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID;
+    if (defaultAgentId) {
+      router.push(`/platform/${tenantKey}/${defaultAgentId}`);
+    }
+    {% endif %}
+  }, [router, tenantKey]);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold mb-2">Initializing Agent...</h1>
+        <p className="text-muted-foreground">Please wait</p>
+      </div>
+    </div>
+  );
+}
