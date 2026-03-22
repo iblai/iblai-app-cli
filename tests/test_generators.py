@@ -233,3 +233,55 @@ class TestAgentAppGenerator:
         config_file = temp_dir / "lib" / "config.ts"
         config_content = config_file.read_text()
         assert "my-platform" in config_content
+
+
+class TestAgentRouteGroups:
+    """Tests for the Next.js route group structure (app/(app)/ and app/(auth)/)."""
+
+    @pytest.fixture
+    def generated_dir(self, tmp_path):
+        from iblai_cli.generators.agent import AgentAppGenerator
+
+        output = tmp_path / "route-group-app"
+        gen = AgentAppGenerator(
+            app_name="route-group-app",
+            platform_key="acme",
+            mentor_id="test-agent",
+            output_dir=str(output),
+        )
+        gen.generate()
+        return output
+
+    def test_generate_creates_route_groups(self, generated_dir):
+        """Both (app) and (auth) route group directories exist."""
+        assert (generated_dir / "app" / "(app)").is_dir()
+        assert (generated_dir / "app" / "(auth)").is_dir()
+
+    def test_sso_page_in_auth_route_group(self, generated_dir):
+        """SSO callback page is inside (auth) route group, outside auth providers."""
+        sso = generated_dir / "app" / "(auth)" / "sso-login-complete" / "page.tsx"
+        assert sso.exists()
+        content = sso.read_text()
+        assert "SsoLogin" in content
+
+    def test_platform_pages_in_app_route_group(self, generated_dir):
+        """Platform/agent pages are inside (app) route group, wrapped by AppShell."""
+        assert (
+            generated_dir
+            / "app"
+            / "(app)"
+            / "platform"
+            / "[tenantKey]"
+            / "[agentId]"
+            / "page.tsx"
+        ).exists()
+        assert (
+            generated_dir / "app" / "(app)" / "platform" / "[tenantKey]" / "page.tsx"
+        ).exists()
+
+    def test_authenticated_layout_in_app_group(self, generated_dir):
+        """(app)/layout.tsx exists and wraps children with AppShell."""
+        layout = generated_dir / "app" / "(app)" / "layout.tsx"
+        assert layout.exists()
+        content = layout.read_text()
+        assert "AppShell" in content

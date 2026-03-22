@@ -47,7 +47,14 @@ class TestStartappCommand:
         with runner.isolated_filesystem():
             result = runner.invoke(
                 cli,
-                ["startapp", "agent", "--platform-key", "test-platform", "--output", "."],
+                [
+                    "startapp",
+                    "agent",
+                    "--platform-key",
+                    "test-platform",
+                    "--output",
+                    ".",
+                ],
                 input="test-app\n",  # App name
             )
             # Should succeed or ask for confirmation
@@ -77,3 +84,30 @@ class TestStartappCommand:
             )
             # Command should process without errors
             assert result.exit_code == 0 or "Creating new agent app" in result.output
+
+
+class TestAddCommand:
+    """Test suite for the iblai add command group."""
+
+    @pytest.fixture
+    def runner(self):
+        return CliRunner()
+
+    def test_add_command_in_help(self, runner):
+        """The 'add' command is listed in the main CLI help."""
+        result = runner.invoke(cli, ["--help"])
+        assert result.exit_code == 0
+        assert "add" in result.output
+
+    def test_add_help_shows_subcommands(self, runner):
+        """iblai add --help lists all five subcommands."""
+        result = runner.invoke(cli, ["add", "--help"])
+        assert result.exit_code == 0
+        for sub in ("auth", "chat", "profile", "notifications", "mcp"):
+            assert sub in result.output
+
+    def test_add_auth_requires_nextjs(self, runner):
+        """Running iblai add auth outside a Next.js project shows an error."""
+        with runner.isolated_filesystem():
+            result = runner.invoke(cli, ["add", "auth"])
+            assert result.exit_code != 0 or "No package.json" in result.output

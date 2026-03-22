@@ -4,7 +4,7 @@
 
 # App CLI
 
-Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications. Generates production-ready Next.js apps with chat interfaces, authentication, and full integration with the ibl.ai platform SDK.
+Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications, or adding IBL.ai features (auth, chat, profile, notifications) to existing Next.js apps. Generates production-ready code with SSO authentication, WebSocket chat, and full integration with the ibl.ai platform SDK.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
@@ -143,6 +143,97 @@ cp .env.example .env.local    # Edit with your platform URL and keys
 pnpm dev                       # Starts on http://localhost:3000
 ```
 
+## `iblai add` -- Add IBL.ai Features to Existing Apps
+
+Already have a Next.js app? Use `iblai add` to integrate IBL.ai features without scaffolding a new project.
+
+```bash
+iblai add auth           # SSO authentication + Redux store + providers
+iblai add chat           # AI chat widget with WebSocket streaming
+iblai add profile        # User profile dropdown
+iblai add notifications  # Notification bell with unread badge
+iblai add mcp            # MCP config + Claude skills for AI-assisted development
+```
+
+### `iblai add auth`
+
+Adds SSO authentication to your project. Generates 7 files:
+
+| File | Purpose |
+|------|---------|
+| `app/sso-login-complete/page.tsx` | SSO callback handler |
+| `lib/iblai/config.ts` | API URL configuration (supports consolidated `api.domain/lms` pattern) |
+| `lib/iblai/storage-service.ts` | localStorage wrapper for the SDK |
+| `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
+| `store/iblai-store.ts` | Redux store with IBL API slices |
+| `providers/iblai-providers.tsx` | `AuthProvider` + `TenantProvider` wrapper |
+| `app/iblai-styles.css` | SDK component styles |
+
+After running, follow the printed instructions to install dependencies, configure webpack, and set environment variables.
+
+```bash
+iblai add auth --platform my-tenant
+```
+
+### `iblai add chat`
+
+Adds a self-contained AI chat widget with WebSocket streaming, markdown rendering, session management, and conversation starters. Requires auth to be added first.
+
+```tsx
+import { ChatWidget } from "@/components/iblai/chat-widget";
+
+<ChatWidget mentorId="your-mentor-id" />
+```
+
+### `iblai add profile`
+
+Adds a user profile dropdown using the SDK's `UserProfileDropdown` component.
+
+```tsx
+import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";
+
+<IblaiProfileDropdown />
+```
+
+### `iblai add notifications`
+
+Adds a notification bell with unread count badge.
+
+```tsx
+import { IblaiNotificationBell } from "@/components/iblai/notification-bell";
+
+<IblaiNotificationBell />
+```
+
+### `iblai add mcp`
+
+Adds `.mcp.json` and Claude skill files for AI-assisted development:
+
+| Skill | Slash Command | Purpose |
+|-------|--------------|---------|
+| `iblai-setup.md` | `/iblai-setup` | Full setup from scratch |
+| `iblai-add-auth.md` | `/iblai-add-auth` | Step-by-step auth integration |
+| `iblai-add-chat.md` | `/iblai-add-chat` | Step-by-step chat integration |
+| `iblai-add-profile.md` | `/iblai-add-profile` | Step-by-step profile integration |
+| `iblai-add-notifications.md` | `/iblai-add-notifications` | Step-by-step notifications integration |
+
+### Prerequisites
+
+- `auth` must be added before `chat`, `profile`, or `notifications`
+- Project must be a Next.js app with App Router (`app/` directory)
+- Files are created in namespaced directories (`lib/iblai/`, `components/iblai/`) to avoid conflicts
+
+### Environment variables
+
+```bash
+# Consolidated API (recommended)
+NEXT_PUBLIC_API_BASE_URL=https://api.iblai.org
+NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org
+NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.org
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
+```
+
 ## What gets generated
 
 The `startapp agent` command creates a complete Next.js 15 application:
@@ -152,13 +243,16 @@ The `startapp agent` command creates a complete Next.js 15 application:
 ```
 <app-name>/
 ├── app/                              # Next.js App Router
-│   ├── layout.tsx                    # Root layout with providers
-│   ├── page.tsx                      # Home page (redirects to agent)
+│   ├── layout.tsx                    # Root layout (html/body, no providers)
 │   ├── globals.css                   # Global styles (Tailwind)
-│   ├── sso-login-complete/           # SSO callback handler
-│   └── platform/[tenantKey]/         # Dynamic tenant routing
-│       └── [agentId]/                # Dynamic agent routing
-│           └── page.tsx              # Chat interface
+│   ├── (auth)/                       # Auth route group (no AppShell)
+│   │   └── sso-login-complete/       # SSO callback handler
+│   └── (app)/                        # Authenticated route group (AppShell)
+│       ├── layout.tsx                # Wraps children with AppShell/providers
+│       ├── page.tsx                  # Home page (redirects to agent)
+│       └── platform/[tenantKey]/     # Dynamic tenant routing
+│           └── [agentId]/            # Dynamic agent routing
+│               └── page.tsx          # Chat interface
 ├── components/
 │   ├── app-shell.tsx                 # Client-side provider wrapper
 │   ├── app-sidebar.tsx               # Collapsible sidebar navigation
