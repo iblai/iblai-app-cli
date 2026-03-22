@@ -104,15 +104,75 @@ Interactive wizard that walks you through:
 
 ```
 Options:
-  --platform, -p TEXT       Platform key (tenant identifier)
-  --agent, -a TEXT          Agent ID
-  --output, -o PATH         Output directory (default: current directory)
-  --openai-key TEXT         OpenAI API key for AI-assisted customization
-  --anthropic-key TEXT      Anthropic API key for AI-assisted customization
-  --ai-provider TEXT        AI provider: "openai" or "anthropic"
-  --prompt, -P TEXT         Natural language prompt to customize the app
-  --help                    Show this message and exit
+  --platform, -p TEXT           Platform key (tenant identifier)
+  --agent, -a TEXT              Agent ID
+  --app-name TEXT               App name (directory and package.json name)
+  --output, -o PATH             Output directory (default: current directory)
+  --openai-key TEXT             OpenAI API key for AI-assisted customization
+  --anthropic-key TEXT          Anthropic API key for AI-assisted customization
+  --ai-provider [openai|anthropic]  AI provider to use
+  --ai-model TEXT               AI model override (e.g., claude-sonnet-4-20250514)
+  --ai-temperature FLOAT        AI temperature (0.0-2.0)
+  --ai-max-tokens INTEGER       AI max tokens for generation
+  --prompt, -P TEXT             Natural language prompt to customize the app
+  --env-file PATH               Path to a custom .env file
+  --stage TEXT                  Stage name to load .env.{stage} overrides
+  --help                        Show this message and exit
 ```
+
+#### Configuration via `.env` files
+
+Instead of passing all options as CLI flags, you can create a `.env` file:
+
+```bash
+# .env
+IBLAI_PLATFORM_KEY=acme
+IBLAI_APP_NAME=my-app
+IBLAI_AGENT_ID=my-agent-123
+ANTHROPIC_API_KEY=sk-ant-...
+IBLAI_PROMPT=Make this a kids learning assistant
+```
+
+Then run with no flags:
+
+```bash
+iblai startapp agent
+```
+
+Stage-specific overrides are supported via `.env.{stage}` files:
+
+```bash
+# .env.production
+IBLAI_PLATFORM_KEY=acme-prod
+IBLAI_AGENT_ID=prod-agent
+
+# Load with:
+iblai startapp agent --stage production
+# Or set DEV_STAGE=production in your environment
+```
+
+**Resolution priority** (highest wins):
+
+```
+CLI flags > System env vars > .env.{DEV_STAGE} > .env > interactive prompts
+```
+
+#### Environment variables
+
+| Variable | CLI Flag | Description |
+|----------|----------|-------------|
+| `IBLAI_PLATFORM_KEY` | `--platform` | Platform/tenant key |
+| `IBLAI_AGENT_ID` | `--agent` | Agent/mentor ID |
+| `IBLAI_APP_NAME` | `--app-name` | App name |
+| `IBLAI_OUTPUT_DIR` | `--output` | Output directory |
+| `IBLAI_AI_PROVIDER` | `--ai-provider` | AI provider (openai/anthropic) |
+| `IBLAI_AI_MODEL` | `--ai-model` | AI model override |
+| `IBLAI_AI_TEMPERATURE` | `--ai-temperature` | AI temperature |
+| `IBLAI_AI_MAX_TOKENS` | `--ai-max-tokens` | AI max tokens |
+| `OPENAI_API_KEY` | `--openai-key` | OpenAI API key |
+| `ANTHROPIC_API_KEY` | `--anthropic-key` | Anthropic API key |
+| `IBLAI_PROMPT` | `--prompt` | Enhancement prompt |
+| `DEV_STAGE` | `--stage` | Stage name for `.env.{stage}` |
 
 #### Examples
 
@@ -123,13 +183,24 @@ iblai startapp agent
 # Non-interactive with platform and agent
 iblai startapp agent --platform acme --agent my-agent-123
 
+# Non-interactive with app name (skips prompt)
+iblai startapp agent --platform acme --app-name my-app
+
 # Generate into a specific directory
 iblai startapp agent --platform acme --output ./projects
 
-# AI-assisted customization (modifies styling, copy, and layout)
+# AI-assisted customization with model override
 iblai startapp agent --platform acme \
   --anthropic-key sk-ant-... \
+  --ai-model claude-sonnet-4-20250514 \
+  --ai-temperature 0.5 \
   --prompt "Make this a kids learning assistant with bright colors"
+
+# Using a custom .env file
+iblai startapp agent --env-file ./config/.env
+
+# Using stage-specific config
+DEV_STAGE=production iblai startapp agent
 ```
 
 ### Running the generated app
