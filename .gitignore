@@ -26,3 +26,16 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node
+node_modules/
+
+# PyInstaller
+*.spec
+
+# npm platform binaries (populated by CI, not committed)
+npm/cli-linux-x64/bin/iblai
+npm/cli-linux-arm64/bin/iblai
+npm/cli-darwin-x64/bin/iblai
+npm/cli-darwin-arm64/bin/iblai
+npm/cli-win32-x64/bin/iblai.exe

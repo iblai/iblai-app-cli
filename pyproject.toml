@@ -41,10 +41,12 @@ dev = [
     "black>=23.0.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
+    "pyinstaller>=6.0.0",
 ]
 
 [project.scripts]
 iblai = "iblai_cli.cli:cli"
+iblai-app-cli = "iblai_cli.cli:cli"
 
 [project.urls]
 Homepage = "https://ibl.ai"
