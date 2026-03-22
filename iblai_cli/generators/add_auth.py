@@ -66,4 +66,9 @@ class AddAuthGenerator:
         self._write(providers_path, self._render("add/auth/iblai-providers.tsx.j2"))
         created.append(str(providers_path.relative_to(self.project.root)))
 
+        # 7. IBL styles (CSS imports for SDK components)
+        styles_path = self.project.app_dir / "iblai-styles.css"
+        self._write(styles_path, self._render("add/auth/iblai-styles.css.j2"))
+        created.append(str(styles_path.relative_to(self.project.root)))
+
         return created

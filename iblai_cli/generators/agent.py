@@ -40,8 +40,9 @@ class AgentAppGenerator(BaseGenerator):
         self._generate_eslintrc()
         self._generate_mcp_config()
 
-        # Generate app structure
+        # Generate app structure (route groups: (auth) for SSO, (app) for authenticated)
         self._generate_app_layout()
+        self._generate_authenticated_layout()
         self._generate_app_page()
         self._generate_sso_login_complete()
         self._generate_platform_layout()
@@ -126,51 +127,85 @@ class AgentAppGenerator(BaseGenerator):
         self.write_file(self.output_dir / "app" / "layout.tsx", content)
 
         # Copy globals.css (static file, not a template)
-        self._copy_static_file("agent/app/globals.css", self.output_dir / "app" / "globals.css")
+        self._copy_static_file(
+            "agent/app/globals.css", self.output_dir / "app" / "globals.css"
+        )
+
+    def _generate_authenticated_layout(self) -> None:
+        """Generate app/(app)/layout.tsx — wraps authenticated routes with AppShell."""
+        content = self.render_template("agent/app/(app)/layout.tsx.j2")
+        self.write_file(self.output_dir / "app" / "(app)" / "layout.tsx", content)
 
     def _generate_app_page(self) -> None:
-        """Generate app/page.tsx."""
-        content = self.render_template("agent/app/page.tsx.j2")
-        self.write_file(self.output_dir / "app" / "page.tsx", content)
+        """Generate app/(app)/page.tsx — redirect to platform page."""
+        content = self.render_template("agent/app/(app)/page.tsx.j2")
+        self.write_file(self.output_dir / "app" / "(app)" / "page.tsx", content)
 
     def _generate_sso_login_complete(self) -> None:
-        """Generate app/sso-login-complete/page.tsx for SSO callback handling."""
-        content = self.render_template("agent/app/sso-login-complete/page.tsx.j2")
+        """Generate app/(auth)/sso-login-complete/page.tsx — SSO callback, NO auth providers."""
+        content = self.render_template(
+            "agent/app/(auth)/sso-login-complete/page.tsx.j2"
+        )
         self.write_file(
-            self.output_dir / "app" / "sso-login-complete" / "page.tsx",
-            content
+            self.output_dir / "app" / "(auth)" / "sso-login-complete" / "page.tsx",
+            content,
         )
 
     def _generate_platform_layout(self) -> None:
-        """Generate app/platform/[tenantKey]/layout.tsx."""
-        content = self.render_template("agent/app/platform/[tenantKey]/layout.tsx.j2")
+        """Generate app/(app)/platform/[tenantKey]/layout.tsx."""
+        content = self.render_template(
+            "agent/app/(app)/platform/[tenantKey]/layout.tsx.j2"
+        )
         self.write_file(
-            self.output_dir / "app" / "platform" / "[tenantKey]" / "layout.tsx",
-            content
+            self.output_dir
+            / "app"
+            / "(app)"
+            / "platform"
+            / "[tenantKey]"
+            / "layout.tsx",
+            content,
         )
 
     def _generate_platform_page(self) -> None:
-        """Generate app/platform/[tenantKey]/page.tsx."""
-        content = self.render_template("agent/app/platform/[tenantKey]/page.tsx.j2")
+        """Generate app/(app)/platform/[tenantKey]/page.tsx."""
+        content = self.render_template(
+            "agent/app/(app)/platform/[tenantKey]/page.tsx.j2"
+        )
         self.write_file(
-            self.output_dir / "app" / "platform" / "[tenantKey]" / "page.tsx",
-            content
+            self.output_dir / "app" / "(app)" / "platform" / "[tenantKey]" / "page.tsx",
+            content,
         )
 
     def _generate_agent_layout(self) -> None:
-        """Generate app/platform/[tenantKey]/[agentId]/layout.tsx."""
-        content = self.render_template("agent/app/platform/[tenantKey]/[agentId]/layout.tsx.j2")
+        """Generate app/(app)/platform/[tenantKey]/[agentId]/layout.tsx."""
+        content = self.render_template(
+            "agent/app/(app)/platform/[tenantKey]/[agentId]/layout.tsx.j2"
+        )
         self.write_file(
-            self.output_dir / "app" / "platform" / "[tenantKey]" / "[agentId]" / "layout.tsx",
-            content
+            self.output_dir
+            / "app"
+            / "(app)"
+            / "platform"
+            / "[tenantKey]"
+            / "[agentId]"
+            / "layout.tsx",
+            content,
         )
 
     def _generate_agent_page(self) -> None:
-        """Generate app/platform/[tenantKey]/[agentId]/page.tsx."""
-        content = self.render_template("agent/app/platform/[tenantKey]/[agentId]/page.tsx.j2")
+        """Generate app/(app)/platform/[tenantKey]/[agentId]/page.tsx."""
+        content = self.render_template(
+            "agent/app/(app)/platform/[tenantKey]/[agentId]/page.tsx.j2"
+        )
         self.write_file(
-            self.output_dir / "app" / "platform" / "[tenantKey]" / "[agentId]" / "page.tsx",
-            content
+            self.output_dir
+            / "app"
+            / "(app)"
+            / "platform"
+            / "[tenantKey]"
+            / "[agentId]"
+            / "page.tsx",
+            content,
         )
 
     def _generate_app_shell(self) -> None:
@@ -196,19 +231,27 @@ class AgentAppGenerator(BaseGenerator):
 
         # Chat messages component
         content = self.render_template("agent/components/chat/chat-messages.tsx.j2")
-        self.write_file(self.output_dir / "components" / "chat" / "chat-messages.tsx", content)
+        self.write_file(
+            self.output_dir / "components" / "chat" / "chat-messages.tsx", content
+        )
 
         # Chat input form
         content = self.render_template("agent/components/chat/chat-input-form.tsx.j2")
-        self.write_file(self.output_dir / "components" / "chat" / "chat-input-form.tsx", content)
+        self.write_file(
+            self.output_dir / "components" / "chat" / "chat-input-form.tsx", content
+        )
 
         # Welcome screen
         content = self.render_template("agent/components/chat/welcome.tsx.j2")
-        self.write_file(self.output_dir / "components" / "chat" / "welcome.tsx", content)
+        self.write_file(
+            self.output_dir / "components" / "chat" / "welcome.tsx", content
+        )
 
         # Welcome screen v2
         content = self.render_template("agent/components/chat/welcome-v2.tsx.j2")
-        self.write_file(self.output_dir / "components" / "chat" / "welcome-v2.tsx", content)
+        self.write_file(
+            self.output_dir / "components" / "chat" / "welcome-v2.tsx", content
+        )
 
     def _generate_markdown(self) -> None:
         """Generate Markdown rendering component."""
@@ -218,16 +261,24 @@ class AgentAppGenerator(BaseGenerator):
     def _generate_ui_components(self) -> None:
         """Generate UI components from web-containers."""
         ui_components = [
-            "button", "sidebar", "dropdown-menu", "avatar",
-            "tooltip", "dialog", "input", "textarea", "skeleton",
-            "sheet", "separator", "sonner"
+            "button",
+            "sidebar",
+            "dropdown-menu",
+            "avatar",
+            "tooltip",
+            "dialog",
+            "input",
+            "textarea",
+            "skeleton",
+            "sheet",
+            "separator",
+            "sonner",
         ]
 
         for component in ui_components:
             content = self.render_template(f"agent/components/ui/{component}.tsx.j2")
             self.write_file(
-                self.output_dir / "components" / "ui" / f"{component}.tsx",
-                content
+                self.output_dir / "components" / "ui" / f"{component}.tsx", content
             )
 
     def _generate_hooks(self) -> None:

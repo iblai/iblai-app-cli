@@ -36,9 +36,9 @@ export function redirectToAuthSpa(
 export function hasNonExpiredAuthToken(): boolean {
   if (typeof window === "undefined") return false;
   const token = localStorage.getItem("axd_token");
-  if (!token) return true; // no token yet — let auth flow handle it
+  if (!token) return false;
   const expiry = localStorage.getItem("axd_token_expires");
-  if (!expiry) return true;
+  if (!expiry) return false;
   return new Date(expiry) > new Date();
 }
 

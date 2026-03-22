@@ -57,6 +57,9 @@ export function IblaiProfileDropdown({ className }: IblaiProfileDropdownProps) {
         localStorage.setItem("tenant", tenant);
         redirectToAuthSpa(undefined, tenant, true, true);
       }}
+      onTenantUpdate={(tenant: any) => {
+        if (tenant?.key) localStorage.setItem("tenant", tenant.key);
+      }}
       className={className}
     />
   );

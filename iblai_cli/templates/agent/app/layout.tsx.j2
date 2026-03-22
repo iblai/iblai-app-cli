@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 
 const openSans = Open_Sans({
@@ -12,7 +11,7 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "sba-agent-app",
+  title: "{{ app_name }}",
   description: "AI Agent powered by IBL.ai",
 };
 
@@ -26,7 +25,7 @@ export default function RootLayout({
       <head />
       <body className={`${openSans.variable} font-sans antialiased`}>
         <Script src="/env.js" strategy="afterInteractive" />
-        <AppShell>{children}</AppShell>
+        {children}
         <Toaster />
       </body>
     </html>

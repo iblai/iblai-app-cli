@@ -11,9 +11,30 @@ from iblai_cli.project_detector import detect_project
 console = Console()
 
 # Packages a developer must add for auth (printed as instructions).
-AUTH_DEPS = "@iblai/iblai-js @reduxjs/toolkit react-redux"
+AUTH_DEPS = "@iblai/iblai-js @reduxjs/toolkit react-redux sonner lucide-react react-markdown remark-gfm"
 CHAT_EXTRA_ENV = """\
 NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org"""
+
+WEBPACK_CONFIG_SNIPPET = """\
+// Add to your next.config.mjs webpack config:
+webpack: (config) => {
+  // Stub Tauri imports (not needed for web-only apps)
+  config.resolve.alias['@tauri-apps/api/core'] = false;
+  config.resolve.alias['@tauri-apps/api/event'] = false;
+  return config;
+}"""
+
+LOCALSTORAGE_POLYFILL = """\
+// Add to the TOP of next.config.mjs (before the config object):
+if (typeof window === "undefined" && typeof localStorage !== "undefined"
+    && typeof localStorage.getItem !== "function") {
+  const _s = {};
+  globalThis.localStorage = {
+    getItem: (k) => (_s[k] ?? null), setItem: (k, v) => { _s[k] = String(v); },
+    removeItem: (k) => { delete _s[k]; }, clear: () => { for (const k in _s) delete _s[k]; },
+    get length() { return Object.keys(_s).length; }, key: (i) => Object.keys(_s)[i] ?? null,
+  };
+}"""
 
 
 def _require_nextjs():
@@ -86,14 +107,25 @@ def auth(platform: Optional[str]):
             "[bold]Next steps:[/bold]\n\n"
             f"  1. Install dependencies:\n"
             f"     [dim]pnpm add {AUTH_DEPS}[/dim]\n\n"
-            "  2. Wrap your root layout with the provider:\n"
+            "  2. Import IBL styles in your globals.css:\n"
+            "     [dim]@import './iblai-styles.css';[/dim]\n\n"
+            "  3. Add to next.config.mjs — webpack Tauri stubs:\n"
+            "     [dim]config.resolve.alias['@tauri-apps/api/core'] = false;[/dim]\n"
+            "     [dim]config.resolve.alias['@tauri-apps/api/event'] = false;[/dim]\n\n"
+            "  4. Add to TOP of next.config.mjs — localStorage polyfill (Node 22+):\n"
+            "     [dim]See: https://github.com/iblai/iblai-app-cli#localstorage-polyfill[/dim]\n\n"
+            "  5. Wrap your [bold]pages[/bold] (not root layout) with the provider:\n"
             '     [dim]import { IblaiProviders } from "@/providers/iblai-providers";[/dim]\n'
             "     [dim]<IblaiProviders>{children}</IblaiProviders>[/dim]\n\n"
-            "  3. Add environment variables to .env.local:\n"
+            "     [yellow]Important:[/yellow] /sso-login-complete must NOT be inside\n"
+            "     IblaiProviders. Use per-page wrapping or Next.js route groups.\n\n"
+            "  6. Add environment variables to .env.local:\n"
+            "     [dim]NEXT_PUBLIC_API_BASE_URL=https://api.iblai.org[/dim]\n"
             "     [dim]NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org[/dim]\n"
-            "     [dim]NEXT_PUBLIC_DM_URL=https://base.manager.iblai.app[/dim]\n"
-            "     [dim]NEXT_PUBLIC_LMS_URL=https://learn.iblai.app[/dim]\n\n"
-            "  4. Run [bold]pnpm dev[/bold] — unauthenticated users will be\n"
+            "     [dim]NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org[/dim]\n"
+            "     [dim]NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.org[/dim]\n"
+            "     [dim]NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant[/dim]\n\n"
+            "  7. Run [bold]pnpm dev[/bold] — unauthenticated users will be\n"
             "     redirected to the IBL Auth SPA automatically.",
             border_style="green",
             title="iblai add auth",

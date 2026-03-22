@@ -35,10 +35,10 @@ class LocalStorageService implements StorageService {
 
 function hasNonExpiredAuthToken(): boolean {
   const token = window.localStorage.getItem("axd_token");
-  if (!token) return true;
+  if (!token) return false;
 
   const tokenExpiry = window.localStorage.getItem("axd_token_expires");
-  if (!tokenExpiry) return true;
+  if (!tokenExpiry) return false;
 
   return new Date(tokenExpiry) > new Date();
 }
