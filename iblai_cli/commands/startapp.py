@@ -106,8 +106,13 @@ def startapp(
     console.print(
         Panel.fit(
             f"[bold cyan]Creating new {template} app[/bold cyan]"
-            + (" [bold yellow](AI-enhanced)[/bold yellow]" if prompt else
-               " [bold yellow](AI-assisted)[/bold yellow]" if use_ai else ""),
+            + (
+                " [bold yellow](AI-enhanced)[/bold yellow]"
+                if prompt
+                else " [bold yellow](AI-assisted)[/bold yellow]"
+                if use_ai
+                else ""
+            ),
             border_style="cyan",
         )
     )
@@ -162,7 +167,9 @@ def startapp(
             "app_name",
             message="Enter the app name (will be used for directory and package.json)",
             default=f"{platform}-agent-app",
-            validate=lambda _, x: len(x) > 0 and x.replace("-", "").replace("_", "").isalnum(),
+            validate=lambda _, x: (
+                len(x) > 0 and x.replace("-", "").replace("_", "").isalnum()
+            ),
         ),
     ]
     answers = inquirer.prompt(questions)
@@ -207,28 +214,34 @@ def startapp(
                 progress.update(task, completed=True)
 
             console.print()
-            console.print(Panel.fit(
-                f"[bold green]✓ Successfully created {template} app![/bold green]"
-                + (" [bold yellow](AI-enhanced)[/bold yellow]" if prompt else "")
-                + "\n\n"
-                f"[cyan]App name:[/cyan] {app_name}\n"
-                f"[cyan]Platform:[/cyan] {platform}\n"
-                + (f"[cyan]Agent ID:[/cyan] {agent}\n" if agent else "")
-                + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
-                + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
-                + f"[cyan]Location:[/cyan] {output_path}\n\n"
-                "[bold]Next steps:[/bold]\n"
-                f"  1. cd {output_path}\n"
-                "  2. pnpm install\n"
-                "  3. cp .env.example .env.local\n"
-                "  4. Update .env.local with your configuration\n"
-                "  5. pnpm dev\n\n"
-                "[bold]AI-assisted development:[/bold]\n"
-                "  A .mcp.json is included for Claude Code / Cursor integration.\n"
-                "  The MCP server provides component docs, hook info, and API patterns.",
-                border_style="green",
-                title="Success",
-            ))
+            console.print(
+                Panel.fit(
+                    f"[bold green]✓ Successfully created {template} app![/bold green]"
+                    + (" [bold yellow](AI-enhanced)[/bold yellow]" if prompt else "")
+                    + "\n\n"
+                    f"[cyan]App name:[/cyan] {app_name}\n"
+                    f"[cyan]Platform:[/cyan] {platform}\n"
+                    + (f"[cyan]Agent ID:[/cyan] {agent}\n" if agent else "")
+                    + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
+                    + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
+                    + f"[cyan]Location:[/cyan] {output_path}\n\n"
+                    "[bold]Next steps:[/bold]\n"
+                    f"  1. cd {output_path}\n"
+                    "  2. pnpm install\n"
+                    "  3. cp .env.example .env.local\n"
+                    "  4. Update .env.local with your configuration\n"
+                    "  5. pnpm dev\n\n"
+                    "[bold]AI-assisted development:[/bold]\n"
+                    "  A .mcp.json is included for Claude Code / Cursor integration.\n"
+                    "  The MCP server provides component docs, hook info, and API patterns.\n\n"
+                    "[bold]Add UI blocks (shadcnspace):[/bold]\n"
+                    "  npx shadcn@latest add @shadcn-space/hero-01\n"
+                    "  npx shadcn@latest add @shadcn-space/dashboard-shell-01\n"
+                    "  Browse all: https://shadcnspace.com/blocks",
+                    border_style="green",
+                    title="Success",
+                )
+            )
         else:
             console.print(f"[red]Error: Unknown template '{template}'[/red]")
             return
@@ -238,5 +251,6 @@ def startapp(
         # Clean up partial directory if it was created
         if output_path.exists():
             import shutil
+
             shutil.rmtree(output_path)
         raise
