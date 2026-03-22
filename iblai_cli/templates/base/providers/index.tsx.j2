@@ -1,0 +1,176 @@
+"use client";
+{% raw %}
+/**
+ * Application providers — AuthProvider + TenantProvider.
+ *
+ * This is a "base" provider setup with no MentorProvider.
+ * Add MentorProvider later via `iblai add chat` if needed.
+ */
+
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import Script from "next/script";
+import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
+import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
+import { config, getEnv } from "@/lib/config";
+
+// ---------------------------------------------------------------------------
+// LocalStorageService for initializeDataLayer
+// ---------------------------------------------------------------------------
+
+class LocalStorageService {
+  private static instance: LocalStorageService;
+  static getInstance() {
+    if (!this.instance) this.instance = new LocalStorageService();
+    return this.instance;
+  }
+  async getItem<T>(key: string): Promise<T | null> {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(key) as T;
+  }
+  async setItem<T>(key: string, item: T): Promise<void> {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(key, item as unknown as string);
+  }
+  async removeItem(key: string): Promise<void> {
+    if (typeof window === "undefined") return;
+    window.localStorage.removeItem(key);
+  }
+}
+
+const storageService = LocalStorageService.getInstance();
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function redirectToAuthSpa(
+  redirectTo?: string,
+  platformKey?: string,
+  logout?: boolean,
+  saveRedirect?: boolean,
+) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const path = redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+  if (saveRedirect) localStorage.setItem("redirect-to", path);
+
+  const params = new URLSearchParams({ "redirect-to": origin, app: "agent" });
+  if (platformKey) params.set("tenant", platformKey);
+  if (logout) params.set("logout", "1");
+
+  window.location.href = `${config.authUrl()}/login?${params.toString()}`;
+}
+
+function hasNonExpiredAuthToken(): boolean {
+  const token = window.localStorage.getItem("axd_token");
+  if (!token) return false;
+  const tokenExpiry = window.localStorage.getItem("axd_token_expires");
+  if (!tokenExpiry) return false;
+  return new Date(tokenExpiry) > new Date();
+}
+
+// Routes that skip auth
+const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
+  [new RegExp("^/sso-login"), async () => false],
+]);
+
+// ---------------------------------------------------------------------------
+// Provider component
+// ---------------------------------------------------------------------------
+
+export function Providers({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    initializeDataLayer(
+      config.dmUrl(),
+      config.lmsUrl(),
+      storageService,
+      {
+        401: () => redirectToAuthSpa(undefined, undefined, true),
+      },
+    );
+    setIsInitialized(true);
+  }, []);
+
+  const username = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) return JSON.parse(raw).user_nicename ?? "";
+    } catch { /* ignore */ }
+    return "";
+  }, [isInitialized]);
+
+  const tenantKey = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("current_tenant")
+      ?? localStorage.getItem("tenant")
+      ?? config.mainTenantKey()
+      ?? "";
+  }, [isInitialized]);
+
+  const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
+
+  if (!isInitialized) {
+    return (
+      <>
+        <Script
+          src="/env.js"
+          strategy="beforeInteractive"
+          onLoad={() => setIsInitialized(true)}
+          onError={() => setIsInitialized(true)}
+        />
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-sm text-gray-400">Loading…</p>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <AuthProvider
+      skip={isSsoRoute}
+      redirectToAuthSpa={redirectToAuthSpa}
+      hasNonExpiredAuthToken={hasNonExpiredAuthToken}
+      username={username}
+      pathname={pathname ?? "/"}
+      storageService={storageService}
+      middleware={PUBLIC_ROUTES}
+      enableStorageSync
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-sm text-gray-400">Authenticating…</p>
+        </div>
+      }
+    >
+      <TenantProvider
+        currentTenant={tenantKey}
+        requestedTenant={tenantKey}
+        saveCurrentTenant={(t: string) => {
+          localStorage.setItem("current_tenant", t);
+          localStorage.setItem("tenant", t);
+        }}
+        saveUserTenants={(t: unknown) =>
+          localStorage.setItem("tenants", JSON.stringify(t))
+        }
+        handleTenantSwitch={async () => {
+          redirectToAuthSpa(undefined, undefined, true, true);
+        }}
+        redirectToAuthSpa={redirectToAuthSpa}
+        username={username}
+        fallback={
+          <div className="flex min-h-screen items-center justify-center">
+            <p className="text-sm text-gray-400">Loading tenant…</p>
+          </div>
+        }
+      >
+        {children}
+      </TenantProvider>
+    </AuthProvider>
+  );
+}
+{% endraw %}

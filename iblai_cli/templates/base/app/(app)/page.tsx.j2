@@ -1,0 +1,42 @@
+"use client";
+{% raw %}
+import { useUsername } from "@/hooks/use-user";
+import { redirectToAuthSpa } from "@/lib/utils";
+
+export default function Home() {
+  const username = useUsername();
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-8">
+      <div className="text-center">
+        <h1 className="bg-gradient-to-r from-[#38A1E5] to-[#7284FF] text-transparent bg-clip-text font-bold text-4xl mb-2">
+          Welcome{username ? `, ${username}` : ""}
+        </h1>
+        <p className="text-gray-500 text-sm mb-8">
+          Your IBL.ai app is ready. Start building!
+        </p>
+        <div className="flex gap-4 justify-center">
+          <a
+            href="https://docs.ibl.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white"
+            style={{ background: "linear-gradient(135deg, #2563EB 0%, #93C5FD 100%)" }}
+          >
+            Documentation
+          </a>
+          <button
+            onClick={() => redirectToAuthSpa(undefined, undefined, true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      <div className="mt-16 text-center text-xs text-gray-400">
+        <p>Add features with <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">iblai add chat</code>, <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">iblai add profile</code>, or <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">iblai add notifications</code></p>
+      </div>
+    </main>
+  );
+}
+{% endraw %}

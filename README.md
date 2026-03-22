@@ -86,12 +86,45 @@ Commands:
   startapp  Create a new IBL.ai application from a template.
 ```
 
+### Templates
+
+| Template | Description | Command |
+|----------|-------------|---------|
+| `base` | Minimal app with IBL.ai auth — blank canvas for custom development | `iblai startapp base` |
+| `agent` | Full AI agent chat application with sidebar, navbar, WebSocket chat | `iblai startapp agent` |
+
+### `iblai startapp base`
+
+Scaffolds a minimal Next.js 15 app with IBL.ai SSO authentication, Redux store, and providers — no chat UI, no sidebar, no agent routes. A blank canvas for building your own app with `iblai add` features or custom code.
+
+```bash
+iblai startapp base --platform acme
+```
+
+What you get (~22 files):
+- SSO authentication with route group isolation (`(auth)/sso-login-complete`)
+- Redux store with `coreApiSlice` (no chat/mentor slices)
+- `AuthProvider` + `TenantProvider` (no `MentorProvider`)
+- Consolidated API URL config (`api.basedomain/lms`, `/dm`, `/axd`)
+- Home page with user greeting, logout, and hints for `iblai add`
+- `components.json` for shadcnspace UI blocks
+- `.mcp.json` for AI-assisted development
+- Pinned dependency versions matching the IBL.ai SDK
+
+Add features later:
+```bash
+iblai add chat           # AI chat widget
+iblai add profile        # User profile dropdown
+iblai add notifications  # Notification bell
+iblai add mcp            # Claude skills
+```
+
 ### `iblai startapp agent`
 
 Scaffolds a complete Next.js 15 agent chat application with SSO authentication, Redux state management, and full ibl.ai SDK integration.
 
 ```bash
-iblai startapp agent
+iblai startapp agent --platform acme --agent my-bot-123
 ```
 
 Interactive wizard that walks you through:
