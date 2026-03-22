@@ -1,16 +1,23 @@
 {% raw %}
 import { configureStore } from "@reduxjs/toolkit";
-import { coreApiSlice } from "@iblai/iblai-js/data-layer";
+import {
+  coreApiSlice,
+  mentorReducer,
+  mentorMiddleware,
+} from "@iblai/iblai-js/data-layer";
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       [coreApiSlice.reducerPath]: coreApiSlice.reducer,
+      ...mentorReducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false,
-      }).concat(coreApiSlice.middleware),
+      })
+        .concat(coreApiSlice.middleware)
+        .concat(...mentorMiddleware),
   });
 };
 

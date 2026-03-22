@@ -71,12 +71,14 @@ class TestBaseAppGenerator:
     def test_no_sidebar(self, generated_dir):
         assert not (generated_dir / "components" / "app-sidebar.tsx").exists()
 
-    def test_store_no_chat_slices(self, generated_dir):
+    def test_store_has_core_and_mentor_but_no_chat(self, generated_dir):
         store = (generated_dir / "store" / "index.ts").read_text()
         assert "coreApiSlice" in store
+        assert "mentorReducer" in store
+        assert "mentorMiddleware" in store
+        # Chat-specific slices should NOT be in the base store
         assert "chatSliceReducerShared" not in store
         assert "filesReducer" not in store
-        assert "mentorReducer" not in store
 
     def test_providers_no_mentor(self, generated_dir):
         providers = (generated_dir / "providers" / "index.tsx").read_text()
