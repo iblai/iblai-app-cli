@@ -2,25 +2,45 @@
 
 import json
 import os
+from unittest.mock import patch
 
 import pytest
 
 from iblai_cli.project_detector import ProjectInfo
 
 
+@pytest.fixture(autouse=True)
+def mock_subprocess():
+    """Mock subprocess.run so install_packages doesn't run real package managers."""
+    with patch("iblai_cli.package_manager.subprocess.run") as mock_run:
+        mock_run.return_value = None
+        yield mock_run
+
+
 def _make_project(tmp_path, src_dir=None):
     """Create a minimal Next.js project and return ProjectInfo."""
     root = tmp_path / "project"
     root.mkdir()
-    if src_dir:
-        (root / src_dir / "app").mkdir(parents=True)
-    else:
-        (root / "app").mkdir()
+    app_dir = root / (src_dir or "") / "app" if src_dir else root / "app"
+    app_dir.mkdir(parents=True, exist_ok=True)
+
     pkg = {
         "dependencies": {"next": "15.0.0"},
         "devDependencies": {"typescript": "5.0.0"},
     }
     (root / "package.json").write_text(json.dumps(pkg))
+
+    # Create globals.css and next.config.ts so patching has targets
+    (app_dir / "globals.css").write_text('@import "tailwindcss";\n')
+    (root / "next.config.ts").write_text(
+        'import type { NextConfig } from "next";\n\n'
+        "const nextConfig: NextConfig = {\n"
+        "  webpack: (config) => {\n"
+        "    return config;\n"
+        "  },\n"
+        "};\n\n"
+        "export default nextConfig;\n"
+    )
     return ProjectInfo(
         root=root,
         framework="nextjs",
@@ -50,9 +70,10 @@ class TestAddAuthGenerator:
         created = gen.generate()
         return project, created
 
-    def test_auth_generates_seven_files(self, generated):
+    def test_auth_generates_all_files(self, generated):
         _, created = generated
-        assert len(created) == 7
+        # 7 generated files + next.config (patched) + globals.css (patched) + .env.local
+        assert len(created) == 10
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -307,3 +328,79 @@ class TestAddGeneratorsSrcDir:
         assert (
             project.root / "src" / "components" / "iblai" / "profile-dropdown.tsx"
         ).exists()
+
+
+# ---------------------------------------------------------------------------
+# Auto-apply: next.config, globals.css, .env.local, deps
+# ---------------------------------------------------------------------------
+
+
+class TestAddAuthAutoApply:
+    """Verify auth generator patches next.config, globals.css, .env.local, and installs deps."""
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        return _make_project(tmp_path)
+
+    @pytest.fixture
+    def generated(self, project):
+        from iblai_cli.generators.add_auth import AddAuthGenerator
+
+        created = AddAuthGenerator(project, platform_key="acme").generate()
+        return project, created
+
+    def test_auth_patches_next_config(self, generated):
+        project, _ = generated
+        content = (project.root / "next.config.ts").read_text()
+        assert "@tauri-apps/api/core" in content
+        assert "localStorage.getItem" in content
+
+    def test_auth_patches_globals_css(self, generated):
+        project, _ = generated
+        content = (project.app_dir / "globals.css").read_text()
+        assert "iblai-styles.css" in content
+
+    def test_auth_writes_env_local(self, generated):
+        project, _ = generated
+        content = (project.root / ".env.local").read_text()
+        assert "NEXT_PUBLIC_API_BASE_URL" in content
+        assert "NEXT_PUBLIC_AUTH_URL" in content
+        assert "NEXT_PUBLIC_MAIN_TENANT_KEY=acme" in content
+
+    def test_auth_installs_deps(self, generated, mock_subprocess):
+        mock_subprocess.assert_called()
+        call_args = mock_subprocess.call_args[0][0]
+        # Should be a list starting with the package manager
+        assert isinstance(call_args, list)
+        assert "add" in call_args
+
+
+class TestAddChatAutoApply:
+    """Verify chat generator writes env vars and installs deps."""
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        return _make_project(tmp_path)
+
+    def test_chat_writes_ws_env_var(self, project):
+        from iblai_cli.generators.add_chat import AddChatGenerator
+
+        AddChatGenerator(project).generate()
+        content = (project.root / ".env.local").read_text()
+        assert "NEXT_PUBLIC_BASE_WS_URL" in content
+
+
+class TestAddMcpAutoApply:
+    """Verify MCP generator installs @iblai/mcp."""
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        return _make_project(tmp_path)
+
+    def test_mcp_installs_dev_dep(self, project, mock_subprocess):
+        from iblai_cli.generators.add_mcp import AddMcpGenerator
+
+        AddMcpGenerator(project).generate()
+        mock_subprocess.assert_called()
+        call_args = mock_subprocess.call_args[0][0]
+        assert "-D" in call_args or "--dev" in call_args

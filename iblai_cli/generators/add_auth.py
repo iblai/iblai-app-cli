@@ -1,10 +1,36 @@
 """Generator for adding IBL.ai auth to an existing Next.js project."""
 
 from pathlib import Path
+from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
+from iblai_cli.next_config_patcher import (
+    patch_globals_css,
+    patch_next_config,
+    write_env_local,
+)
+from iblai_cli.package_manager import install_packages
 from iblai_cli.project_detector import ProjectInfo
+
+# Dependencies required for auth integration.
+AUTH_DEPS = [
+    "@iblai/iblai-js",
+    "@reduxjs/toolkit",
+    "react-redux",
+    "sonner",
+    "lucide-react",
+    "react-markdown",
+    "remark-gfm",
+]
+
+# Default env vars for .env.local.
+AUTH_ENV_VARS = {
+    "NEXT_PUBLIC_API_BASE_URL": "https://api.iblai.org",
+    "NEXT_PUBLIC_AUTH_URL": "https://auth.iblai.org",
+    "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.org",
+    "NEXT_PUBLIC_PLATFORM_BASE_DOMAIN": "iblai.org",
+}
 
 
 class AddAuthGenerator:
@@ -31,13 +57,15 @@ class AddAuthGenerator:
     def _render(self, template_path: str) -> str:
         return self.env.get_template(template_path).render(self._context())
 
-    def generate(self) -> list[str]:
-        """Generate all auth files. Returns list of created file paths."""
-        created: list[str] = []
+    def generate(self) -> List[str]:
+        """Generate all auth files and apply project-level patches.
+
+        Returns list of created/patched file paths (relative to project root).
+        """
+        created: List[str] = []
 
         # 1. SSO callback page
-        sso_dir = self.project.app_dir / "sso-login-complete"
-        sso_path = sso_dir / "page.tsx"
+        sso_path = self.project.app_dir / "sso-login-complete" / "page.tsx"
         self._write(sso_path, self._render("add/auth/sso-login-complete-page.tsx.j2"))
         created.append(str(sso_path.relative_to(self.project.root)))
 
@@ -70,5 +98,22 @@ class AddAuthGenerator:
         styles_path = self.project.app_dir / "iblai-styles.css"
         self._write(styles_path, self._render("add/auth/iblai-styles.css.j2"))
         created.append(str(styles_path.relative_to(self.project.root)))
+
+        # 8. Patch next.config.{ts,mjs,js} (Tauri stubs + localStorage polyfill)
+        config_file = patch_next_config(self.project.root)
+        created.append(f"{config_file} (patched)")
+
+        # 9. Patch globals.css (add @import for iblai-styles.css)
+        css_file = patch_globals_css(self.project.root, self.project.app_dir)
+        if css_file:
+            created.append(f"{css_file} (patched)")
+
+        # 10. Write .env.local
+        env_vars = {**AUTH_ENV_VARS, "NEXT_PUBLIC_MAIN_TENANT_KEY": self.platform_key}
+        write_env_local(self.project.root, env_vars)
+        created.append(".env.local")
+
+        # 11. Install dependencies
+        install_packages(self.project.root, AUTH_DEPS)
 
         return created

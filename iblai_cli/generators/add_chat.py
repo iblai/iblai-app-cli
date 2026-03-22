@@ -1,10 +1,21 @@
 """Generator for adding IBL.ai chat widget to an existing Next.js project."""
 
 from pathlib import Path
+from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
+from iblai_cli.next_config_patcher import write_env_local
+from iblai_cli.package_manager import install_packages
 from iblai_cli.project_detector import ProjectInfo
+
+# Chat-specific dependencies (may already be installed by auth).
+CHAT_DEPS = ["react-markdown", "remark-gfm"]
+
+# Chat-specific env vars.
+CHAT_ENV_VARS = {
+    "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.org",
+}
 
 
 class AddChatGenerator:
@@ -27,12 +38,22 @@ class AddChatGenerator:
     def _render(self, template_path: str) -> str:
         return self.env.get_template(template_path).render({})
 
-    def generate(self) -> list[str]:
-        """Generate the chat widget. Returns list of created file paths."""
-        created: list[str] = []
+    def generate(self) -> List[str]:
+        """Generate the chat widget and apply configuration.
 
+        Returns list of created/patched file paths.
+        """
+        created: List[str] = []
+
+        # 1. Generate chat widget component
         widget_path = self.project.components_dir / "iblai" / "chat-widget.tsx"
         self._write(widget_path, self._render("add/chat/chat-widget.tsx.j2"))
         created.append(str(widget_path.relative_to(self.project.root)))
+
+        # 2. Ensure WebSocket env var is in .env.local
+        write_env_local(self.project.root, CHAT_ENV_VARS)
+
+        # 3. Install chat-specific dependencies (skips if already installed by auth)
+        install_packages(self.project.root, CHAT_DEPS)
 
         return created

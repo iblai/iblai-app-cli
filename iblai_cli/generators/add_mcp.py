@@ -3,7 +3,9 @@
 import json
 from pathlib import Path
 import shutil
+from typing import List
 
+from iblai_cli.package_manager import install_dev_packages
 from iblai_cli.project_detector import ProjectInfo
 
 
@@ -16,6 +18,9 @@ MCP_CONFIG = {
         }
     }
 }
+
+# MCP dev dependency.
+MCP_DEPS = ["@iblai/mcp"]
 
 
 class AddMcpGenerator:
@@ -30,9 +35,9 @@ class AddMcpGenerator:
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
 
-    def generate(self) -> list[str]:
+    def generate(self) -> List[str]:
         """Generate MCP config and Claude skills. Returns list of created file paths."""
-        created: list[str] = []
+        created: List[str] = []
 
         # 1. .mcp.json
         mcp_path = self.project.root / ".mcp.json"
@@ -47,5 +52,8 @@ class AddMcpGenerator:
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(skill_file, dest)
                 created.append(str(dest.relative_to(self.project.root)))
+
+        # 3. Install @iblai/mcp as dev dependency
+        install_dev_packages(self.project.root, MCP_DEPS)
 
         return created

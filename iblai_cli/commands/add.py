@@ -10,32 +10,6 @@ from iblai_cli.project_detector import detect_project
 
 console = Console()
 
-# Packages a developer must add for auth (printed as instructions).
-AUTH_DEPS = "@iblai/iblai-js @reduxjs/toolkit react-redux sonner lucide-react react-markdown remark-gfm"
-CHAT_EXTRA_ENV = """\
-NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org"""
-
-WEBPACK_CONFIG_SNIPPET = """\
-// Add to your next.config.mjs webpack config:
-webpack: (config) => {
-  // Stub Tauri imports (not needed for web-only apps)
-  config.resolve.alias['@tauri-apps/api/core'] = false;
-  config.resolve.alias['@tauri-apps/api/event'] = false;
-  return config;
-}"""
-
-LOCALSTORAGE_POLYFILL = """\
-// Add to the TOP of next.config.mjs (before the config object):
-if (typeof window === "undefined" && typeof localStorage !== "undefined"
-    && typeof localStorage.getItem !== "function") {
-  const _s = {};
-  globalThis.localStorage = {
-    getItem: (k) => (_s[k] ?? null), setItem: (k, v) => { _s[k] = String(v); },
-    removeItem: (k) => { delete _s[k]; }, clear: () => { for (const k in _s) delete _s[k]; },
-    get length() { return Object.keys(_s).length; }, key: (i) => Object.keys(_s)[i] ?? null,
-  };
-}"""
-
 
 def _require_nextjs():
     """Detect the project and abort if it isn't a Next.js App Router project."""
@@ -101,31 +75,18 @@ def auth(platform: Optional[str]):
     console.print()
     console.print(
         Panel.fit(
-            "[bold green]Auth integration files created[/bold green]\n\n"
+            "[bold green]Auth integration complete[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
-            + "\n\n"
+            + "\n"
+            "  [cyan]Installed dependencies[/cyan]\n\n"
             "[bold]Next steps:[/bold]\n\n"
-            f"  1. Install dependencies:\n"
-            f"     [dim]pnpm add {AUTH_DEPS}[/dim]\n\n"
-            "  2. Import IBL styles in your globals.css:\n"
-            "     [dim]@import './iblai-styles.css';[/dim]\n\n"
-            "  3. Add to next.config.mjs — webpack Tauri stubs:\n"
-            "     [dim]config.resolve.alias['@tauri-apps/api/core'] = false;[/dim]\n"
-            "     [dim]config.resolve.alias['@tauri-apps/api/event'] = false;[/dim]\n\n"
-            "  4. Add to TOP of next.config.mjs — localStorage polyfill (Node 22+):\n"
-            "     [dim]See: https://github.com/iblai/iblai-app-cli#localstorage-polyfill[/dim]\n\n"
-            "  5. Wrap your [bold]pages[/bold] (not root layout) with the provider:\n"
+            "  1. Wrap your [bold]pages[/bold] (not root layout) with the provider:\n"
             '     [dim]import { IblaiProviders } from "@/providers/iblai-providers";[/dim]\n'
             "     [dim]<IblaiProviders>{children}</IblaiProviders>[/dim]\n\n"
             "     [yellow]Important:[/yellow] /sso-login-complete must NOT be inside\n"
             "     IblaiProviders. Use per-page wrapping or Next.js route groups.\n\n"
-            "  6. Add environment variables to .env.local:\n"
-            "     [dim]NEXT_PUBLIC_API_BASE_URL=https://api.iblai.org[/dim]\n"
-            "     [dim]NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org[/dim]\n"
-            "     [dim]NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org[/dim]\n"
-            "     [dim]NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.org[/dim]\n"
-            "     [dim]NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant[/dim]\n\n"
-            "  7. Run [bold]pnpm dev[/bold] — unauthenticated users will be\n"
+            "  2. Run [bold]pnpm dev[/bold] — unauthenticated users will be\n"
             "     redirected to the IBL Auth SPA automatically.",
             border_style="green",
             title="iblai add auth",
@@ -157,14 +118,15 @@ def chat():
     console.print()
     console.print(
         Panel.fit(
-            "[bold green]Chat widget created[/bold green]\n\n"
+            "[bold green]Chat widget installed[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
-            + "\n\n"
+            + "\n"
+            "  [cyan]Installed react-markdown + remark-gfm[/cyan]\n"
+            "  [cyan]Added NEXT_PUBLIC_BASE_WS_URL to .env.local[/cyan]\n\n"
             "[bold]Usage:[/bold]\n\n"
             '  [dim]import { ChatWidget } from "@/components/iblai/chat-widget";[/dim]\n'
-            '  [dim]<ChatWidget mentorId="your-mentor-id" />[/dim]\n\n'
-            "[bold]Environment variable:[/bold]\n\n"
-            f"  [dim]{CHAT_EXTRA_ENV}[/dim]",
+            '  [dim]<ChatWidget mentorId="your-mentor-id" />[/dim]',
             border_style="green",
             title="iblai add chat",
         )
@@ -194,14 +156,13 @@ def profile():
     console.print()
     console.print(
         Panel.fit(
-            "[bold green]Profile dropdown created[/bold green]\n\n"
+            "[bold green]Profile dropdown installed[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
             + "\n\n"
             "[bold]Usage:[/bold]\n\n"
             '  [dim]import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";[/dim]\n'
-            "  [dim]<IblaiProfileDropdown />[/dim]\n\n"
-            "[bold]Note:[/bold] Import the SDK styles in your globals.css:\n"
-            '  [dim]@import "@iblai/iblai-js/web-containers/styles";[/dim]',
+            "  [dim]<IblaiProfileDropdown />[/dim]",
             border_style="green",
             title="iblai add profile",
         )
@@ -231,7 +192,8 @@ def notifications():
     console.print()
     console.print(
         Panel.fit(
-            "[bold green]Notification bell created[/bold green]\n\n"
+            "[bold green]Notification bell installed[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
             + "\n\n"
             "[bold]Usage:[/bold]\n\n"
@@ -262,8 +224,10 @@ def mcp():
     console.print(
         Panel.fit(
             "[bold green]MCP + Claude skills installed[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
-            + "\n\n"
+            + "\n"
+            "  [cyan]Installed @iblai/mcp (devDependency)[/cyan]\n\n"
             "[bold]What you get:[/bold]\n\n"
             "  - .mcp.json: Claude Code / Cursor will auto-detect the @iblai/mcp server\n"
             "  - .claude/skills/: Slash commands for guided IBL.ai integration\n\n"
