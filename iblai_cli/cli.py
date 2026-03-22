@@ -5,6 +5,7 @@ from rich.console import Console
 
 from iblai_cli import __version__
 from iblai_cli.commands.startapp import startapp
+from iblai_cli.commands.add import add
 
 console = Console()
 
@@ -24,6 +25,7 @@ def cli(ctx: click.Context) -> None:
 
 # Register commands
 cli.add_command(startapp)
+cli.add_command(add)
 
 
 if __name__ == "__main__":

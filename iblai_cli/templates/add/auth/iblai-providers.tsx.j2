@@ -1,0 +1,110 @@
+"use client";
+{% raw %}
+/**
+ * IBL.ai Provider wrapper.
+ *
+ * Wrap your root layout children with <IblaiProviders> to get:
+ *  - Redux store (RTK Query for IBL APIs)
+ *  - AuthProvider  (SSO redirect, JWT validation, cross-SPA sync)
+ *  - TenantProvider (multi-tenant routing)
+ *
+ * Usage in app/layout.tsx:
+ *
+ *   import { IblaiProviders } from "@/providers/iblai-providers";
+ *   export default function RootLayout({ children }) {
+ *     return <html><body><IblaiProviders>{children}</IblaiProviders></body></html>;
+ *   }
+ */
+
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Provider as ReduxProvider } from "react-redux";
+import { usePathname } from "next/navigation";
+import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
+import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
+
+import { iblaiStore } from "@/store/iblai-store";
+import { LocalStorageService } from "@/lib/iblai/storage-service";
+import config from "@/lib/iblai/config";
+import {
+  redirectToAuthSpa,
+  hasNonExpiredAuthToken,
+  handleLogout,
+} from "@/lib/iblai/auth-utils";
+
+const storageService = LocalStorageService.getInstance();
+
+/** Routes that do NOT require authentication. */
+const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
+  [new RegExp("^/sso-login"), async () => false],
+]);
+
+export function IblaiProviders({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const [ready, setReady] = useState(false);
+
+  // Hydrate on mount: initialise the data layer once.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    initializeDataLayer(
+      config.dmUrl(),
+      config.lmsUrl(),
+      storageService,
+      {
+        401: () => redirectToAuthSpa(undefined, undefined, true),
+      },
+    );
+    setReady(true);
+  }, []);
+
+  const username = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) return JSON.parse(raw).user_nicename ?? "";
+    } catch { /* ignore */ }
+    return "";
+  }, [ready]);
+
+  const tenantKey = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("tenant") ?? "";
+  }, [ready]);
+
+  const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
+
+  if (!ready) return null;
+
+  return (
+    <ReduxProvider store={iblaiStore}>
+      <AuthProvider
+        skip={isSsoRoute}
+        redirectToAuthSpa={redirectToAuthSpa}
+        hasNonExpiredAuthToken={hasNonExpiredAuthToken}
+        username={username}
+        pathname={pathname ?? "/"}
+        storageService={storageService}
+        middleware={PUBLIC_ROUTES}
+        enableStorageSync
+        fallback={<div>Loading…</div>}
+      >
+        <TenantProvider
+          currentTenant={tenantKey}
+          requestedTenant={tenantKey}
+          saveCurrentTenant={(t: string) => localStorage.setItem("tenant", t)}
+          saveUserTenants={(t: unknown) =>
+            localStorage.setItem("tenants", JSON.stringify(t))
+          }
+          handleTenantSwitch={async () => {
+            redirectToAuthSpa(undefined, undefined, true, true);
+          }}
+          redirectToAuthSpa={redirectToAuthSpa}
+          username={username}
+          fallback={<div>Loading…</div>}
+        >
+          {children}
+        </TenantProvider>
+      </AuthProvider>
+    </ReduxProvider>
+  );
+}
+{% endraw %}

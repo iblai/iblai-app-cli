@@ -1,0 +1,157 @@
+"use client";
+{% raw %}
+/**
+ * IBL.ai Chat Widget
+ *
+ * A self-contained chat component that connects to an IBL.ai mentor via
+ * WebSocket for real-time streaming responses.
+ *
+ * Usage:
+ *   import { ChatWidget } from "@/components/iblai/chat-widget";
+ *   <ChatWidget mentorId="my-mentor" />
+ *
+ * Prerequisites:
+ *   - <IblaiProviders> must wrap this component's ancestor tree
+ *   - NEXT_PUBLIC_BASE_WS_URL must be set in .env
+ */
+
+import { useRef, useState, type FormEvent } from "react";
+import { useAdvancedChat } from "@iblai/iblai-js/web-utils";
+import config from "@/lib/iblai/config";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+
+interface ChatWidgetProps {
+  /** The mentor unique_id to chat with. */
+  mentorId: string;
+  /** Override the tenant key (defaults to localStorage value). */
+  tenantKey?: string;
+  /** Additional CSS class for the outer container. */
+  className?: string;
+}
+
+export function ChatWidget({ mentorId, tenantKey, className }: ChatWidgetProps) {
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const resolvedTenant =
+    tenantKey ??
+    (typeof window !== "undefined" ? localStorage.getItem("tenant") ?? "" : "");
+  const username =
+    typeof window !== "undefined"
+      ? (() => {
+          try {
+            const raw = localStorage.getItem("userData");
+            return raw ? JSON.parse(raw).user_nicename ?? "anonymous" : "anonymous";
+          } catch {
+            return "anonymous";
+          }
+        })()
+      : "anonymous";
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("axd_token") ?? ""
+      : "";
+
+  const {
+    messages,
+    isStreaming,
+    sendMessage,
+    stopGenerating,
+    currentStreamingMessage,
+    mentorName,
+    activeTab,
+    startNewChat,
+  } = useAdvancedChat({
+    tenantKey: resolvedTenant,
+    mentorId,
+    username,
+    token,
+    wsUrl: `${config.baseWsUrl()}/ws/langflow/`,
+    stopGenerationWsUrl: `${config.baseWsUrl()}/ws/langflow-stop-generation/`,
+    redirectToAuthSpa,
+    errorHandler: (msg: string) => console.error("[IBL Chat]", msg),
+  });
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isStreaming) return;
+    sendMessage(activeTab, input.trim(), { visible: true });
+    setInput("");
+  };
+
+  return (
+    <div className={`flex flex-col h-full ${className ?? ""}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <h3 className="font-semibold text-sm">{mentorName || "AI Assistant"}</h3>
+        <button
+          onClick={() => startNewChat()}
+          className="text-xs text-gray-500 hover:text-gray-700"
+        >
+          New chat
+        </button>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        {messages.length === 0 && (
+          <p className="text-gray-400 text-sm text-center py-8">
+            Start a conversation with {mentorName || "the assistant"}
+          </p>
+        )}
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                msg.role === "user"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-900"
+              }`}
+            >
+              {msg.content}
+            </div>
+          </div>
+        ))}
+        {isStreaming && currentStreamingMessage?.content && (
+          <div className="flex justify-start">
+            <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-900">
+              {currentStreamingMessage.content}
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <form onSubmit={handleSubmit} className="border-t px-4 py-3 flex gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type a message…"
+          className="flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={isStreaming}
+        />
+        {isStreaming ? (
+          <button
+            type="button"
+            onClick={stopGenerating}
+            className="rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600"
+          >
+            Stop
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          >
+            Send
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
+{% endraw %}
