@@ -49,12 +49,14 @@ class TestBaseAppGenerator:
         assert sso.exists()
         assert "SsoLogin" in sso.read_text()
 
-    def test_home_page_has_greeting(self, generated_dir):
+    def test_home_page_has_greeting_and_email(self, generated_dir):
         page = generated_dir / "app" / "(app)" / "page.tsx"
         assert page.exists()
         content = page.read_text()
         assert "Welcome" in content
         assert "useUsername" in content
+        assert "email" in content
+        assert "userData" in content
         assert "iblai add" in content
 
     def test_no_chat_components(self, generated_dir):

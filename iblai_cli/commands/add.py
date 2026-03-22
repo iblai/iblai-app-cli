@@ -11,6 +11,13 @@ from iblai_cli.project_detector import detect_project
 console = Console()
 
 
+def _has_iblai_auth(project) -> bool:
+    """Check if IBL.ai auth is present (from `iblai add auth` or `iblai startapp`)."""
+    return (project.lib_dir / "iblai" / "config.ts").exists() or (
+        project.lib_dir / "config.ts"
+    ).exists()
+
+
 def _require_nextjs():
     """Detect the project and abort if it isn't a Next.js App Router project."""
     project = detect_project(".")
@@ -104,10 +111,12 @@ def chat():
     """Add an AI chat widget to your project."""
     project = _require_nextjs()
 
-    # Check auth files exist
-    if not (project.lib_dir / "iblai" / "config.ts").exists():
+    # Check auth files exist (from `iblai add auth` or `iblai startapp base/agent`)
+    if not _has_iblai_auth(project):
         console.print("[red]Error: Auth integration not found.[/red]")
-        console.print("Run [bold]iblai add auth[/bold] first.")
+        console.print(
+            "Run [bold]iblai add auth[/bold] or [bold]iblai startapp base[/bold] first."
+        )
         raise SystemExit(1)
 
     from iblai_cli.generators.add_chat import AddChatGenerator
@@ -143,9 +152,11 @@ def profile():
     """Add a user profile dropdown to your project."""
     project = _require_nextjs()
 
-    if not (project.lib_dir / "iblai" / "config.ts").exists():
+    if not _has_iblai_auth(project):
         console.print("[red]Error: Auth integration not found.[/red]")
-        console.print("Run [bold]iblai add auth[/bold] first.")
+        console.print(
+            "Run [bold]iblai add auth[/bold] or [bold]iblai startapp base[/bold] first."
+        )
         raise SystemExit(1)
 
     from iblai_cli.generators.add_profile import AddProfileGenerator
@@ -179,9 +190,11 @@ def notifications():
     """Add a notification bell to your project."""
     project = _require_nextjs()
 
-    if not (project.lib_dir / "iblai" / "config.ts").exists():
+    if not _has_iblai_auth(project):
         console.print("[red]Error: Auth integration not found.[/red]")
-        console.print("Run [bold]iblai add auth[/bold] first.")
+        console.print(
+            "Run [bold]iblai add auth[/bold] or [bold]iblai startapp base[/bold] first."
+        )
         raise SystemExit(1)
 
     from iblai_cli.generators.add_notifications import AddNotificationsGenerator

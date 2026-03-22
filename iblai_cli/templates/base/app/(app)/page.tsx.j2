@@ -1,10 +1,19 @@
 "use client";
 {% raw %}
+import { useMemo } from "react";
 import { useUsername } from "@/hooks/use-user";
 import { redirectToAuthSpa } from "@/lib/utils";
 
 export default function Home() {
   const username = useUsername();
+  const email = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) return JSON.parse(raw).email ?? "";
+    } catch { /* ignore */ }
+    return "";
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
@@ -12,8 +21,8 @@ export default function Home() {
         <h1 className="bg-gradient-to-r from-[#38A1E5] to-[#7284FF] text-transparent bg-clip-text font-bold text-4xl mb-2">
           Welcome{username ? `, ${username}` : ""}
         </h1>
-        <p className="text-gray-500 text-sm mb-8">
-          Your IBL.ai app is ready. Start building!
+        <p className="text-gray-600 text-sm mb-8">
+          {username}{email ? ` (${email})` : ""}
         </p>
         <div className="flex gap-4 justify-center">
           <a
