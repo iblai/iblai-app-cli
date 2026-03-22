@@ -1,8 +1,13 @@
 """Tests for CLI commands."""
 
+import os
+
 import pytest
 from click.testing import CliRunner
 from iblai_cli.cli import cli
+
+# Keys that may leak from the host environment and affect test behavior
+_AI_ENV_KEYS = ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "IBLAI_AI_PROVIDER")
 
 
 class TestCLI:
@@ -37,21 +42,38 @@ class TestCLI:
 class TestStartappCommand:
     """Test suite for startapp command."""
 
+    @pytest.fixture(autouse=True)
+    def clean_env(self):
+        """Remove AI-related env vars so they don't leak into tests."""
+        saved = {k: os.environ.pop(k) for k in _AI_ENV_KEYS if k in os.environ}
+        yield
+        os.environ.update(saved)
+
     @pytest.fixture
     def runner(self):
         """Fixture for Click CLI runner."""
         return CliRunner()
 
     def test_startapp_with_platform_key(self, runner):
-        """Test startapp with platform key provided."""
+        """Test startapp with platform key provided non-interactively."""
         with runner.isolated_filesystem():
             result = runner.invoke(
                 cli,
-                ["startapp", "agent", "--platform-key", "test-platform", "--output", "."],
-                input="test-app\n",  # App name
+                [
+                    "startapp",
+                    "agent",
+                    "--platform",
+                    "test-platform",
+                    "--agent",
+                    "test-agent",
+                    "--app-name",
+                    "test-app",
+                    "--output",
+                    ".",
+                ],
             )
-            # Should succeed or ask for confirmation
-            assert "test-platform" in result.output or result.exit_code == 0
+            assert result.exit_code == 0
+            assert "test-platform" in result.output
 
     def test_startapp_invalid_template(self, runner):
         """Test startapp with invalid template."""
@@ -66,9 +88,9 @@ class TestStartappCommand:
                 [
                     "startapp",
                     "agent",
-                    "--platform-key",
+                    "--platform",
                     "acme",
-                    "--mentor-id",
+                    "--agent",
                     "agent-123",
                     "--output",
                     ".",
