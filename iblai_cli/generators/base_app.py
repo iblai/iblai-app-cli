@@ -157,3 +157,28 @@ class BaseAppGenerator(BaseGenerator):
         # --- Public ---
         self._write("public/env.js", self._render("public/env.js.j2"))
         self._write("public/README.md", self._render("public/README.md.j2"))
+
+        # --- Claude skills (flat .md files in .claude/skills/) ---
+        import shutil
+
+        skills_src = self.template_dir / "skills"
+        if skills_src.is_dir():
+            for skill_file in sorted(skills_src.glob("*.md")):
+                dest = self.output_dir / ".claude" / "skills" / skill_file.name
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(skill_file, dest)
+
+        # --- OpenCode skills (SKILL.md in .opencode/skills/<name>/) ---
+        opencode_src = self.template_dir / "opencode-skills"
+        if opencode_src.is_dir():
+            for skill_dir in sorted(opencode_src.iterdir()):
+                if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
+                    dest = (
+                        self.output_dir
+                        / ".opencode"
+                        / "skills"
+                        / skill_dir.name
+                        / "SKILL.md"
+                    )
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(skill_dir / "SKILL.md", dest)

@@ -57,7 +57,8 @@ class TestBaseAppGenerator:
         assert "useUsername" in content
         assert "email" in content
         assert "userData" in content
-        assert "iblai add" in content
+        assert "ChatWidget" in content
+        assert "IblaiProfileDropdown" in content
 
     def test_no_chat_components(self, generated_dir):
         assert not (generated_dir / "components" / "chat").exists()
@@ -141,6 +142,26 @@ class TestBaseAppGenerator:
     def test_generates_components_json(self, generated_dir):
         cj = json.loads((generated_dir / "components.json").read_text())
         assert cj["$schema"] == "https://ui.shadcn.com/schema.json"
+
+    def test_generates_claude_skills(self, generated_dir):
+        skills_dir = generated_dir / ".claude" / "skills"
+        assert skills_dir.is_dir()
+        skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
+        assert len(skills) == 8
+        assert "iblai-startapp-base.md" in skills
+        assert "iblai-customize-chat.md" in skills
+
+    def test_generates_opencode_skills(self, generated_dir):
+        skills_dir = generated_dir / ".opencode" / "skills"
+        assert skills_dir.is_dir()
+        skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
+        assert len(skill_dirs) == 8
+        assert "iblai-startapp-base" in skill_dirs
+        skill_md = skills_dir / "iblai-startapp-base" / "SKILL.md"
+        assert skill_md.exists()
+        content = skill_md.read_text()
+        assert content.startswith("---")
+        assert "name: iblai-startapp-base" in content
 
     def test_generates_mcp_json(self, generated_dir):
         assert (generated_dir / ".mcp.json").exists()

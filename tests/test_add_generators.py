@@ -290,14 +290,14 @@ class TestAddMcpGenerator:
         assert server["command"] == "npx"
         assert "@iblai/mcp" in server["args"]
 
-    def test_mcp_generates_skills(self, generated):
+    def test_mcp_generates_claude_skills(self, generated):
         project, _ = generated
         skills_dir = project.root / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 5
+        assert len(skills) == 8
 
-    def test_mcp_skill_filenames(self, generated):
+    def test_mcp_claude_skill_filenames(self, generated):
         project, _ = generated
         skills_dir = project.root / ".claude" / "skills"
         expected = {
@@ -305,10 +305,29 @@ class TestAddMcpGenerator:
             "iblai-add-chat.md",
             "iblai-add-notifications.md",
             "iblai-add-profile.md",
+            "iblai-customize-chat.md",
             "iblai-setup.md",
+            "iblai-startapp-agent.md",
+            "iblai-startapp-base.md",
         }
         actual = {f.name for f in skills_dir.iterdir() if f.suffix == ".md"}
         assert actual == expected
+
+    def test_mcp_generates_opencode_skills(self, generated):
+        project, _ = generated
+        skills_dir = project.root / ".opencode" / "skills"
+        assert skills_dir.is_dir()
+        skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
+        assert len(skill_dirs) == 8
+
+    def test_mcp_opencode_skills_have_frontmatter(self, generated):
+        project, _ = generated
+        skill_md = project.root / ".opencode" / "skills" / "iblai-add-auth" / "SKILL.md"
+        assert skill_md.exists()
+        content = skill_md.read_text()
+        assert content.startswith("---")
+        assert "name: iblai-add-auth" in content
+        assert "description:" in content
 
 
 # ---------------------------------------------------------------------------
