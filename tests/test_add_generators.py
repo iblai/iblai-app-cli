@@ -179,18 +179,16 @@ class TestAddChatGenerator:
         assert (project.components_dir / "iblai" / "chat-widget.tsx").exists()
         assert any("chat-widget.tsx" in f for f in created)
 
-    def test_chat_widget_has_session_management(self, widget_content):
-        assert "sessionId" in widget_content
-        assert "cachedSessionId" in widget_content
-        assert "onStartNewChat" in widget_content
-
-    def test_chat_widget_has_markdown(self, widget_content):
-        assert "ReactMarkdown" in widget_content
-        assert "remarkGfm" in widget_content
+    def test_chat_widget_uses_mentor_ai_web_component(self, widget_content):
+        assert "mentor-ai" in widget_content
+        assert "@iblai/iblai-web-mentor" in widget_content
+        assert 'authrelyonhost=""' in widget_content
 
     def test_chat_widget_uses_config(self, widget_content):
-        assert "config.baseWsUrl()" in widget_content
+        assert "config.authUrl()" in widget_content
+        assert "config.lmsUrl()" in widget_content
         assert "config.mainTenantKey()" in widget_content
+        assert "config.platformBaseDomain" in widget_content
 
 
 # ---------------------------------------------------------------------------
@@ -395,27 +393,28 @@ class TestAddAuthAutoApply:
 
 
 class TestAddChatAutoApply:
-    """Verify chat generator writes env vars and installs deps."""
+    """Verify chat generator installs @iblai/iblai-web-mentor."""
 
     @pytest.fixture
     def project(self, tmp_path):
         return _make_project(tmp_path)
 
-    def test_chat_patches_store_with_chat_slices(self, project):
+    def test_chat_installs_web_mentor(self, project, mock_subprocess):
         from iblai_cli.generators.add_chat import AddChatGenerator
 
         AddChatGenerator(project).generate()
-        store = (project.store_dir / "index.ts").read_text()
-        assert "chatSliceReducerShared" in store
-        assert "filesReducer" in store
-        assert "@iblai/iblai-js/web-utils" in store
+        mock_subprocess.assert_called()
+        call_args = mock_subprocess.call_args[0][0]
+        assert "@iblai/iblai-web-mentor" in call_args
 
-    def test_chat_writes_ws_env_var(self, project):
+    def test_chat_does_not_patch_store(self, project):
+        """The web component wrapper does not need Redux store changes."""
         from iblai_cli.generators.add_chat import AddChatGenerator
 
+        store_before = (project.store_dir / "index.ts").read_text()
         AddChatGenerator(project).generate()
-        content = (project.root / ".env.local").read_text()
-        assert "NEXT_PUBLIC_BASE_WS_URL" in content
+        store_after = (project.store_dir / "index.ts").read_text()
+        assert store_before == store_after
 
 
 class TestAddMcpAutoApply:

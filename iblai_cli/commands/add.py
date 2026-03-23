@@ -131,11 +131,15 @@ def chat():
             "[bold]Applied:[/bold]\n"
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
             + "\n"
-            "  [cyan]Installed react-markdown + remark-gfm[/cyan]\n"
-            "  [cyan]Added NEXT_PUBLIC_BASE_WS_URL to .env.local[/cyan]\n\n"
+            "  [cyan]Installed @iblai/iblai-web-mentor[/cyan]\n\n"
             "[bold]Usage:[/bold]\n\n"
             '  [dim]import { ChatWidget } from "@/components/iblai/chat-widget";[/dim]\n'
-            '  [dim]<ChatWidget mentorId="your-mentor-id" />[/dim]',
+            '  [dim]<ChatWidget mentorId="your-mentor-id" />[/dim]\n\n'
+            "[bold]Props:[/bold]\n\n"
+            "  mentorId     Required. The mentor unique ID.\n"
+            "  tenantKey    Optional. Defaults to localStorage / config.\n"
+            "  mentorUrl    Optional. Defaults to https://mentorai.{domain}.\n"
+            '  theme        Optional. "light" (default) or "dark".',
             border_style="green",
             title="iblai add chat",
         )

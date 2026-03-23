@@ -3,488 +3,94 @@
 /**
  * IBL.ai Chat Widget
  *
- * A fully-featured chat component that connects to an IBL.ai mentor via
- * WebSocket for real-time streaming responses. Matches the look and feel
- * of the agent template chat.
+ * A wrapper around the <mentor-ai> Web Component from @iblai/iblai-web-mentor.
+ * The component renders an iframe to the hosted MentorAI platform and handles
+ * authentication, WebSocket streaming, and all chat UI internally.
  *
  * Usage:
  *   import { ChatWidget } from "@/components/iblai/chat-widget";
- *   <ChatWidget mentorId="my-mentor" />
+ *   <ChatWidget mentorId="your-mentor-id" />
  *
  * Prerequisites:
- *   - <IblaiProviders> must wrap this component's ancestor tree
- *   - NEXT_PUBLIC_BASE_WS_URL and NEXT_PUBLIC_MAIN_TENANT_KEY must be set
- *   - Import iblai-styles.css in your globals.css
+ *   - pnpm add @iblai/iblai-web-mentor
+ *   - Auth must be set up (iblai add auth or iblai startapp base)
  */
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { useAdvancedChat } from "@iblai/iblai-js/web-utils";
-import {
-  useGetMentorPublicSettingsQuery,
-} from "@iblai/iblai-js/data-layer";
+import { useEffect, useMemo, useState } from "react";
 import config from "@/lib/iblai/config";
-import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
-
-/* ------------------------------------------------------------------ */
-/* Types                                                               */
-/* ------------------------------------------------------------------ */
 
 interface ChatWidgetProps {
+  /** The mentor unique_id to chat with. */
   mentorId: string;
+  /** Override the tenant key (defaults to localStorage / config value). */
   tenantKey?: string;
+  /** Override the MentorAI platform URL (defaults to https://mentorai.{domain}). */
+  mentorUrl?: string;
+  /** Color theme. */
+  theme?: "light" | "dark";
+  /** Additional CSS class for the outer container. */
   className?: string;
 }
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
+export function ChatWidget({
+  mentorId,
+  tenantKey,
+  mentorUrl,
+  theme = "light",
+  className,
+}: ChatWidgetProps) {
+  const [mounted, setMounted] = useState(false);
 
-const SESSION_CACHE_KEY = "iblai_chat_sessions";
-
-function getCachedSessionIds(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(SESSION_CACHE_KEY) ?? "{}");
-  } catch {
-    return {};
-  }
-}
-
-function useUsername(): string {
-  const [username] = useState<string>(() => {
-    if (typeof window === "undefined") return "anonymous";
-    try {
-      const raw = localStorage.getItem("userData");
-      return raw ? JSON.parse(raw).user_nicename ?? "anonymous" : "anonymous";
-    } catch {
-      return "anonymous";
-    }
-  });
-  return username;
-}
-
-function useAxdToken(): string {
-  const [token] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("axd_token") ?? "";
-  });
-  return token;
-}
-
-/* ------------------------------------------------------------------ */
-/* Copy-to-clipboard hook                                              */
-/* ------------------------------------------------------------------ */
-
-function useCopyToClipboard(timeout = 500) {
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-
-  const copy = useCallback(
-    async (text: string) => {
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus("success");
-        setTimeout(() => setStatus("idle"), timeout);
-      } catch {
-        setStatus("error");
-        setTimeout(() => setStatus("idle"), timeout);
-      }
-    },
-    [timeout],
-  );
-
-  return { copy, status };
-}
-
-/* ------------------------------------------------------------------ */
-/* Sub-components                                                      */
-/* ------------------------------------------------------------------ */
-
-function CopyButton({ text }: { text: string }) {
-  const { copy, status } = useCopyToClipboard();
-  return (
-    <button
-      onClick={() => copy(text)}
-      className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
-      title="Copy to clipboard"
-    >
-      {status === "success" ? (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      ) : (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
-function MentorAvatar({
-  name,
-  imageUrl,
-  isLoading,
-}: {
-  name: string;
-  imageUrl?: string;
-  isLoading?: boolean;
-}) {
-  return (
-    <div className="relative flex-shrink-0 h-7 w-7 sm:h-8 sm:w-8 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
-      {imageUrl ? (
-        <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
-      ) : (
-        <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-gray-500">
-          {name?.charAt(0)?.toUpperCase() ?? "A"}
-        </div>
-      )}
-      {isLoading && (
-        <div className="absolute inset-0 rounded-full border-2 border-gray-300 border-t-blue-500 animate-spin" />
-      )}
-    </div>
-  );
-}
-
-function MarkdownContent({ content }: { content: string }) {
-  return (
-    <div className="text-gray-800 text-sm/6 overflow-x-auto [&_strong]:font-bold [&_em]:italic [&_code]:bg-gray-200 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_pre]:bg-gray-200 [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:mb-1">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Main widget                                                         */
-/* ------------------------------------------------------------------ */
-
-export function ChatWidget({ mentorId, tenantKey, className }: ChatWidgetProps) {
-  const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const username = useUsername();
-  const token = useAxdToken();
+  // Import the web component on the client only (it needs the DOM).
+  useEffect(() => {
+    import("@iblai/iblai-web-mentor").then(() => setMounted(true));
+  }, []);
 
   const resolvedTenant = useMemo(() => {
     if (tenantKey) return tenantKey;
-    if (typeof window !== "undefined") {
-      for (const key of ["current_tenant", "tenant"]) {
-        const stored = localStorage.getItem(key);
-        if (stored && stored !== "[object Object]") {
-          try {
-            const parsed = JSON.parse(stored);
-            if (typeof parsed === "string") return parsed;
-            if (parsed?.key) return parsed.key;
-          } catch {
-            return stored;
-          }
+    if (typeof window === "undefined") return "";
+    for (const key of ["current_tenant", "tenant"]) {
+      const stored = localStorage.getItem(key);
+      if (stored && stored !== "[object Object]") {
+        try {
+          const parsed = JSON.parse(stored);
+          if (typeof parsed === "string") return parsed;
+          if (parsed?.key) return parsed.key;
+        } catch {
+          return stored;
         }
       }
     }
     return config.mainTenantKey();
   }, [tenantKey]);
 
-  const [cachedSessionId] = useState<Record<string, string>>(getCachedSessionIds);
+  const resolvedMentorUrl = useMemo(() => {
+    if (mentorUrl) return mentorUrl;
+    const domain = config.platformBaseDomain?.() ?? "iblai.org";
+    return `https://mentorai.${domain}`;
+  }, [mentorUrl]);
 
-  /* ---- Mentor settings (for name + avatar) ---- */
-  const { data: mentorPublicSettings } = useGetMentorPublicSettingsQuery(
-    { mentor: mentorId, org: resolvedTenant, userId: username },
-    { skip: !resolvedTenant || !mentorId || !username || username === "anonymous" },
-  );
-  const mentorDisplayName = mentorPublicSettings?.mentor_name ?? mentorPublicSettings?.display_name ?? "AI Assistant";
-  const mentorProfileImage = mentorPublicSettings?.profile_image ?? undefined;
-
-  /* ---- Suggested prompts / conversation starters ---- */
-  const suggestedPrompts: string[] = useMemo(() => {
-    try {
-      const raw = mentorPublicSettings?.suggested_prompts;
-      if (Array.isArray(raw)) return raw.map((p: any) => typeof p === "string" ? p : p?.prompt ?? "").filter(Boolean);
-      if (typeof raw === "string") return JSON.parse(raw);
-    } catch { /* ignore */ }
-    return [];
-  }, [mentorPublicSettings?.suggested_prompts]);
-
-  /* ---- Chat hook ---- */
-  const {
-    messages,
-    isStreaming,
-    isPending,
-    sendMessage,
-    stopGenerating,
-    currentStreamingMessage,
-    activeTab,
-    startNewChat,
-    sessionId,
-  } = useAdvancedChat({
-    tenantKey: resolvedTenant,
-    mentorId,
-    username,
-    token,
-    wsUrl: `${config.baseWsUrl()}/ws/langflow/`,
-    stopGenerationWsUrl: `${config.baseWsUrl()}/ws/langflow-stop-generation/`,
-    redirectToAuthSpa,
-    errorHandler: (msg: string) => console.error("[IBL Chat]", msg),
-    cachedSessionId,
-    onStartNewChat: (newSessionId: string) => {
-      try {
-        const cached = getCachedSessionIds();
-        cached[mentorId] = newSessionId;
-        localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(cached));
-      } catch { /* ignore */ }
-    },
-  });
-
-  const isChatReady = !!sessionId && !isPending;
-
-  /* ---- Scroll management ---- */
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
-    if (!showScrollButton) scrollToBottom();
-  }, [messages, currentStreamingMessage?.content, scrollToBottom, showScrollButton]);
-
-  const handleScroll = useCallback(() => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-    setShowScrollButton(!isNearBottom);
-  }, []);
-
-  /* ---- Submit handler ---- */
-  const handleSubmit = (e?: FormEvent) => {
-    e?.preventDefault();
-    if (!input.trim() || isStreaming || !sessionId) return;
-    sendMessage(activeTab, input.trim(), { visible: true });
-    setInput("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
-  const handleStarterClick = (prompt: string) => {
-    if (!sessionId || isStreaming) return;
-    sendMessage(activeTab, prompt, { visible: true });
-  };
-
-  /* ---- Auto-resize textarea ---- */
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    const ta = e.target;
-    ta.style.height = "auto";
-    ta.style.height = `${Math.min(ta.scrollHeight, 200)}px`;
-  };
-
-  /* ---- Render helpers ---- */
-  const hasMessages = messages.length > 0;
-  const showWelcome = !hasMessages && !isStreaming && !isPending;
+  if (!mounted) {
+    return (
+      <div className={`h-full w-full flex items-center justify-center ${className ?? ""}`}>
+        <p className="text-sm text-gray-400">Loading chat…</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={`flex flex-col h-full bg-white rounded-t-lg w-full ${className ?? ""}`}>
-      {/* ---- Welcome screen ---- */}
-      {showWelcome && (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-          <h1 className="text-center bg-gradient-to-r from-[#38A1E5] to-[#7284FF] text-transparent bg-clip-text font-bold text-3xl mb-2">
-            {mentorDisplayName}
-          </h1>
-          <p className="text-gray-500 text-sm mb-8">
-            Hello, I&apos;m {mentorDisplayName}. How may I help you today?
-          </p>
-
-          {/* Input (embedded in welcome) */}
-          <div className="w-full max-w-2xl mb-6">
-            <div className="relative rounded-2xl border border-gray-200 bg-[#fbfbfb] pb-3 shadow-xs overflow-hidden">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={handleTextareaChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask anything"
-                rows={1}
-                disabled={!isChatReady}
-                className="w-full min-h-[60px] resize-none border-0 bg-transparent px-4 py-3 text-sm focus:outline-none focus:ring-0"
-              />
-              <div className="flex items-center justify-end px-3">
-                <button
-                  onClick={() => handleSubmit()}
-                  disabled={!isChatReady || !input.trim()}
-                  className="h-9 w-9 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Conversation starters */}
-          {suggestedPrompts.length > 0 && (
-            <div className="w-full max-w-2xl">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Conversation Starters</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {suggestedPrompts.slice(0, 6).map((prompt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleStarterClick(prompt)}
-                    disabled={!isChatReady}
-                    className="text-left text-sm px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ---- Messages ---- */}
-      {hasMessages && (
-        <>
-          <div
-            ref={messagesContainerRef}
-            onScroll={handleScroll}
-            className="flex-1 overflow-y-auto min-h-0"
-          >
-            <div className="py-6 w-full mx-auto max-w-4xl px-4">
-              {messages.map((msg, i) =>
-                msg.role === "user" ? (
-                  /* User message */
-                  <div key={i} className="flex flex-col items-end mb-4 pl-4">
-                    <div className="bg-blue-50 text-gray-800 text-sm rounded-lg px-4 py-2 max-w-[80%] whitespace-pre-wrap break-words">
-                      {msg.content}
-                    </div>
-                  </div>
-                ) : (
-                  /* Assistant message */
-                  <div key={i} className="flex gap-3 mb-4 pr-4">
-                    <MentorAvatar
-                      name={mentorDisplayName}
-                      imageUrl={mentorProfileImage}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-xs font-medium text-gray-500 mb-1 block">
-                        {mentorDisplayName}
-                      </span>
-                      <div className="bg-gray-100 rounded-lg p-3 mb-1.5 break-words">
-                        <MarkdownContent content={msg.content} />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <CopyButton text={msg.content} />
-                      </div>
-                    </div>
-                  </div>
-                ),
-              )}
-
-              {/* Streaming message */}
-              {(isPending || isStreaming) && (
-                <div className="flex gap-3 mb-4 pr-4">
-                  <MentorAvatar
-                    name={mentorDisplayName}
-                    imageUrl={mentorProfileImage}
-                    isLoading={!currentStreamingMessage?.content}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs font-medium text-gray-500 mb-1 block">
-                      {mentorDisplayName}
-                    </span>
-                    {currentStreamingMessage?.content ? (
-                      <div className="bg-gray-100 rounded-lg p-3 break-words">
-                        <MarkdownContent content={currentStreamingMessage.content} />
-                      </div>
-                    ) : (
-                      <div className="bg-gray-100 rounded-lg p-3">
-                        <p className="text-gray-500 text-sm">Just a sec...</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* Scroll-to-bottom button */}
-          {showScrollButton && (
-            <div className="flex justify-center -mt-12 mb-2 relative z-10">
-              <button
-                onClick={scrollToBottom}
-                className="rounded-full bg-white border border-gray-200 shadow-md p-2 hover:bg-gray-50"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {/* Input area */}
-          <div className="shrink-0 pb-3.5 px-4 w-full mx-auto max-w-4xl">
-            <div className="relative rounded-2xl border border-gray-200 bg-[#fbfbfb] pb-3 shadow-xs overflow-hidden">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={handleTextareaChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask anything"
-                rows={1}
-                disabled={isStreaming || !isChatReady}
-                className="w-full min-h-[60px] resize-none border-0 bg-transparent px-4 py-3 text-sm focus:outline-none focus:ring-0"
-              />
-              <div className="flex items-center justify-end px-3">
-                {isStreaming ? (
-                  <button
-                    onClick={stopGenerating}
-                    className="h-9 w-9 rounded-lg bg-gray-800 text-white hover:bg-gray-900 flex items-center justify-center"
-                    title="Stop generating"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <rect x="6" y="6" width="12" height="12" rx="1" />
-                    </svg>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleSubmit()}
-                    disabled={!isChatReady || !input.trim()}
-                    className="h-9 w-9 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center"
-                    title={isChatReady ? "Send message" : "Connecting..."}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="22" y1="2" x2="11" y2="13" />
-                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+    <div className={`h-full w-full ${className ?? ""}`}>
+      {/* @ts-ignore — mentor-ai is a registered custom element */}
+      <mentor-ai
+        mentorurl={resolvedMentorUrl}
+        authurl={config.authUrl()}
+        lmsurl={config.lmsUrl()}
+        tenant={resolvedTenant}
+        mentor={mentorId}
+        theme={theme}
+        component="chat"
+        authrelyonhost=""
+      />
     </div>
   );
 }

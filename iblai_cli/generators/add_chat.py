@@ -5,21 +5,15 @@ from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.next_config_patcher import patch_store_for_chat, write_env_local
 from iblai_cli.package_manager import install_packages
 from iblai_cli.project_detector import ProjectInfo
 
-# Chat-specific dependencies (may already be installed by auth).
-CHAT_DEPS = ["react-markdown", "remark-gfm"]
-
-# Chat-specific env vars.
-CHAT_ENV_VARS = {
-    "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.org",
-}
+# The only dependency: the <mentor-ai> Web Component.
+CHAT_DEPS = ["@iblai/iblai-web-mentor"]
 
 
 class AddChatGenerator:
-    """Generates a chat widget component for an existing project."""
+    """Generates a chat widget component that wraps the <mentor-ai> Web Component."""
 
     def __init__(self, project: ProjectInfo):
         self.project = project
@@ -39,9 +33,9 @@ class AddChatGenerator:
         return self.env.get_template(template_path).render({})
 
     def generate(self) -> List[str]:
-        """Generate the chat widget and apply configuration.
+        """Generate the chat widget wrapper and install @iblai/iblai-web-mentor.
 
-        Returns list of created/patched file paths.
+        Returns list of created file paths.
         """
         created: List[str] = []
 
@@ -50,15 +44,7 @@ class AddChatGenerator:
         self._write(widget_path, self._render("add/chat/chat-widget.tsx.j2"))
         created.append(str(widget_path.relative_to(self.project.root)))
 
-        # 2. Patch Redux store with chat slices (chatSliceReducerShared, filesReducer)
-        patched = patch_store_for_chat(self.project.root, self.project.store_dir)
-        if patched:
-            created.append(f"{patched} (patched)")
-
-        # 3. Ensure WebSocket env var is in .env.local
-        write_env_local(self.project.root, CHAT_ENV_VARS)
-
-        # 4. Install chat-specific dependencies (skips if already installed by auth)
+        # 2. Install @iblai/iblai-web-mentor
         install_packages(self.project.root, CHAT_DEPS)
 
         return created
