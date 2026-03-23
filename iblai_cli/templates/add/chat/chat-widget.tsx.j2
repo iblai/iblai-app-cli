@@ -72,14 +72,14 @@ export function ChatWidget({
 
   if (!mounted) {
     return (
-      <div className={`h-full w-full flex items-center justify-center ${className ?? ""}`}>
+      <div className={`h-full w-full min-h-[500px] flex items-center justify-center ${className ?? ""}`}>
         <p className="text-sm text-gray-400">Loading chat…</p>
       </div>
     );
   }
 
   return (
-    <div className={`h-full w-full ${className ?? ""}`}>
+    <div className={`h-full w-full min-h-[500px] ${className ?? ""}`}>
       {/* @ts-ignore — mentor-ai is a registered custom element */}
       <mentor-ai
         mentorurl={resolvedMentorUrl}
