@@ -7,6 +7,7 @@ from iblai_cli.next_config_patcher import (
     patch_next_config,
     patch_globals_css,
     write_env_local,
+    patch_store_for_chat,
 )
 
 
@@ -195,3 +196,61 @@ class TestWriteEnvLocal:
         content = (tmp_path / ".env.local").read_text()
         assert content.count("KEY_A") == 1
         assert "KEY_B=val" in content
+
+
+class TestPatchStoreForChat:
+    """Tests for patch_store_for_chat()."""
+
+    STORE_CONTENT = (
+        'import { configureStore } from "@reduxjs/toolkit";\n'
+        "import {\n"
+        "  coreApiSlice,\n"
+        "  mentorReducer,\n"
+        "  mentorMiddleware,\n"
+        '} from "@iblai/iblai-js/data-layer";\n\n'
+        "export const makeStore = () => {\n"
+        "  return configureStore({\n"
+        "    reducer: {\n"
+        "      [coreApiSlice.reducerPath]: coreApiSlice.reducer,\n"
+        "      ...mentorReducer,\n"
+        "    },\n"
+        "    middleware: (getDefaultMiddleware) =>\n"
+        "      getDefaultMiddleware({ serializableCheck: false })\n"
+        "        .concat(coreApiSlice.middleware)\n"
+        "        .concat(...mentorMiddleware),\n"
+        "  });\n"
+        "};\n"
+    )
+
+    def test_patches_store_index_ts(self, tmp_path):
+        store_dir = tmp_path / "store"
+        store_dir.mkdir()
+        (store_dir / "index.ts").write_text(self.STORE_CONTENT)
+        result = patch_store_for_chat(tmp_path, store_dir)
+        assert result == "store/index.ts"
+        content = (store_dir / "index.ts").read_text()
+        assert "chatSliceReducerShared" in content
+        assert "filesReducer" in content
+        assert "@iblai/iblai-js/web-utils" in content
+
+    def test_patches_iblai_store_ts(self, tmp_path):
+        store_dir = tmp_path / "store"
+        store_dir.mkdir()
+        (store_dir / "iblai-store.ts").write_text(self.STORE_CONTENT)
+        result = patch_store_for_chat(tmp_path, store_dir)
+        assert result == "store/iblai-store.ts"
+
+    def test_idempotent(self, tmp_path):
+        store_dir = tmp_path / "store"
+        store_dir.mkdir()
+        (store_dir / "index.ts").write_text(self.STORE_CONTENT)
+        patch_store_for_chat(tmp_path, store_dir)
+        first = (store_dir / "index.ts").read_text()
+        result = patch_store_for_chat(tmp_path, store_dir)
+        assert result is None  # already patched
+        assert (store_dir / "index.ts").read_text() == first
+
+    def test_returns_none_when_no_store(self, tmp_path):
+        store_dir = tmp_path / "store"
+        store_dir.mkdir()
+        assert patch_store_for_chat(tmp_path, store_dir) is None

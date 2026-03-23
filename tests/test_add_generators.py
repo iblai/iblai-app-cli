@@ -30,7 +30,7 @@ def _make_project(tmp_path, src_dir=None):
     }
     (root / "package.json").write_text(json.dumps(pkg))
 
-    # Create globals.css and next.config.ts so patching has targets
+    # Create globals.css, next.config.ts, and store/index.ts so patching has targets
     (app_dir / "globals.css").write_text('@import "tailwindcss";\n')
     (root / "next.config.ts").write_text(
         'import type { NextConfig } from "next";\n\n'
@@ -40,6 +40,25 @@ def _make_project(tmp_path, src_dir=None):
         "  },\n"
         "};\n\n"
         "export default nextConfig;\n"
+    )
+    store_dir = root / (src_dir or "") / "store" if src_dir else root / "store"
+    store_dir.mkdir(parents=True, exist_ok=True)
+    (store_dir / "index.ts").write_text(
+        'import { configureStore } from "@reduxjs/toolkit";\n'
+        "import {\n  coreApiSlice,\n  mentorReducer,\n  mentorMiddleware,\n"
+        '} from "@iblai/iblai-js/data-layer";\n\n'
+        "export const makeStore = () => {\n"
+        "  return configureStore({\n"
+        "    reducer: {\n"
+        "      [coreApiSlice.reducerPath]: coreApiSlice.reducer,\n"
+        "      ...mentorReducer,\n"
+        "    },\n"
+        "    middleware: (getDefaultMiddleware) =>\n"
+        "      getDefaultMiddleware({ serializableCheck: false })\n"
+        "        .concat(coreApiSlice.middleware)\n"
+        "        .concat(...mentorMiddleware),\n"
+        "  });\n"
+        "};\n"
     )
     return ProjectInfo(
         root=root,
@@ -157,8 +176,8 @@ class TestAddChatGenerator:
         from iblai_cli.generators.add_chat import AddChatGenerator
 
         created = AddChatGenerator(project).generate()
-        assert len(created) == 1
         assert (project.components_dir / "iblai" / "chat-widget.tsx").exists()
+        assert any("chat-widget.tsx" in f for f in created)
 
     def test_chat_widget_has_session_management(self, widget_content):
         assert "sessionId" in widget_content
@@ -381,6 +400,15 @@ class TestAddChatAutoApply:
     @pytest.fixture
     def project(self, tmp_path):
         return _make_project(tmp_path)
+
+    def test_chat_patches_store_with_chat_slices(self, project):
+        from iblai_cli.generators.add_chat import AddChatGenerator
+
+        AddChatGenerator(project).generate()
+        store = (project.store_dir / "index.ts").read_text()
+        assert "chatSliceReducerShared" in store
+        assert "filesReducer" in store
+        assert "@iblai/iblai-js/web-utils" in store
 
     def test_chat_writes_ws_env_var(self, project):
         from iblai_cli.generators.add_chat import AddChatGenerator

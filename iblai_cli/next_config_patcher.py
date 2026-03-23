@@ -215,3 +215,62 @@ def write_env_local(root: Path, env_vars: Dict[str, str]) -> str:
             f.write(separator + header + "\n".join(lines_to_add) + "\n")
 
     return ".env.local"
+
+
+def patch_store_for_chat(root: Path, store_dir: Path) -> Optional[str]:
+    """
+    Add ``chatSliceReducerShared`` and ``filesReducer`` to the Redux store.
+
+    Searches for ``store/index.ts`` or ``store/iblai-store.ts``, then injects
+    the web-utils import and two reducer entries.  Idempotent — skips if the
+    slices are already present.  Returns the relative path of the patched
+    file, or ``None`` if no store was found or it was already patched.
+    """
+    for name in ("index.ts", "iblai-store.ts"):
+        store_path = store_dir / name
+        if not store_path.exists():
+            continue
+
+        content = store_path.read_text(encoding="utf-8")
+
+        # Already patched?
+        if "chatSliceReducerShared" in content:
+            return None
+
+        original = content
+
+        # 1. Add the web-utils import after the last existing import
+        web_utils_import = (
+            "import {\n"
+            "  chatSliceReducerShared,\n"
+            "  filesReducer,\n"
+            '} from "@iblai/iblai-js/web-utils";\n'
+        )
+        if "@iblai/iblai-js/web-utils" not in content:
+            # Find the last import line and insert after it
+            lines = content.split("\n")
+            last_import_idx = 0
+            for i, line in enumerate(lines):
+                if line.strip().startswith("import ") or line.strip().startswith(
+                    "} from "
+                ):
+                    last_import_idx = i
+            lines.insert(last_import_idx + 1, web_utils_import)
+            content = "\n".join(lines)
+
+        # 2. Add reducer entries — insert after the coreApiSlice reducer line
+        reducer_lines = (
+            "    chatSliceShared: chatSliceReducerShared,\n    files: filesReducer,"
+        )
+        if "coreApiSlice.reducerPath" in content:
+            content = content.replace(
+                "[coreApiSlice.reducerPath]: coreApiSlice.reducer,",
+                "[coreApiSlice.reducerPath]: coreApiSlice.reducer,\n" + reducer_lines,
+                1,
+            )
+
+        if content != original:
+            store_path.write_text(content, encoding="utf-8")
+            return str(store_path.relative_to(root))
+
+    return None

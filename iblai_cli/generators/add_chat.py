@@ -5,7 +5,7 @@ from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.next_config_patcher import write_env_local
+from iblai_cli.next_config_patcher import patch_store_for_chat, write_env_local
 from iblai_cli.package_manager import install_packages
 from iblai_cli.project_detector import ProjectInfo
 
@@ -50,10 +50,15 @@ class AddChatGenerator:
         self._write(widget_path, self._render("add/chat/chat-widget.tsx.j2"))
         created.append(str(widget_path.relative_to(self.project.root)))
 
-        # 2. Ensure WebSocket env var is in .env.local
+        # 2. Patch Redux store with chat slices (chatSliceReducerShared, filesReducer)
+        patched = patch_store_for_chat(self.project.root, self.project.store_dir)
+        if patched:
+            created.append(f"{patched} (patched)")
+
+        # 3. Ensure WebSocket env var is in .env.local
         write_env_local(self.project.root, CHAT_ENV_VARS)
 
-        # 3. Install chat-specific dependencies (skips if already installed by auth)
+        # 4. Install chat-specific dependencies (skips if already installed by auth)
         install_packages(self.project.root, CHAT_DEPS)
 
         return created
