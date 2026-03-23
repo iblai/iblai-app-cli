@@ -127,6 +127,15 @@ class BaseAppGenerator(BaseGenerator):
         self._write("lib/utils.ts", self._render("lib/utils.ts.j2"))
         self._write("lib/hooks.ts", self._render("lib/hooks.ts.j2"))
 
+        # --- Lib shims for `iblai add` compatibility ---
+        # Components added via `iblai add chat/profile` import from
+        # "@/lib/iblai/config" and "@/lib/iblai/auth-utils". These re-export
+        # shims ensure those imports resolve to the base template's files.
+        self._write("lib/iblai/config.ts", self._render("lib/iblai/config.ts.j2"))
+        self._write(
+            "lib/iblai/auth-utils.ts", self._render("lib/iblai/auth-utils.ts.j2")
+        )
+
         # --- Hooks ---
         self._write("hooks/use-user.ts", self._render("hooks/use-user.ts.j2"))
 

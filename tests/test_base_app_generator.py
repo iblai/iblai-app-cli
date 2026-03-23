@@ -98,6 +98,19 @@ class TestBaseAppGenerator:
         assert "NEXT_PUBLIC_DEFAULT_AGENT_ID" not in env
         assert "NEXT_PUBLIC_MAIN_TENANT_KEY=acme" in env
 
+    def test_iblai_config_shim_exists(self, generated_dir):
+        shim = generated_dir / "lib" / "iblai" / "config.ts"
+        assert shim.exists()
+        content = shim.read_text()
+        assert "@/lib/config" in content
+
+    def test_iblai_auth_utils_shim_exists(self, generated_dir):
+        shim = generated_dir / "lib" / "iblai" / "auth-utils.ts"
+        assert shim.exists()
+        content = shim.read_text()
+        assert "redirectToAuthSpa" in content
+        assert "handleLogout" in content
+
     def test_config_no_agent_url(self, generated_dir):
         config = (generated_dir / "lib" / "config.ts").read_text()
         assert "mainTenantKey" in config
