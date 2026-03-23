@@ -42,6 +42,7 @@ class BaseAppGenerator(BaseGenerator):
                 [
                     str(self.template_dir / "base"),
                     str(self.template_dir / "shared"),
+                    str(self.template_dir / "add"),
                 ]
             ),
             trim_blocks=True,
@@ -112,6 +113,20 @@ class BaseAppGenerator(BaseGenerator):
         )
         self._write(
             "components/ui/sonner.tsx", self._render("components/ui/sonner.tsx.j2")
+        )
+
+        # --- IBL.ai components (pre-generated, ready to import) ---
+        self._write(
+            "components/iblai/chat-widget.tsx",
+            self._render("chat/chat-widget.tsx.j2"),
+        )
+        self._write(
+            "components/iblai/profile-dropdown.tsx",
+            self._render("profile/profile-dropdown.tsx.j2"),
+        )
+        self._write(
+            "components/iblai/notification-bell.tsx",
+            self._render("notifications/notification-bell.tsx.j2"),
         )
 
         # --- Providers + Store ---

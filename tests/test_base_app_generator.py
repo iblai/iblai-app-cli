@@ -111,6 +111,27 @@ class TestBaseAppGenerator:
         assert "redirectToAuthSpa" in content
         assert "handleLogout" in content
 
+    def test_generates_chat_widget(self, generated_dir):
+        path = generated_dir / "components" / "iblai" / "chat-widget.tsx"
+        assert path.exists()
+        content = path.read_text()
+        assert "mentor-ai" in content
+        assert "@iblai/iblai-web-mentor" in content
+
+    def test_generates_profile_dropdown(self, generated_dir):
+        path = generated_dir / "components" / "iblai" / "profile-dropdown.tsx"
+        assert path.exists()
+        assert "UserProfileDropdown" in path.read_text()
+
+    def test_generates_notification_bell(self, generated_dir):
+        path = generated_dir / "components" / "iblai" / "notification-bell.tsx"
+        assert path.exists()
+        assert "NotificationDropdown" in path.read_text()
+
+    def test_package_json_has_web_mentor(self, generated_dir):
+        pkg = json.loads((generated_dir / "package.json").read_text())
+        assert "@iblai/iblai-web-mentor" in pkg["dependencies"]
+
     def test_config_no_agent_url(self, generated_dir):
         config = (generated_dir / "lib" / "config.ts").read_text()
         assert "mainTenantKey" in config
