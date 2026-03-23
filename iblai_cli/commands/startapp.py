@@ -285,11 +285,10 @@ def startapp(
                     "  3. cp .env.example .env.local\n"
                     "  4. Update .env.local with your configuration\n"
                     "  5. pnpm dev\n\n"
-                    "[bold]Add features:[/bold]\n"
-                    "  iblai add chat           Add AI chat widget\n"
-                    "  iblai add profile        Add user profile dropdown\n"
-                    "  iblai add notifications  Add notification bell\n"
-                    "  iblai add mcp            Add MCP config + Claude skills\n\n"
+                    "[bold]IBL.ai components (ready to import):[/bold]\n"
+                    '  [dim]import { ChatWidget } from "@/components/iblai/chat-widget";[/dim]\n'
+                    '  [dim]import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";[/dim]\n'
+                    '  [dim]import { IblaiNotificationBell } from "@/components/iblai/notification-bell";[/dim]\n\n'
                     "[bold]Add UI blocks:[/bold]\n"
                     "  npx shadcn@latest add @shadcn-space/hero-01\n"
                     "  Browse: https://shadcnspace.com/blocks",
