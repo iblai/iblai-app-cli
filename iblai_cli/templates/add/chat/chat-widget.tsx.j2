@@ -181,8 +181,18 @@ export function ChatWidget({ mentorId, tenantKey, className }: ChatWidgetProps) 
   const resolvedTenant = useMemo(() => {
     if (tenantKey) return tenantKey;
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("tenant");
-      if (stored) return stored;
+      for (const key of ["current_tenant", "tenant"]) {
+        const stored = localStorage.getItem(key);
+        if (stored && stored !== "[object Object]") {
+          try {
+            const parsed = JSON.parse(stored);
+            if (typeof parsed === "string") return parsed;
+            if (parsed?.key) return parsed.key;
+          } catch {
+            return stored;
+          }
+        }
+      }
     }
     return config.mainTenantKey();
   }, [tenantKey]);
@@ -191,8 +201,8 @@ export function ChatWidget({ mentorId, tenantKey, className }: ChatWidgetProps) 
 
   /* ---- Mentor settings (for name + avatar) ---- */
   const { data: mentorPublicSettings } = useGetMentorPublicSettingsQuery(
-    { mentor: mentorId, org: resolvedTenant },
-    { skip: !resolvedTenant || !mentorId },
+    { mentor: mentorId, org: resolvedTenant, userId: username },
+    { skip: !resolvedTenant || !mentorId || !username || username === "anonymous" },
   );
   const mentorDisplayName = mentorPublicSettings?.mentor_name ?? mentorPublicSettings?.display_name ?? "AI Assistant";
   const mentorProfileImage = mentorPublicSettings?.profile_image ?? undefined;

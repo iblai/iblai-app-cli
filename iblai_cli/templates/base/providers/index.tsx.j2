@@ -150,9 +150,10 @@ export function Providers({ children }: { children: ReactNode }) {
       <TenantProvider
         currentTenant={tenantKey}
         requestedTenant={tenantKey}
-        saveCurrentTenant={(t: string) => {
-          localStorage.setItem("current_tenant", t);
-          localStorage.setItem("tenant", t);
+        saveCurrentTenant={(t: any) => {
+          const key = typeof t === "string" ? t : t?.key ?? String(t);
+          localStorage.setItem("current_tenant", key);
+          localStorage.setItem("tenant", key);
         }}
         saveUserTenants={(t: unknown) =>
           localStorage.setItem("tenants", JSON.stringify(t))
