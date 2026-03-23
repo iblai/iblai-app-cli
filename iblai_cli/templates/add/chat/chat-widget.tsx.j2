@@ -28,6 +28,8 @@ interface ChatWidgetProps {
   mentorUrl?: string;
   /** Color theme. */
   theme?: "light" | "dark";
+  /** Height of the chat widget. Number = pixels, string = CSS value. Default: 600. */
+  height?: number | string;
   /** Additional CSS class for the outer container. */
   className?: string;
 }
@@ -37,6 +39,7 @@ export function ChatWidget({
   tenantKey,
   mentorUrl,
   theme = "light",
+  height = 600,
   className,
 }: ChatWidgetProps) {
   const [mounted, setMounted] = useState(false);
@@ -64,6 +67,8 @@ export function ChatWidget({
     return config.mainTenantKey();
   }, [tenantKey]);
 
+  const resolvedHeight = typeof height === "number" ? `${height}px` : height;
+
   const resolvedMentorUrl = useMemo(() => {
     if (mentorUrl) return mentorUrl;
     const domain = config.platformBaseDomain?.() ?? "iblai.org";
@@ -72,17 +77,17 @@ export function ChatWidget({
 
   if (!mounted) {
     return (
-      <div className={`h-full w-full min-h-[600px] flex items-center justify-center ${className ?? ""}`}>
+      <div className={`w-full flex items-center justify-center ${className ?? ""}`} style={{ height: resolvedHeight }}>
         <p className="text-sm text-gray-400">Loading chat…</p>
       </div>
     );
   }
 
   return (
-    <div className={`h-full w-full min-h-[600px] ${className ?? ""}`}>
+    <div className={`w-full ${className ?? ""}`} style={{ height: resolvedHeight }}>
       {/* @ts-ignore — mentor-ai is a registered custom element */}
       <mentor-ai
-        style={{ display: "block", width: "100%", height: "100%" }}
+        style={{ display: "block", width: "100%", height: resolvedHeight }}
         mentorurl={resolvedMentorUrl}
         authurl={config.authUrl()}
         lmsurl={config.lmsUrl()}
