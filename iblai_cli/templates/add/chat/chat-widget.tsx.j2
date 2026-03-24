@@ -3,36 +3,25 @@
 /**
  * IBL.ai Chat Widget
  *
- * A wrapper around the <mentor-ai> Web Component from @iblai/iblai-web-mentor.
- * The component renders an iframe to the hosted MentorAI platform and handles
- * authentication, WebSocket streaming, and all chat UI internally.
+ * Embeds the MentorAI platform in an iframe with auth tokens passed via
+ * the ibl-data URL parameter. This avoids the web component's hardcoded
+ * mode=anonymous which prevents the chat WebSocket session from starting.
  *
  * Usage:
  *   import { ChatWidget } from "@/components/iblai/chat-widget";
  *   <ChatWidget mentorId="your-mentor-id" />
- *
- * Prerequisites:
- *   - pnpm add @iblai/iblai-web-mentor
- *   - Auth must be set up (iblai add auth or iblai startapp base)
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import config from "@/lib/iblai/config";
 
 interface ChatWidgetProps {
-  /** The mentor unique_id to chat with. */
   mentorId: string;
-  /** Override the tenant key (defaults to localStorage / config value). */
   tenantKey?: string;
-  /** Override the MentorAI platform URL (defaults to https://mentorai.{domain}). */
   mentorUrl?: string;
-  /** Color theme. */
   theme?: "light" | "dark";
-  /** Width of the chat widget. Number = pixels, string = CSS value. Default: 720. */
   width?: number | string;
-  /** Height of the chat widget. Number = pixels, string = CSS value. Default: 600. */
   height?: number | string;
-  /** Additional CSS class for the outer container. */
   className?: string;
 }
 
@@ -45,23 +34,9 @@ export function ChatWidget({
   height = 600,
   className,
 }: ChatWidgetProps) {
-  const [mounted, setMounted] = useState(false);
   const [tokensReady, setTokensReady] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Import the web component on the client only (it needs the DOM).
-  useEffect(() => {
-    import("@iblai/iblai-web-mentor")
-      .then(() => setMounted(true))
-      .catch((e) => {
-        console.error("[IBL] Failed to load @iblai/iblai-web-mentor:", e);
-        setMounted(true);
-      });
-  }, []);
 
   // Poll for dm_token — TenantProvider fetches it asynchronously.
-  // Only render <mentor-ai> once tokens are present so the iframe URL
-  // includes valid ibl-data from the first request.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -79,7 +54,6 @@ export function ChatWidget({
 
     const timeout = setTimeout(() => {
       clearInterval(interval);
-      console.warn("[IBL ChatWidget] dm_token not found after 20s — rendering anyway");
       setTokensReady(true);
     }, 20_000);
 
@@ -116,71 +90,70 @@ export function ChatWidget({
     return `https://mentorai.${domain}`;
   }, [mentorUrl]);
 
-  // Build ibl-data query param so the MentorAI iframe loads pre-authenticated
-  // on the first request. The MentorAI app reads ibl-data from its own URL
-  // query params, sets its auth state, and avoids cross-origin issues entirely.
-  // NOTE: resolvedTenant is used (not localStorage) to ensure the tenant key
-  // is always valid at param construction time.
-  const iblDataParam = useMemo(() => {
-    if (!tokensReady || !resolvedTenant || typeof window === "undefined") return "";
+  // Build the iframe src directly — bypasses the web component's hardcoded
+  // mode=anonymous which prevents the WebSocket chat session from starting.
+  const iframeSrc = useMemo(() => {
+    if (!tokensReady || !resolvedTenant) return "";
 
-    const data = JSON.stringify({
-      axd_token: localStorage.getItem("axd_token") ?? "",
-      axd_token_expires: localStorage.getItem("axd_token_expires") ?? "",
-      dm_token: localStorage.getItem("dm_token") ?? "",
-      dm_token_expires: localStorage.getItem("dm_token_expires") ?? "",
-      edx_jwt_token: localStorage.getItem("edx_jwt_token") ?? "",
-      userData: localStorage.getItem("userData") ?? "",
-      tenant: resolvedTenant,
-      tenants: localStorage.getItem("tenants") ?? "[]",
-      current_tenant: resolvedTenant,
+    const params = new URLSearchParams({
+      embed: "true",
+      theme,
+      "hide-navbar": "1",
     });
 
-    return encodeURIComponent(data);
-  }, [tokensReady, resolvedTenant]);
+    // Pass auth tokens so the MentorAI app authenticates on first load.
+    if (typeof window !== "undefined") {
+      const resolveTenantStr = (raw: string | null): string => {
+        if (!raw || raw === "[object Object]") return "";
+        try {
+          const p = JSON.parse(raw);
+          if (typeof p === "string") return p;
+          if (p?.key) return p.key;
+        } catch { /* plain string */ }
+        return raw;
+      };
 
-  // Create the mentor-ai element imperatively once tokens are ready.
-  // Tokens are passed via extraparams as ibl-data= in the iframe URL,
-  // so the MentorAI app authenticates on the very first page load.
-  useEffect(() => {
-    if (!mounted || !tokensReady || !containerRef.current) return;
+      const iblData = JSON.stringify({
+        axd_token: localStorage.getItem("axd_token") ?? "",
+        axd_token_expires: localStorage.getItem("axd_token_expires") ?? "",
+        dm_token: localStorage.getItem("dm_token") ?? "",
+        dm_token_expires: localStorage.getItem("dm_token_expires") ?? "",
+        edx_jwt_token: localStorage.getItem("edx_jwt_token") ?? "",
+        userData: localStorage.getItem("userData") ?? "",
+        tenant: resolvedTenant,
+        tenants: localStorage.getItem("tenants") ?? "[]",
+        current_tenant: resolvedTenant,
+      });
+      params.set("ibl-data", iblData);
+    }
 
-    const el = document.createElement("mentor-ai") as any;
+    return `${resolvedMentorUrl}/platform/${resolvedTenant}/${mentorId}/?${params.toString()}`;
+  }, [tokensReady, resolvedTenant, resolvedMentorUrl, mentorId, theme]);
 
-    const extraParams = iblDataParam
-      ? `hide-navbar=1&ibl-data=${iblDataParam}`
-      : "hide-navbar=1";
-
-    el.setAttribute("mentorurl", resolvedMentorUrl);
-    el.setAttribute("authurl", config.authUrl());
-    el.setAttribute("lmsurl", config.lmsUrl());
-    el.setAttribute("tenant", resolvedTenant);
-    el.setAttribute("mentor", mentorId);
-    el.setAttribute("theme", theme);
-    el.setAttribute("component", "chat");
-    el.setAttribute("authrelyonhost", "true");
-    el.setAttribute("extraparams", extraParams);
-    el.style.cssText = `display:block;width:${resolvedWidth};height:${resolvedHeight}`;
-
-    containerRef.current.appendChild(el);
-
-    return () => {
-      el.remove();
-    };
-  }, [mounted, tokensReady, iblDataParam, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
+  if (!tokensReady || !iframeSrc) {
+    return (
+      <div
+        className={`flex items-center justify-center ${className ?? ""}`}
+        style={{ width: resolvedWidth, height: resolvedHeight }}
+      >
+        <p className="text-sm text-gray-400">Loading chat…</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={containerRef}
+    <iframe
+      src={iframeSrc}
       className={className ?? ""}
-      style={{ width: resolvedWidth, height: resolvedHeight }}
-    >
-      {(!mounted || !tokensReady) && (
-        <div className="flex h-full w-full items-center justify-center">
-          <p className="text-sm text-gray-400">Loading chat…</p>
-        </div>
-      )}
-    </div>
+      style={{
+        width: resolvedWidth,
+        height: resolvedHeight,
+        border: "none",
+        display: "block",
+      }}
+      allow="microphone; camera"
+      title="IBL.ai Chat"
+    />
   );
 }
 {% endraw %}
