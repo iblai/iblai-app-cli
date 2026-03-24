@@ -171,8 +171,14 @@ export function Providers({ children }: { children: ReactNode }) {
     localStorage.setItem("tenant", key);
   }, []);
 
-  const handleTenantSwitch = useCallback(async () => {
-    redirectToAuthSpa(undefined, undefined, true, true);
+  const handleTenantSwitch = useCallback(async (t: any) => {
+    // Update tenant in localStorage and reload — do NOT redirect to auth SPA.
+    const key = typeof t === "string" ? t : t?.key ?? String(t);
+    if (key) {
+      localStorage.setItem("current_tenant", key);
+      localStorage.setItem("tenant", key);
+    }
+    window.location.reload();
   }, []);
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
@@ -206,7 +212,12 @@ export function Providers({ children }: { children: ReactNode }) {
         saveUserTokens={saveUserTokens}
         saveTenant={saveTenant}
         handleTenantSwitch={handleTenantSwitch}
-        redirectToAuthSpa={redirectToAuthSpa}
+        redirectToAuthSpa={
+          // Suppress TenantProvider's own auth redirect — the host AuthProvider
+          // manages top-level auth. TenantProvider redirecting with redirect-token=null
+          // causes a 409 "Unknown site" error in the auth SPA.
+          () => { console.warn("[TenantProvider] auth redirect suppressed"); setSkipTenant(true); }
+        }
         username={username}
         fallback={LOADING}
         onAuthFailure={(reason) => {
