@@ -81,17 +81,14 @@ class TestBaseAppGenerator:
         assert "chatSliceReducerShared" not in store
         assert "filesReducer" not in store
 
-    def test_providers_no_mentor(self, generated_dir):
+    def test_providers_auth_only(self, generated_dir):
         providers = (generated_dir / "providers" / "index.tsx").read_text()
         assert "AuthProvider" in providers
-        assert "TenantProvider" in providers
-        # MentorProvider should not be imported or used (may appear in comments)
-        assert (
-            "import" not in providers
-            or "MentorProvider" not in providers.split("import")[1]
-            if "MentorProvider" in providers
-            else True
-        )
+        # TenantProvider removed — causes "Loading tenant..." hang in SDK
+        assert "<TenantProvider" not in providers
+        assert "import { AuthProvider, TenantProvider" not in providers
+        # MentorProvider not included either
+        assert "<MentorProvider" not in providers
         assert "<MentorProvider" not in providers
 
     def test_env_example_no_agent_id(self, generated_dir):

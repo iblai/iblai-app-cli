@@ -1,18 +1,18 @@
 "use client";
 {% raw %}
 /**
- * Application providers — AuthProvider + TenantProvider.
+ * Application providers — AuthProvider only.
  *
- * This is a "base" provider setup with no MentorProvider.
- * Add MentorProvider later via `iblai add chat` if needed.
+ * TenantProvider is intentionally omitted. The ChatWidget (mentor-ai iframe)
+ * handles its own tenant resolution via authrelyonhost. Components that need
+ * the tenant key read it directly from localStorage or config.
  */
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import Script from "next/script";
+import { usePathname } from "next/navigation";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
-import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
-import { config, getEnv } from "@/lib/config";
+import { AuthProvider } from "@iblai/iblai-js/web-utils";
+import { config } from "@/lib/config";
 
 // ---------------------------------------------------------------------------
 // LocalStorageService for initializeDataLayer
@@ -80,19 +80,22 @@ const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
 
 export function Providers({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    initializeDataLayer(
-      config.dmUrl(),
-      config.lmsUrl(),
-      storageService,
-      {
-        401: () => redirectToAuthSpa(undefined, undefined, true),
-      },
-    );
+    try {
+      initializeDataLayer(
+        config.dmUrl(),
+        config.lmsUrl(),
+        storageService,
+        {
+          401: () => redirectToAuthSpa(undefined, undefined, true),
+        },
+      );
+    } catch (e) {
+      console.error("[IBL] initializeDataLayer failed:", e);
+    }
     setIsInitialized(true);
   }, []);
 
@@ -105,29 +108,13 @@ export function Providers({ children }: { children: ReactNode }) {
     return "";
   }, [isInitialized]);
 
-  const tenantKey = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("current_tenant")
-      ?? localStorage.getItem("tenant")
-      ?? config.mainTenantKey()
-      ?? "";
-  }, [isInitialized]);
-
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
   if (!isInitialized) {
     return (
-      <>
-        <Script
-          src="/env.js"
-          strategy="beforeInteractive"
-          onLoad={() => setIsInitialized(true)}
-          onError={() => setIsInitialized(true)}
-        />
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-sm text-gray-400">Loading…</p>
-        </div>
-      </>
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-gray-400">Loading…</p>
+      </div>
     );
   }
 
@@ -147,30 +134,7 @@ export function Providers({ children }: { children: ReactNode }) {
         </div>
       }
     >
-      <TenantProvider
-        currentTenant={tenantKey}
-        requestedTenant={tenantKey}
-        saveCurrentTenant={(t: any) => {
-          const key = typeof t === "string" ? t : t?.key ?? String(t);
-          localStorage.setItem("current_tenant", key);
-          localStorage.setItem("tenant", key);
-        }}
-        saveUserTenants={(t: unknown) =>
-          localStorage.setItem("tenants", JSON.stringify(t))
-        }
-        handleTenantSwitch={async () => {
-          redirectToAuthSpa(undefined, undefined, true, true);
-        }}
-        redirectToAuthSpa={redirectToAuthSpa}
-        username={username}
-        fallback={
-          <div className="flex min-h-screen items-center justify-center">
-            <p className="text-sm text-gray-400">Loading tenant…</p>
-          </div>
-        }
-      >
-        {children}
-      </TenantProvider>
+      {children}
     </AuthProvider>
   );
 }
