@@ -275,3 +275,18 @@ class TestAgentRouteGroups:
         assert layout.exists()
         content = layout.read_text()
         assert "AppShell" in content
+
+    def test_agent_generates_e2e_tests(self, generated_dir):
+        """Agent app inherits e2e tests from base generator."""
+        assert (generated_dir / "e2e" / "playwright.config.ts").exists()
+        assert (generated_dir / "e2e" / "auth.setup.ts").exists()
+        assert (generated_dir / "e2e" / "journeys" / "auth.journey.spec.ts").exists()
+        assert (generated_dir / "e2e" / "journeys" / "chat.journey.spec.ts").exists()
+
+    def test_next_version_bumped(self, generated_dir):
+        """Next.js version is bumped to 15.5.14."""
+        import json
+
+        pkg = json.loads((generated_dir / "package.json").read_text())
+        assert pkg["dependencies"]["next"] == "15.5.14"
+        assert pkg["devDependencies"]["eslint-config-next"] == "15.5.14"

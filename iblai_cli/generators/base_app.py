@@ -182,3 +182,19 @@ class BaseAppGenerator(BaseGenerator):
                     )
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(skill_dir / "SKILL.md", dest)
+
+        # --- Playwright E2E tests (e2e/ directory) ---
+        self._write(
+            "e2e/playwright.config.ts", self._render("e2e/playwright.config.ts.j2")
+        )
+        self._write("e2e/auth.setup.ts", self._render("e2e/auth.setup.ts.j2"))
+        self._write("e2e/custom-reporter.ts", self._render("e2e/custom-reporter.ts.j2"))
+        self._write("e2e/.env.development", self._render("e2e/.env.development.j2"))
+        self._write(
+            "e2e/journeys/auth.journey.spec.ts",
+            self._render("e2e/journeys/auth.journey.spec.ts.j2"),
+        )
+        self._write(
+            "e2e/journeys/chat.journey.spec.ts",
+            self._render("e2e/journeys/chat.journey.spec.ts.j2"),
+        )

@@ -1,0 +1,18 @@
+import { createPlaywrightConfig } from '@iblai/iblai-js/playwright';
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({
+  path: path.resolve(__dirname, '.env.development'),
+});
+
+export default createPlaywrightConfig({
+  testDir: '.',
+  platforms: [
+    {
+      name: 'app',
+      dependencies: ['setup'],
+      otherTestMatch: ['journeys/**/*.spec.ts'],
+    },
+  ],
+});

@@ -171,11 +171,35 @@ class TestBaseAppGenerator:
         """Key dependencies are pinned to ensure SDK component compatibility."""
         pkg = json.loads((generated_dir / "package.json").read_text())
         deps = pkg["dependencies"]
-        assert deps["next"] == "15.3.6"
+        assert deps["next"] == "15.5.14"
         assert deps["react"] == "19.1.0"
         assert deps["react-dom"] == "19.1.0"
         assert deps["@reduxjs/toolkit"] == "2.7.0"
         assert deps["react-redux"] == "9.2.0"
+
+    def test_generates_playwright_config(self, generated_dir):
+        config = generated_dir / "e2e" / "playwright.config.ts"
+        assert config.exists()
+        assert "createPlaywrightConfig" in config.read_text()
+
+    def test_generates_auth_setup(self, generated_dir):
+        auth = generated_dir / "e2e" / "auth.setup.ts"
+        assert auth.exists()
+        assert "createAuthSetup" in auth.read_text()
+
+    def test_generates_e2e_journeys(self, generated_dir):
+        auth_j = generated_dir / "e2e" / "journeys" / "auth.journey.spec.ts"
+        chat_j = generated_dir / "e2e" / "journeys" / "chat.journey.spec.ts"
+        assert auth_j.exists()
+        assert chat_j.exists()
+        assert "axd_token" in auth_j.read_text()
+        assert "mentor-ai" in chat_j.read_text()
+
+    def test_e2e_scripts_in_package_json(self, generated_dir):
+        pkg = json.loads((generated_dir / "package.json").read_text())
+        assert "test:e2e" in pkg["scripts"]
+        assert "test:e2e:ui" in pkg["scripts"]
+        assert "@playwright/test" in pkg["devDependencies"]
 
 
 class TestBaseAppCLI:

@@ -1,0 +1,21 @@
+import { test as setup, createAuthSetup } from '@iblai/iblai-js/playwright';
+
+const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
+const AUTH_HOST = process.env.AUTH_HOST || 'https://auth.iblai.org';
+
+setup(
+  'authenticate',
+  createAuthSetup({
+    hostUrl: APP_HOST,
+    authHost: AUTH_HOST,
+    appName: 'agent',
+    postLoginUrlMatcher: (url) => url.href.startsWith(APP_HOST + '/'),
+    authFlow:
+      (process.env.AUTH_FLOW as
+        | 'username_password'
+        | 'magic_link'
+        | 'sso'
+        | 'direct_sso') || 'username_password',
+    authIdp: process.env.AUTH_IDP,
+  }),
+);
