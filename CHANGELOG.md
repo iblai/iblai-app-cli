@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- shadcnspace UI block support. Generated apps now include a `components.json` file that configures the [shadcn/ui CLI](https://ui.shadcn.com/docs/cli), enabling developers to add production-ready UI blocks from [shadcnspace](https://shadcnspace.com) with a single command:
+  ```bash
+  npx shadcn@latest add @shadcn-space/hero-01
+  npx shadcn@latest add @shadcn-space/dashboard-shell-01
+  ```
+- New `_generate_components_json()` method in `AgentAppGenerator` that renders and writes the `components.json` configuration during app scaffolding.
+- Success message after `iblai startapp agent` now includes a "Add UI blocks (shadcnspace)" section with example commands and a link to browse all available blocks.
+- 6 new tests for `components.json` generation: file existence, valid JSON, shadcn schema, alias paths, tailwind config, and RSC/TSX flags.
+
+### Changed
+
+- `AgentAppGenerator.generate()` now calls `_generate_components_json()` after `_generate_mcp_config()`.
 - `.env` file configuration support. The CLI now loads configuration from `.env` and `.env.{stage}` files in the current directory, with a clear priority chain: CLI flags > system env vars > `.env.{stage}` > `.env` > interactive prompts.
 - New `iblai_cli/config.py` module implementing the `.env` loading logic with `python-dotenv`.
 - Six new CLI options for `iblai startapp`:

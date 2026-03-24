@@ -255,6 +255,21 @@ cp .env.example .env.local    # Edit with your platform URL and keys
 pnpm dev                       # Starts on http://localhost:3000
 ```
 
+## Add UI blocks (shadcnspace)
+
+Generated apps include a `components.json` that enables the [shadcn/ui CLI](https://ui.shadcn.com/docs/cli). You can add production-ready UI blocks from [shadcnspace](https://shadcnspace.com) with a single command:
+
+```bash
+# After pnpm install:
+npx shadcn@latest add @shadcn-space/hero-01
+npx shadcn@latest add @shadcn-space/pricing-01
+npx shadcn@latest add @shadcn-space/dashboard-shell-01
+```
+
+Browse all available blocks at [shadcnspace.com/blocks](https://shadcnspace.com/blocks).
+
+The blocks are copied into your project as source code (not a dependency) -- you have full ownership to customize them.
+
 ## What gets generated
 
 The `startapp agent` command creates a complete Next.js 15 application:
@@ -288,6 +303,7 @@ The `startapp agent` command creates a complete Next.js 15 application:
 ├── providers/                        # Redux and app providers
 ├── store/                            # Redux store setup
 ├── public/env.js                     # Runtime environment config
+├── components.json                   # shadcn/ui CLI configuration
 ├── package.json                      # Dependencies
 ├── next.config.mjs                   # Next.js configuration
 ├── tailwind.config.ts                # Tailwind CSS configuration
