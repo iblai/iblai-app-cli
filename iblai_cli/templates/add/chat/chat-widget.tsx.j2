@@ -155,6 +155,7 @@ export function ChatWidget({
     el.setAttribute("tenant", resolvedTenant);
     el.setAttribute("mentor", mentorId);
     el.setAttribute("theme", theme);
+    el.setAttribute("authrelyonhost", "true");
     el.setAttribute("extraparams", extraParams);
     el.style.cssText = `display:block;width:${resolvedWidth};height:${resolvedHeight}`;
 
