@@ -187,10 +187,11 @@ class TestBaseAppCLI:
 
         return CliRunner()
 
-    def test_base_in_startapp_help(self, runner):
+    def test_agent_in_startapp_help(self, runner):
         from iblai_cli.cli import cli
 
         result = runner.invoke(cli, ["startapp", "--help"])
         assert result.exit_code == 0
-        assert "base" in result.output
         assert "agent" in result.output
+        # base is no longer exposed as a CLI option (generator still exists internally)
+        assert "base" not in result.output

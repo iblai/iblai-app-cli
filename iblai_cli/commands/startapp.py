@@ -11,13 +11,12 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from iblai_cli.generators.agent import AgentAppGenerator
-from iblai_cli.generators.base_app import BaseAppGenerator
 
 console = Console()
 
 
 @click.command()
-@click.argument("template", type=click.Choice(["agent", "base"], case_sensitive=False))
+@click.argument("template", type=click.Choice(["agent"], case_sensitive=False))
 @click.option(
     "--platform",
     "-p",
@@ -156,9 +155,7 @@ def startapp(
         agent = answers["agent"]
 
     # Prompt for app name
-    default_name = (
-        f"{platform}-agent-app" if template.lower() == "agent" else f"{platform}-app"
-    )
+    default_name = f"{platform}-agent-app"
     questions = [
         inquirer.Text(
             "app_name",
@@ -235,63 +232,6 @@ def startapp(
                     title="Success",
                 )
             )
-        elif template.lower() == "base":
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                console=console,
-            ) as progress:
-                task = progress.add_task("Generating base app...", total=None)
-
-                generator = BaseAppGenerator(
-                    app_name=app_name,
-                    platform_key=platform,
-                    output_dir=str(output_path),
-                    use_ai=use_ai,
-                    ai_provider=ai_provider,
-                    openai_key=openai_key,
-                    anthropic_key=anthropic_key,
-                    prompt=prompt,
-                )
-                generator.generate()
-
-                if prompt and generator.ai_helper:
-                    progress.update(task, description="Enhancing with AI...")
-                    generator.enhance_with_prompt()
-
-                progress.update(task, completed=True)
-
-            console.print()
-            console.print(
-                Panel.fit(
-                    f"[bold green]Successfully created base app![/bold green]"
-                    + (" [bold yellow](AI-enhanced)[/bold yellow]" if prompt else "")
-                    + "\n\n"
-                    f"[cyan]App name:[/cyan] {app_name}\n"
-                    f"[cyan]Platform:[/cyan] {platform}\n"
-                    + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
-                    + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
-                    + f"[cyan]Location:[/cyan] {output_path}\n\n"
-                    "[bold]Next steps:[/bold]\n"
-                    f"  1. cd {output_path}\n"
-                    "  2. pnpm install\n"
-                    "  3. cp .env.example .env.local\n"
-                    "  4. Update .env.local with your configuration\n"
-                    "  5. pnpm dev\n\n"
-                    "[bold]IBL.ai components (ready to import):[/bold]\n"
-                    '  [dim]import { ChatWidget } from "@/components/iblai/chat-widget";[/dim]\n'
-                    '  [dim]import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";[/dim]\n'
-                    '  [dim]import { IblaiNotificationBell } from "@/components/iblai/notification-bell";[/dim]\n\n'
-                    "[bold]Add UI blocks:[/bold]\n"
-                    "  npx shadcn@latest add @shadcn-space/hero-01\n"
-                    "  Browse: https://shadcnspace.com/blocks",
-                    border_style="green",
-                    title="Success",
-                )
-            )
-        else:
-            console.print(f"[red]Error: Unknown template '{template}'[/red]")
-            return
 
     except Exception as e:
         console.print(f"[red]Error generating app: {str(e)}[/red]")
