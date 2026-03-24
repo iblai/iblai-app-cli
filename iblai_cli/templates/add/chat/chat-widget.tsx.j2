@@ -22,12 +22,7 @@ import config from "@/lib/iblai/config";
 /** Read all IBL.ai auth tokens from localStorage and return as JSON string. */
 function getAuthData(): string {
   if (typeof window === "undefined") return "";
-  const tenant =
-    localStorage.getItem("current_tenant") ??
-    localStorage.getItem("tenant") ??
-    "";
 
-  // Resolve plain string tenant key from possible JSON object
   const resolveTenant = (raw: string | null): string => {
     if (!raw || raw === "[object Object]") return "";
     try {
@@ -38,6 +33,10 @@ function getAuthData(): string {
     return raw;
   };
 
+  const tenant = resolveTenant(
+    localStorage.getItem("current_tenant") ?? localStorage.getItem("tenant"),
+  );
+
   return JSON.stringify({
     axd_token: localStorage.getItem("axd_token") ?? "",
     axd_token_expires: localStorage.getItem("axd_token_expires") ?? "",
@@ -45,9 +44,9 @@ function getAuthData(): string {
     dm_token_expires: localStorage.getItem("dm_token_expires") ?? "",
     edx_jwt_token: localStorage.getItem("edx_jwt_token") ?? "",
     userData: localStorage.getItem("userData") ?? "",
-    tenant: resolveTenant(tenant),
+    tenant,
     tenants: localStorage.getItem("tenants") ?? "[]",
-    current_tenant: resolveTenant(tenant),
+    current_tenant: tenant,
   });
 }
 
@@ -81,7 +80,6 @@ export function ChatWidget({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Import the web component on the client only (it needs the DOM).
-  // .catch ensures mounted=true even if the import fails.
   useEffect(() => {
     import("@iblai/iblai-web-mentor")
       .then(() => setMounted(true))
@@ -90,33 +88,6 @@ export function ChatWidget({
         setMounted(true);
       });
   }, []);
-
-  // After the web component mounts, set the iblData JS property on the
-  // mentor-ai element so it has auth tokens ready when the iframe sends
-  // its "ready" postMessage. The web component's own handler picks this
-  // up and calls sendAuthDataToIframe(). We retry a few times to handle
-  // the async custom element registration timing.
-  useEffect(() => {
-    if (!mounted) return;
-
-    const authData = getAuthData();
-    if (!authData) return;
-
-    const setData = () => {
-      const el = containerRef.current?.querySelector("mentor-ai") as any;
-      if (el) {
-        el.iblData = authData;
-      }
-    };
-
-    setData();
-    const t1 = setTimeout(setData, 100);
-    const t2 = setTimeout(setData, 500);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [mounted]);
 
   const resolvedTenant = useMemo(() => {
     if (tenantKey) return tenantKey;
@@ -145,16 +116,41 @@ export function ChatWidget({
     return `https://mentorai.${domain}`;
   }, [mentorUrl]);
 
-  if (!mounted) {
-    return (
-      <div
-        className={`flex items-center justify-center ${className ?? ""}`}
-        style={{ width: resolvedWidth, height: resolvedHeight }}
-      >
-        <p className="text-sm text-gray-400">Loading chat…</p>
-      </div>
-    );
-  }
+  // Create the mentor-ai element imperatively so we can set iblData
+  // BEFORE the element enters the DOM (before connectedCallback fires).
+  // This ensures the web component has auth tokens when the iframe sends
+  // its "ready" message, preventing the initial anonymous 401s.
+  useEffect(() => {
+    if (!mounted || !containerRef.current) return;
+
+    const authData = getAuthData();
+    const el = document.createElement("mentor-ai") as any;
+
+    // Set iblData BEFORE appending — this is the critical ordering.
+    // connectedCallback reads this.iblData and the ready handler sends
+    // it to the iframe via postMessage.
+    if (authData) {
+      el.iblData = authData;
+    }
+
+    // Set all attributes
+    el.setAttribute("mentorurl", resolvedMentorUrl);
+    el.setAttribute("authurl", config.authUrl());
+    el.setAttribute("lmsurl", config.lmsUrl());
+    el.setAttribute("tenant", resolvedTenant);
+    el.setAttribute("mentor", mentorId);
+    el.setAttribute("theme", theme);
+    el.setAttribute("component", "chat");
+    el.setAttribute("authrelyonhost", "true");
+    el.setAttribute("extraparams", "hide-navbar=1");
+    el.style.cssText = `display:block;width:${resolvedWidth};height:${resolvedHeight}`;
+
+    containerRef.current.appendChild(el);
+
+    return () => {
+      el.remove();
+    };
+  }, [mounted, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
 
   return (
     <div
@@ -162,19 +158,11 @@ export function ChatWidget({
       className={className ?? ""}
       style={{ width: resolvedWidth, height: resolvedHeight }}
     >
-      {/* @ts-ignore — mentor-ai is a registered custom element */}
-      <mentor-ai
-        style={{ display: "block", width: resolvedWidth, height: resolvedHeight }}
-        mentorurl={resolvedMentorUrl}
-        authurl={config.authUrl()}
-        lmsurl={config.lmsUrl()}
-        tenant={resolvedTenant}
-        mentor={mentorId}
-        theme={theme}
-        component="chat"
-        authrelyonhost="true"
-        extraparams="hide-navbar=1"
-      />
+      {!mounted && (
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-sm text-gray-400">Loading chat…</p>
+        </div>
+      )}
     </div>
   );
 }
