@@ -125,7 +125,7 @@ class TestAgentAppGenerator:
         essential_files = [
             "package.json",
             "tsconfig.json",
-            "next.config.js",
+            "next.config.mjs",
             "tailwind.config.ts",
             ".env.example",
             ".gitignore",
@@ -134,8 +134,8 @@ class TestAgentAppGenerator:
         for file_name in essential_files:
             assert (temp_dir / file_name).exists(), f"Missing {file_name}"
 
-    def test_generate_creates_chat_components(self, temp_dir):
-        """Test that generate() creates chat components."""
+    def test_generate_creates_iblai_components(self, temp_dir):
+        """Test that generate() creates the iblai/ components using ChatWidget."""
         generator = AgentAppGenerator(
             app_name="test-app",
             platform_key="acme",
@@ -144,17 +144,19 @@ class TestAgentAppGenerator:
 
         generator.generate()
 
-        # Check chat components
-        chat_components = [
-            "components/chat/index.tsx",
-            "components/chat/chat-messages.tsx",
-            "components/chat/chat-input-form.tsx",
-            "components/chat/welcome.tsx",
-        ]
+        # Custom chat components are gone — replaced by the ChatWidget web component
+        assert not (temp_dir / "components" / "chat").exists()
 
-        for component_path in chat_components:
-            file_path = temp_dir / component_path
-            assert file_path.exists(), f"Missing {component_path}"
+        # ChatWidget + profile + notifications should be generated
+        assert (temp_dir / "components" / "iblai" / "chat-widget.tsx").exists()
+        assert (temp_dir / "components" / "iblai" / "profile-dropdown.tsx").exists()
+        assert (temp_dir / "components" / "iblai" / "notification-bell.tsx").exists()
+
+        # Verify the ChatWidget uses mentor-ai
+        widget = (temp_dir / "components" / "iblai" / "chat-widget.tsx").read_text()
+        assert "mentor-ai" in widget
+        assert "@iblai/iblai-web-mentor" in widget
+        assert 'authrelyonhost="true"' in widget
 
     def test_generate_with_mentor_id_in_env(self, temp_dir):
         """Test that mentor ID appears in env file when provided."""

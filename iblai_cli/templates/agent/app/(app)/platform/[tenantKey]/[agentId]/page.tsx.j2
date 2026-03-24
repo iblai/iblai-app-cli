@@ -1,7 +1,10 @@
 "use client";
-
-import { Chat } from "@/components/chat";
+{% raw %}
+import { useParams } from "next/navigation";
+import { ChatWidget } from "@/components/iblai/chat-widget";
 
 export default function AgentPage() {
-  return <Chat />;
+  const { agentId } = useParams<{ agentId: string }>();
+  return <ChatWidget mentorId={agentId} width="100vw" height="100vh" />;
 }
+{% endraw %}

@@ -1,5 +1,6 @@
 """Agent app generator."""
 
+import shutil
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -7,17 +8,9 @@ from iblai_cli.generators.base import BaseGenerator
 
 
 # Files that can be customized by AI enhancement prompts.
-# Config files, UI re-exports, store, and providers are excluded
-# because they are structural and must not be modified.
 ENHANCEABLE_FILES: List[str] = [
     "app/globals.css",
     "app/layout.tsx",
-    "components/navbar.tsx",
-    "components/app-sidebar.tsx",
-    "components/chat/welcome.tsx",
-    "components/chat/welcome-v2.tsx",
-    "components/chat/chat-messages.tsx",
-    "components/chat/chat-input-form.tsx",
 ]
 
 
@@ -52,10 +45,7 @@ class AgentAppGenerator(BaseGenerator):
 
         # Generate components
         self._generate_app_shell()
-        self._generate_navbar()
-        self._generate_sidebar()
-        self._generate_chat()
-        self._generate_markdown()
+        self._generate_iblai_components()
         self._generate_ui_components()
 
         # Generate hooks
@@ -213,50 +203,42 @@ class AgentAppGenerator(BaseGenerator):
         content = self.render_template("agent/components/app-shell.tsx.j2")
         self.write_file(self.output_dir / "components" / "app-shell.tsx", content)
 
-    def _generate_navbar(self) -> None:
-        """Generate navbar component."""
-        content = self.render_template("agent/components/navbar.tsx.j2")
-        self.write_file(self.output_dir / "components" / "navbar.tsx", content)
+    def _generate_iblai_components(self) -> None:
+        """Generate IBL.ai integration components (chat-widget, profile, notifications)."""
+        # ChatWidget — wraps <mentor-ai> Web Component
+        # Rendered from the shared `add/chat/` template (same source as iblai add chat)
+        from jinja2 import Environment, FileSystemLoader
 
-    def _generate_sidebar(self) -> None:
-        """Generate sidebar component."""
-        content = self.render_template("agent/components/app-sidebar.tsx.j2")
-        self.write_file(self.output_dir / "components" / "app-sidebar.tsx", content)
-
-    def _generate_chat(self) -> None:
-        """Generate chat components."""
-        # Main chat component
-        content = self.render_template("agent/components/chat/index.tsx.j2")
-        self.write_file(self.output_dir / "components" / "chat" / "index.tsx", content)
-
-        # Chat messages component
-        content = self.render_template("agent/components/chat/chat-messages.tsx.j2")
+        add_env = Environment(
+            loader=FileSystemLoader(str(self.template_dir / "add")),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        widget_content = add_env.get_template("chat/chat-widget.tsx.j2").render(
+            self.get_context()
+        )
         self.write_file(
-            self.output_dir / "components" / "chat" / "chat-messages.tsx", content
+            self.output_dir / "components" / "iblai" / "chat-widget.tsx",
+            widget_content,
         )
 
-        # Chat input form
-        content = self.render_template("agent/components/chat/chat-input-form.tsx.j2")
+        # Profile dropdown
+        profile_content = add_env.get_template(
+            "profile/profile-dropdown.tsx.j2"
+        ).render(self.get_context())
         self.write_file(
-            self.output_dir / "components" / "chat" / "chat-input-form.tsx", content
+            self.output_dir / "components" / "iblai" / "profile-dropdown.tsx",
+            profile_content,
         )
 
-        # Welcome screen
-        content = self.render_template("agent/components/chat/welcome.tsx.j2")
+        # Notification bell
+        notif_content = add_env.get_template(
+            "notifications/notification-bell.tsx.j2"
+        ).render(self.get_context())
         self.write_file(
-            self.output_dir / "components" / "chat" / "welcome.tsx", content
+            self.output_dir / "components" / "iblai" / "notification-bell.tsx",
+            notif_content,
         )
-
-        # Welcome screen v2
-        content = self.render_template("agent/components/chat/welcome-v2.tsx.j2")
-        self.write_file(
-            self.output_dir / "components" / "chat" / "welcome-v2.tsx", content
-        )
-
-    def _generate_markdown(self) -> None:
-        """Generate Markdown rendering component."""
-        content = self.render_template("agent/components/markdown.tsx.j2")
-        self.write_file(self.output_dir / "components" / "markdown.tsx", content)
 
     def _generate_ui_components(self) -> None:
         """Generate UI components from web-containers."""
@@ -289,8 +271,7 @@ class AgentAppGenerator(BaseGenerator):
         content = self.render_template("agent/hooks/use-user.ts.j2")
         self.write_file(self.output_dir / "hooks" / "use-user.ts", content)
 
-        content = self.render_template("agent/hooks/use-copy-to-clipboard.ts.j2")
-        self.write_file(self.output_dir / "hooks" / "use-copy-to-clipboard.ts", content)
+        # use-copy-to-clipboard removed — ChatWidget handles copying internally
 
     def _generate_lib_files(self) -> None:
         """Generate lib utility files."""

@@ -27,7 +27,7 @@ console = Console()
 @click.option(
     "--agent",
     "-a",
-    help="Agent ID (optional)",
+    help="Agent ID / Mentor ID (optional)",
     type=str,
 )
 @click.option(
@@ -145,7 +145,7 @@ def startapp(
         questions = [
             inquirer.Confirm(
                 "add_agent",
-                message="Do you want to specify an agent ID?",
+                message="Do you want to specify an agent ID (mentor ID)?",
                 default=False,
             ),
         ]
@@ -154,7 +154,7 @@ def startapp(
             questions = [
                 inquirer.Text(
                     "agent",
-                    message="Enter the agent ID",
+                    message="Enter the agent ID (mentor ID)",
                     validate=lambda _, x: len(x) > 0,
                 ),
             ]
@@ -225,7 +225,7 @@ def startapp(
                     + "\n\n"
                     f"[cyan]App name:[/cyan] {app_name}\n"
                     f"[cyan]Platform:[/cyan] {platform}\n"
-                    + (f"[cyan]Agent ID:[/cyan] {agent}\n" if agent else "")
+                    + (f"[cyan]Agent ID (Mentor ID):[/cyan] {agent}\n" if agent else "")
                     + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
                     + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
                     + f"[cyan]Location:[/cyan] {output_path}\n\n"
