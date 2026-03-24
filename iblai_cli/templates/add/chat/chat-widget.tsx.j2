@@ -116,38 +116,15 @@ export function ChatWidget({
     return `https://mentorai.${domain}`;
   }, [mentorUrl]);
 
-  // Build ibl-data query param so the MentorAI iframe loads pre-authenticated
-  // on the first request. The MentorAI app reads ibl-data from its own URL
-  // query params, sets its auth state, and avoids cross-origin issues entirely.
-  // NOTE: resolvedTenant is used (not localStorage) to ensure the tenant key
-  // is always valid at param construction time.
-  const iblDataParam = useMemo(() => {
-    if (!tokensReady || !resolvedTenant || typeof window === "undefined") return "";
-
-    const data = JSON.stringify({
-      axd_token: localStorage.getItem("axd_token") ?? "",
-      axd_token_expires: localStorage.getItem("axd_token_expires") ?? "",
-      dm_token: localStorage.getItem("dm_token") ?? "",
-      dm_token_expires: localStorage.getItem("dm_token_expires") ?? "",
-      edx_jwt_token: localStorage.getItem("edx_jwt_token") ?? "",
-      userData: localStorage.getItem("userData") ?? "",
-      tenant: resolvedTenant,
-      tenants: localStorage.getItem("tenants") ?? "[]",
-      current_tenant: resolvedTenant,
-    });
-
-    return encodeURIComponent(data);
-  }, [tokensReady, resolvedTenant]);
-
   // Create the mentor-ai element imperatively once both module + tokens are ready.
+  // Tokens are delivered via el.redirectToAuthSPA() on the iframe's "ready" event,
+  // which — with authrelyonhost="true" — sends { ...localStorage } to the iframe
+  // via postMessage. By the time this fires, the Providers component has already
+  // fetched and stored "tenants" in localStorage, so the full token set is available.
   useEffect(() => {
     if (!mounted || !tokensReady || !containerRef.current) return;
 
     const el = document.createElement("mentor-ai") as any;
-
-    const extraParams = iblDataParam
-      ? `hide-navbar=1&ibl-data=${iblDataParam}`
-      : "hide-navbar=1";
 
     el.setAttribute("mentorurl", resolvedMentorUrl);
     el.setAttribute("authurl", config.authUrl());
@@ -156,15 +133,31 @@ export function ChatWidget({
     el.setAttribute("mentor", mentorId);
     el.setAttribute("theme", theme);
     el.setAttribute("authrelyonhost", "true");
-    el.setAttribute("extraparams", extraParams);
+    el.setAttribute("extraparams", "hide-navbar=1");
     el.style.cssText = `display:block;width:${resolvedWidth};height:${resolvedHeight}`;
 
     containerRef.current.appendChild(el);
 
+    // One-shot: when the iframe sends { ready: true }, call redirectToAuthSPA()
+    // which sends { ...localStorage } (all tokens) to the iframe via postMessage.
+    const tokensSent = { current: false };
+    const handler = (event: MessageEvent) => {
+      if (tokensSent.current) return;
+      if (!event.data?.ready) return;
+      tokensSent.current = true;
+      setTimeout(() => {
+        if (typeof el.redirectToAuthSPA === "function") {
+          el.redirectToAuthSPA();
+        }
+      }, 100);
+    };
+    window.addEventListener("message", handler);
+
     return () => {
+      window.removeEventListener("message", handler);
       el.remove();
     };
-  }, [mounted, tokensReady, iblDataParam, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
+  }, [mounted, tokensReady, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
 
   return (
     <div
