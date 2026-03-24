@@ -35,40 +35,6 @@ The following are installed as Python package dependencies:
 
 ## Install
 
-### npx (Node.js -- no Python required)
-
-```bash
-npx @iblai/cli startapp agent
-```
-
-The npm package wraps a pre-built binary, so no Python installation is needed.
-
-### uvx (Python -- recommended)
-
-```bash
-uvx iblai-app-cli startapp agent
-```
-
-Or install globally:
-
-```bash
-uv tool install iblai-app-cli
-iblai startapp agent
-```
-
-### pipx (Python)
-
-```bash
-pipx run --spec iblai-app-cli iblai startapp agent
-```
-
-Or install globally:
-
-```bash
-pipx install iblai-app-cli
-iblai startapp agent
-```
-
 ### pip (from source)
 
 ```bash
@@ -89,14 +55,6 @@ pip install -e ".[dev]"
 iblai --version
 ```
 
-### Distribution channels
-
-| Channel | Command | Requires |
-|---------|---------|----------|
-| **npx** | `npx @iblai/cli startapp agent` | Node.js 18+ |
-
-
-The npx distribution uses platform-specific binary packages (`@iblai/cli-{os}-{arch}`) built with PyInstaller. npm installs only the binary for your OS/architecture via `optionalDependencies`.
 
 ### CI/CD
 
