@@ -93,37 +93,29 @@ export function ChatWidget({
 
   // After the web component mounts, set the iblData JS property on the
   // mentor-ai element so it has auth tokens ready when the iframe sends
-  // its "ready" postMessage. Also add a fallback postMessage listener
-  // that sends tokens directly to the iframe if the property was set
-  // after the ready event already fired.
+  // its "ready" postMessage. The web component's own handler picks this
+  // up and calls sendAuthDataToIframe(). We retry a few times to handle
+  // the async custom element registration timing.
   useEffect(() => {
     if (!mounted) return;
 
     const authData = getAuthData();
     if (!authData) return;
 
-    // 1. Set iblData as a JavaScript property (NOT setAttribute — the
-    //    web component reads this.iblData, not an HTML attribute).
-    const el = containerRef.current?.querySelector("mentor-ai") as any;
-    if (el) {
-      el.iblData = authData;
-    }
-
-    // 2. Fallback: listen for the iframe's "ready" postMessage and
-    //    directly send tokens to the iframe's contentWindow.
-    const handleMessage = (event: MessageEvent) => {
-      if (!event.data?.ready) return;
-      const mentorEl = containerRef.current?.querySelector("mentor-ai") as any;
-      const iframe = mentorEl?.shadowRoot?.querySelector(
-        "#ibl-chat-widget-container iframe",
-      ) as HTMLIFrameElement | null;
-      if (iframe?.contentWindow) {
-        iframe.contentWindow.postMessage(JSON.parse(authData), "*");
+    const setData = () => {
+      const el = containerRef.current?.querySelector("mentor-ai") as any;
+      if (el) {
+        el.iblData = authData;
       }
     };
 
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+    setData();
+    const t1 = setTimeout(setData, 100);
+    const t2 = setTimeout(setData, 500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [mounted]);
 
   const resolvedTenant = useMemo(() => {
