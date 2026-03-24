@@ -103,6 +103,23 @@ export function Providers({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Fetch the user's tenant list from the LMS API and store it in
+    // localStorage so the ChatWidget's ibl-data includes the correct tenants.
+    // The MentorAI iframe uses tenants to determine chat session access.
+    const edxToken = localStorage.getItem("edx_jwt_token");
+    const existingTenants = localStorage.getItem("tenants");
+    const needsTenants = !existingTenants || existingTenants === "[]" || existingTenants === "null";
+
+    if (edxToken && needsTenants) {
+      fetch(`${config.lmsUrl()}/api/ibl/users/manage/platform/`, {
+        headers: { Authorization: `JWT ${edxToken}` },
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+        .then((data) => localStorage.setItem("tenants", JSON.stringify(data)))
+        .catch((err) => console.warn("[IBL] Failed to fetch tenants:", err));
+    }
+
     try {
       initializeDataLayer(
         config.dmUrl(),
