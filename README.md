@@ -94,9 +94,7 @@ iblai --version
 | Channel | Command | Requires |
 |---------|---------|----------|
 | **npx** | `npx @iblai/cli startapp agent` | Node.js 18+ |
-| **uvx** | `uvx iblai-app-cli startapp agent` | Python 3.8+ + uv |
-| **pipx** | `pipx install iblai-app-cli && iblai startapp agent` | Python 3.8+ + pipx |
-| **pip** | `pip install iblai-app-cli && iblai startapp agent` | Python 3.8+ |
+
 
 The npx distribution uses platform-specific binary packages (`@iblai/cli-{os}-{arch}`) built with PyInstaller. npm installs only the binary for your OS/architecture via `optionalDependencies`.
 
