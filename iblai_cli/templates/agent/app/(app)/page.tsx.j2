@@ -1,32 +1,15 @@
 "use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+{% raw %}
+import { ChatWidget } from "@/components/iblai/chat-widget";
 import { config } from "@/lib/config";
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Redirect to the platform page using runtime config so that changes
-    // to NEXT_PUBLIC_MAIN_TENANT_KEY or NEXT_PUBLIC_DEFAULT_AGENT_ID in
-    // .env.local are respected without rebuilding.
-    const tenantKey = config.mainTenantKey();
-    const agentId = config.defaultAgentId();
-
-    if (agentId) {
-      router.push(`/platform/${tenantKey}/${agentId}`);
-    } else {
-      router.push(`/platform/${tenantKey}`);
-    }
-  }, [router]);
-
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold mb-2">Loading...</h1>
-        <p className="text-muted-foreground">Redirecting to your agent</p>
-      </div>
-    </div>
+    <ChatWidget
+      mentorId={config.defaultAgentId()}
+      width="100vw"
+      height="100vh"
+    />
   );
 }
+{% endraw %}

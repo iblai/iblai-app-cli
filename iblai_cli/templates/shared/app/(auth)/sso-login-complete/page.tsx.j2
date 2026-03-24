@@ -2,9 +2,6 @@
 
 import React, { Suspense } from "react";
 import { SsoLogin as SsoLoginComponent } from "@iblai/iblai-js/web-containers/next";
-{% if has_mentor_id %}
-import { config } from "@/lib/config";
-{% endif %}
 
 const LOCAL_STORAGE_KEYS = {
   CURRENT_TENANT: "current_tenant",
@@ -19,11 +16,7 @@ const LOCAL_STORAGE_KEYS = {
 export const dynamic = "force-dynamic";
 
 function SsoLoginCompleteContent() {
-{% if has_mentor_id %}
-  const defaultRedirectPath = `/platform/${{ '{' }}config.mainTenantKey(){{ '}' }}/${{ '{' }}config.defaultAgentId(){{ '}' }}`;
-{% else %}
   const defaultRedirectPath = "/";
-{% endif %}
 
   return (
     <SsoLoginComponent

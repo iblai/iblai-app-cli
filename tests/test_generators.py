@@ -192,7 +192,7 @@ class TestAgentAppGenerator:
         assert "NEXT_PUBLIC_DEFAULT_AGENT_ID" not in content
 
     def test_generate_creates_ui_components(self, temp_dir):
-        """Test that generate() creates UI component re-exports."""
+        """Test that generate() creates base UI components (button, sonner)."""
         generator = AgentAppGenerator(
             app_name="test-app",
             platform_key="acme",
@@ -201,20 +201,12 @@ class TestAgentAppGenerator:
 
         generator.generate()
 
-        # Check UI components
-        ui_components = [
-            "components/ui/button.tsx",
-            "components/ui/sidebar.tsx",
-            "components/ui/avatar.tsx",
-            "components/ui/dropdown-menu.tsx",
-            "components/ui/input.tsx",
-            "components/ui/textarea.tsx",
-            "components/ui/skeleton.tsx",
-        ]
-
-        for component_path in ui_components:
-            file_path = temp_dir / component_path
-            assert file_path.exists(), f"Missing {component_path}"
+        # Agent template inherits base components: button + sonner only
+        # (sidebar, avatar, dropdown, etc. removed — not needed with ChatWidget)
+        assert (temp_dir / "components" / "ui" / "button.tsx").exists()
+        assert (temp_dir / "components" / "ui" / "sonner.tsx").exists()
+        # Heavy sidebar components are gone
+        assert not (temp_dir / "components" / "ui" / "sidebar.tsx").exists()
 
     def test_platform_key_in_config(self, temp_dir):
         """Test that platform key appears in config files."""
@@ -266,20 +258,16 @@ class TestAgentRouteGroups:
         content = sso.read_text()
         assert "SsoLogin" in content
 
-    def test_platform_pages_in_app_route_group(self, generated_dir):
-        """Platform/agent pages are inside (app) route group, wrapped by AppShell."""
-        assert (
-            generated_dir
-            / "app"
-            / "(app)"
-            / "platform"
-            / "[tenantKey]"
-            / "[agentId]"
-            / "page.tsx"
-        ).exists()
-        assert (
-            generated_dir / "app" / "(app)" / "platform" / "[tenantKey]" / "page.tsx"
-        ).exists()
+    def test_home_page_has_fullscreen_chat(self, generated_dir):
+        """Home page renders a full-screen ChatWidget, no /platform/ routes."""
+        page = generated_dir / "app" / "(app)" / "page.tsx"
+        assert page.exists()
+        content = page.read_text()
+        assert "ChatWidget" in content
+        assert "100vw" in content
+        assert "100vh" in content
+        # /platform/ routing is gone — agent = base + ChatWidget home
+        assert not (generated_dir / "app" / "(app)" / "platform").exists()
 
     def test_authenticated_layout_in_app_group(self, generated_dir):
         """(app)/layout.tsx exists and wraps children with AppShell."""
