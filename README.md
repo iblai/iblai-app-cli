@@ -35,32 +35,52 @@ The following are installed as Python package dependencies:
 
 ## Install
 
-Using [uv](https://docs.astral.sh/uv/) (recommended):
+### npx (Node.js -- no Python required)
 
 ```bash
-# Install uv if you don't have it
-curl -LsSf https://astral.sh/uv/install.sh | sh
+npx @iblai/cli startapp agent
+```
 
-# Clone the repo
+The npm package wraps a pre-built binary, so no Python installation is needed.
+
+### uvx (Python -- recommended)
+
+```bash
+uvx iblai-app-cli startapp agent
+```
+
+Or install globally:
+
+```bash
+uv tool install iblai-app-cli
+iblai startapp agent
+```
+
+### pipx (Python)
+
+```bash
+pipx run --spec iblai-app-cli iblai startapp agent
+```
+
+Or install globally:
+
+```bash
+pipx install iblai-app-cli
+iblai startapp agent
+```
+
+### pip (from source)
+
+```bash
 git clone git@github.com:iblai/iblai-app-cli.git
 cd iblai-app-cli
-
-# Create a virtual environment and install
-uv venv
-source .venv/bin/activate
-uv pip install .
+pip install .
 ```
 
 For development:
 
 ```bash
-uv pip install -e ".[dev]"
-```
-
-Using pip:
-
-```bash
-pip install .
+pip install -e ".[dev]"
 ```
 
 ### Verify installation
@@ -68,6 +88,27 @@ pip install .
 ```bash
 iblai --version
 ```
+
+### Distribution channels
+
+| Channel | Command | Requires |
+|---------|---------|----------|
+| **npx** | `npx @iblai/cli startapp agent` | Node.js 18+ |
+| **uvx** | `uvx iblai-app-cli startapp agent` | Python 3.8+ + uv |
+| **pipx** | `pipx install iblai-app-cli && iblai startapp agent` | Python 3.8+ + pipx |
+| **pip** | `pip install iblai-app-cli && iblai startapp agent` | Python 3.8+ |
+
+The npx distribution uses platform-specific binary packages (`@iblai/cli-{os}-{arch}`) built with PyInstaller. npm installs only the binary for your OS/architecture via `optionalDependencies`.
+
+### CI/CD
+
+Releases are automated via GitHub Actions:
+
+- **`build-binaries.yml`** -- Builds PyInstaller binaries for Linux (x64, arm64), macOS (Intel, Apple Silicon), and Windows (x64)
+- **`publish-npm.yml`** -- Publishes `@iblai/cli` and 5 platform packages to npm
+- **`publish-pypi.yml`** -- Publishes `iblai-app-cli` to PyPI
+
+Required repository secrets: `NPM_TOKEN`, `PYPI_TOKEN`
 
 ## Usage
 

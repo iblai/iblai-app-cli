@@ -1,0 +1,19 @@
+{
+  "name": "@iblai/cli-darwin-arm64",
+  "version": "0.1.0",
+  "description": "macOS Apple Silicon binary for @iblai/cli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iblai/iblai-app-cli.git"
+  },
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "preferUnplugged": true,
+  "files": ["bin"],
+  "engines": { "node": ">=18" },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

@@ -1,6 +1,7 @@
 """Base generator class for all app templates."""
 
 import os
+import sys
 import shutil
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -41,7 +42,11 @@ class BaseGenerator:
         self.platform_key = platform_key
         self.mentor_id = mentor_id
         self.output_dir = Path(output_dir)
-        self.template_dir = Path(__file__).parent.parent / "templates"
+        # Support both source and PyInstaller frozen binary paths
+        if getattr(sys, "_MEIPASS", None):
+            self.template_dir = Path(sys._MEIPASS) / "iblai_cli" / "templates"
+        else:
+            self.template_dir = Path(__file__).parent.parent / "templates"
         self.use_ai = use_ai
         self.ai_provider = ai_provider
         self.openai_key = openai_key
@@ -52,6 +57,7 @@ class BaseGenerator:
         self.ai_helper = None
         if self.use_ai and self.ai_provider:
             from iblai_cli.ai_helper import AIHelper
+
             self.ai_helper = AIHelper(
                 provider=self.ai_provider,
                 anthropic_key=self.anthropic_key,
@@ -72,7 +78,9 @@ class BaseGenerator:
             "has_mentor_id": bool(self.mentor_id),
         }
 
-    def create_directory_structure(self, structure: Dict[str, Any], base_path: Optional[Path] = None) -> None:
+    def create_directory_structure(
+        self, structure: Dict[str, Any], base_path: Optional[Path] = None
+    ) -> None:
         """
         Create directory structure from a nested dictionary.
 
