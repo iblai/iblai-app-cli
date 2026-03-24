@@ -23,6 +23,9 @@ class BaseGenerator:
         openai_key: Optional[str] = None,
         anthropic_key: Optional[str] = None,
         prompt: Optional[str] = None,
+        ai_model: Optional[str] = None,
+        ai_temperature: Optional[float] = None,
+        ai_max_tokens: Optional[int] = None,
     ):
         """
         Initialize the generator.
@@ -37,6 +40,9 @@ class BaseGenerator:
             openai_key: OpenAI API key
             anthropic_key: Anthropic API key
             prompt: Optional enhancement prompt for AI customization
+            ai_model: Override the default AI model
+            ai_temperature: Override the default AI temperature
+            ai_max_tokens: Override the default AI max_tokens
         """
         self.app_name = app_name
         self.platform_key = platform_key
@@ -52,6 +58,9 @@ class BaseGenerator:
         self.openai_key = openai_key
         self.anthropic_key = anthropic_key
         self.prompt = prompt
+        self.ai_model = ai_model
+        self.ai_temperature = ai_temperature
+        self.ai_max_tokens = ai_max_tokens
 
         # Initialize AI helper if AI is enabled
         self.ai_helper = None
@@ -62,6 +71,9 @@ class BaseGenerator:
                 provider=self.ai_provider,
                 anthropic_key=self.anthropic_key,
                 openai_key=self.openai_key,
+                model=self.ai_model,
+                temperature=self.ai_temperature,
+                max_tokens=self.ai_max_tokens,
             )
 
     def get_context(self) -> Dict[str, Any]:
