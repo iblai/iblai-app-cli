@@ -60,8 +60,8 @@ export function ChatWidget({
   }, []);
 
   // Poll for dm_token — TenantProvider fetches it asynchronously.
-  // Only render <mentor-ai> once the token is present so the iframe
-  // receives auth data from a fully authenticated session.
+  // Only render <mentor-ai> once tokens are present so the iframe URL
+  // includes valid ibl-data from the first request.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -77,7 +77,6 @@ export function ChatWidget({
       }
     }, 200);
 
-    // Give up after 20s and render anyway
     const timeout = setTimeout(() => {
       clearInterval(interval);
       console.warn("[IBL ChatWidget] dm_token not found after 20s — rendering anyway");
@@ -117,15 +116,40 @@ export function ChatWidget({
     return `https://mentorai.${domain}`;
   }, [mentorUrl]);
 
-  // Create mentor-ai imperatively once both module + dm_token are ready.
-  // When the iframe sends "ready", call el.redirectToAuthSPA() which —
-  // because authrelyonhost="true" — sends { ...localStorage } to the
-  // iframe via postMessage (the standard embed auth handshake). This does
-  // NOT redirect the user; it only delivers tokens to the iframe.
+  // Build ibl-data query param so the MentorAI iframe loads pre-authenticated
+  // on the first request. The MentorAI app reads ibl-data from its own URL
+  // query params, sets its auth state, and avoids cross-origin issues entirely.
+  // NOTE: resolvedTenant is used (not localStorage) to ensure the tenant key
+  // is always valid at param construction time.
+  const iblDataParam = useMemo(() => {
+    if (!tokensReady || !resolvedTenant || typeof window === "undefined") return "";
+
+    const data = JSON.stringify({
+      axd_token: localStorage.getItem("axd_token") ?? "",
+      axd_token_expires: localStorage.getItem("axd_token_expires") ?? "",
+      dm_token: localStorage.getItem("dm_token") ?? "",
+      dm_token_expires: localStorage.getItem("dm_token_expires") ?? "",
+      edx_jwt_token: localStorage.getItem("edx_jwt_token") ?? "",
+      userData: localStorage.getItem("userData") ?? "",
+      tenant: resolvedTenant,
+      tenants: localStorage.getItem("tenants") ?? "[]",
+      current_tenant: resolvedTenant,
+    });
+
+    return encodeURIComponent(data);
+  }, [tokensReady, resolvedTenant]);
+
+  // Create the mentor-ai element imperatively once tokens are ready.
+  // Tokens are passed via extraparams as ibl-data= in the iframe URL,
+  // so the MentorAI app authenticates on the very first page load.
   useEffect(() => {
     if (!mounted || !tokensReady || !containerRef.current) return;
 
     const el = document.createElement("mentor-ai") as any;
+
+    const extraParams = iblDataParam
+      ? `hide-navbar=1&ibl-data=${iblDataParam}`
+      : "hide-navbar=1";
 
     el.setAttribute("mentorurl", resolvedMentorUrl);
     el.setAttribute("authurl", config.authUrl());
@@ -135,32 +159,15 @@ export function ChatWidget({
     el.setAttribute("theme", theme);
     el.setAttribute("component", "chat");
     el.setAttribute("authrelyonhost", "true");
-    el.setAttribute("extraparams", "hide-navbar=1");
+    el.setAttribute("extraparams", extraParams);
     el.style.cssText = `display:block;width:${resolvedWidth};height:${resolvedHeight}`;
 
     containerRef.current.appendChild(el);
 
-    // One-shot listener: when the iframe sends { ready: true }, call
-    // el.redirectToAuthSPA() to deliver { ...localStorage } to the iframe.
-    const tokensSent = { current: false };
-    const handler = (event: MessageEvent) => {
-      if (tokensSent.current) return;
-      if (!event.data?.ready) return;
-      tokensSent.current = true;
-      setTimeout(() => {
-        if (typeof el.redirectToAuthSPA === "function") {
-          el.redirectToAuthSPA();
-        }
-      }, 100);
-    };
-
-    window.addEventListener("message", handler);
-
     return () => {
-      window.removeEventListener("message", handler);
       el.remove();
     };
-  }, [mounted, tokensReady, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
+  }, [mounted, tokensReady, iblDataParam, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
 
   return (
     <div
