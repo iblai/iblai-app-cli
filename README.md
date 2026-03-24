@@ -35,32 +35,52 @@ The following are installed as Python package dependencies:
 
 ## Install
 
-Using [uv](https://docs.astral.sh/uv/) (recommended):
+### npx (Node.js -- no Python required)
 
 ```bash
-# Install uv if you don't have it
-curl -LsSf https://astral.sh/uv/install.sh | sh
+npx @iblai/cli startapp agent
+```
 
-# Clone the repo
+The npm package wraps a pre-built binary, so no Python installation is needed.
+
+### uvx (Python -- recommended)
+
+```bash
+uvx iblai-app-cli startapp agent
+```
+
+Or install globally:
+
+```bash
+uv tool install iblai-app-cli
+iblai startapp agent
+```
+
+### pipx (Python)
+
+```bash
+pipx run --spec iblai-app-cli iblai startapp agent
+```
+
+Or install globally:
+
+```bash
+pipx install iblai-app-cli
+iblai startapp agent
+```
+
+### pip (from source)
+
+```bash
 git clone git@github.com:iblai/iblai-app-cli.git
 cd iblai-app-cli
-
-# Create a virtual environment and install
-uv venv
-source .venv/bin/activate
-uv pip install .
+pip install .
 ```
 
 For development:
 
 ```bash
-uv pip install -e ".[dev]"
-```
-
-Using pip:
-
-```bash
-pip install .
+pip install -e ".[dev]"
 ```
 
 ### Verify installation
@@ -68,6 +88,27 @@ pip install .
 ```bash
 iblai --version
 ```
+
+### Distribution channels
+
+| Channel | Command | Requires |
+|---------|---------|----------|
+| **npx** | `npx @iblai/cli startapp agent` | Node.js 18+ |
+| **uvx** | `uvx iblai-app-cli startapp agent` | Python 3.8+ + uv |
+| **pipx** | `pipx install iblai-app-cli && iblai startapp agent` | Python 3.8+ + pipx |
+| **pip** | `pip install iblai-app-cli && iblai startapp agent` | Python 3.8+ |
+
+The npx distribution uses platform-specific binary packages (`@iblai/cli-{os}-{arch}`) built with PyInstaller. npm installs only the binary for your OS/architecture via `optionalDependencies`.
+
+### CI/CD
+
+Releases are automated via GitHub Actions:
+
+- **`build-binaries.yml`** -- Builds PyInstaller binaries for Linux (x64, arm64), macOS (Intel, Apple Silicon), and Windows (x64)
+- **`publish-npm.yml`** -- Publishes `@iblai/cli` and 5 platform packages to npm
+- **`publish-pypi.yml`** -- Publishes `iblai-app-cli` to PyPI
+
+Required repository secrets: `NPM_TOKEN`, `PYPI_TOKEN`
 
 ## Usage
 
@@ -104,15 +145,75 @@ Interactive wizard that walks you through:
 
 ```
 Options:
-  --platform, -p TEXT       Platform key (tenant identifier)
-  --agent, -a TEXT          Agent ID
-  --output, -o PATH         Output directory (default: current directory)
-  --openai-key TEXT         OpenAI API key for AI-assisted customization
-  --anthropic-key TEXT      Anthropic API key for AI-assisted customization
-  --ai-provider TEXT        AI provider: "openai" or "anthropic"
-  --prompt, -P TEXT         Natural language prompt to customize the app
-  --help                    Show this message and exit
+  --platform, -p TEXT           Platform key (tenant identifier)
+  --agent, -a TEXT              Agent ID
+  --app-name TEXT               App name (directory and package.json name)
+  --output, -o PATH             Output directory (default: current directory)
+  --openai-key TEXT             OpenAI API key for AI-assisted customization
+  --anthropic-key TEXT          Anthropic API key for AI-assisted customization
+  --ai-provider [openai|anthropic]  AI provider to use
+  --ai-model TEXT               AI model override (e.g., claude-sonnet-4-20250514)
+  --ai-temperature FLOAT        AI temperature (0.0-2.0)
+  --ai-max-tokens INTEGER       AI max tokens for generation
+  --prompt, -P TEXT             Natural language prompt to customize the app
+  --env-file PATH               Path to a custom .env file
+  --stage TEXT                  Stage name to load .env.{stage} overrides
+  --help                        Show this message and exit
 ```
+
+#### Configuration via `.env` files
+
+Instead of passing all options as CLI flags, you can create a `.env` file:
+
+```bash
+# .env
+IBLAI_PLATFORM_KEY=acme
+IBLAI_APP_NAME=my-app
+IBLAI_AGENT_ID=my-agent-123
+ANTHROPIC_API_KEY=sk-ant-...
+IBLAI_PROMPT=Make this a kids learning assistant
+```
+
+Then run with no flags:
+
+```bash
+iblai startapp agent
+```
+
+Stage-specific overrides are supported via `.env.{stage}` files:
+
+```bash
+# .env.production
+IBLAI_PLATFORM_KEY=acme-prod
+IBLAI_AGENT_ID=prod-agent
+
+# Load with:
+iblai startapp agent --stage production
+# Or set DEV_STAGE=production in your environment
+```
+
+**Resolution priority** (highest wins):
+
+```
+CLI flags > System env vars > .env.{DEV_STAGE} > .env > interactive prompts
+```
+
+#### Environment variables
+
+| Variable | CLI Flag | Description |
+|----------|----------|-------------|
+| `IBLAI_PLATFORM_KEY` | `--platform` | Platform/tenant key |
+| `IBLAI_AGENT_ID` | `--agent` | Agent/mentor ID |
+| `IBLAI_APP_NAME` | `--app-name` | App name |
+| `IBLAI_OUTPUT_DIR` | `--output` | Output directory |
+| `IBLAI_AI_PROVIDER` | `--ai-provider` | AI provider (openai/anthropic) |
+| `IBLAI_AI_MODEL` | `--ai-model` | AI model override |
+| `IBLAI_AI_TEMPERATURE` | `--ai-temperature` | AI temperature |
+| `IBLAI_AI_MAX_TOKENS` | `--ai-max-tokens` | AI max tokens |
+| `OPENAI_API_KEY` | `--openai-key` | OpenAI API key |
+| `ANTHROPIC_API_KEY` | `--anthropic-key` | Anthropic API key |
+| `IBLAI_PROMPT` | `--prompt` | Enhancement prompt |
+| `DEV_STAGE` | `--stage` | Stage name for `.env.{stage}` |
 
 #### Examples
 
@@ -123,13 +224,24 @@ iblai startapp agent
 # Non-interactive with platform and agent
 iblai startapp agent --platform acme --agent my-agent-123
 
+# Non-interactive with app name (skips prompt)
+iblai startapp agent --platform acme --app-name my-app
+
 # Generate into a specific directory
 iblai startapp agent --platform acme --output ./projects
 
-# AI-assisted customization (modifies styling, copy, and layout)
+# AI-assisted customization with model override
 iblai startapp agent --platform acme \
   --anthropic-key sk-ant-... \
+  --ai-model claude-sonnet-4-20250514 \
+  --ai-temperature 0.5 \
   --prompt "Make this a kids learning assistant with bright colors"
+
+# Using a custom .env file
+iblai startapp agent --env-file ./config/.env
+
+# Using stage-specific config
+DEV_STAGE=production iblai startapp agent
 ```
 
 ### Running the generated app

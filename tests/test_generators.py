@@ -125,7 +125,7 @@ class TestAgentAppGenerator:
         essential_files = [
             "package.json",
             "tsconfig.json",
-            "next.config.js",
+            "next.config.mjs",
             "tailwind.config.ts",
             ".env.example",
             ".gitignore",

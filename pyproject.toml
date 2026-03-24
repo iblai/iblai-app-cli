@@ -32,6 +32,7 @@ dependencies = [
     "anthropic>=0.40.0",
     "openai>=1.0.0",
     "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -41,10 +42,14 @@ dev = [
     "black>=23.0.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
+    "pyinstaller>=6.0.0",
+    "pyyaml>=6.0.0",
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 
 [project.scripts]
 iblai = "iblai_cli.cli:cli"
+iblai-app-cli = "iblai_cli.cli:cli"
 
 [project.urls]
 Homepage = "https://ibl.ai"

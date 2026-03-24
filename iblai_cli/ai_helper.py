@@ -9,11 +9,23 @@ import openai
 class AIHelper:
     """Helper class for AI-assisted code generation."""
 
+    # Default model identifiers per provider
+    DEFAULT_ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
+    DEFAULT_OPENAI_MODEL = "gpt-4-turbo-preview"
+
+    # Default generation parameters
+    DEFAULT_MAX_TOKENS = 4096
+    DEFAULT_ENHANCEMENT_MAX_TOKENS = 8192
+    DEFAULT_OPENAI_TEMPERATURE = 0.3
+
     def __init__(
         self,
         provider: str = "anthropic",
         anthropic_key: Optional[str] = None,
         openai_key: Optional[str] = None,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
     ):
         """
         Initialize AI helper.
@@ -22,19 +34,24 @@ class AIHelper:
             provider: AI provider to use ("anthropic" or "openai")
             anthropic_key: Anthropic API key
             openai_key: OpenAI API key
+            model: Override the default model for the chosen provider
+            temperature: Override the default temperature (OpenAI only; Anthropic uses its default)
+            max_tokens: Override the default max_tokens for generation
         """
         self.provider = provider.lower()
+        self.temperature = temperature
+        self.max_tokens = max_tokens
 
         if self.provider == "anthropic":
             if not anthropic_key:
                 raise ValueError("Anthropic API key required for provider 'anthropic'")
             self.client = anthropic.Anthropic(api_key=anthropic_key)
-            self.model = "claude-3-5-sonnet-20241022"
+            self.model = model or self.DEFAULT_ANTHROPIC_MODEL
         elif self.provider == "openai":
             if not openai_key:
                 raise ValueError("OpenAI API key required for provider 'openai'")
             self.client = openai.OpenAI(api_key=openai_key)
-            self.model = "gpt-4-turbo-preview"
+            self.model = model or self.DEFAULT_OPENAI_MODEL
         else:
             raise ValueError(f"Unsupported AI provider: {provider}")
 
@@ -85,8 +102,8 @@ Enhance the following component based on this request:
 {enhancement_request}
 
 Context:
-- App name: {context.get('app_name')}
-- Platform: {context.get('platform_key')}
+- App name: {context.get("app_name")}
+- Platform: {context.get("platform_key")}
 - Uses @iblai/iblai-js SDK (imports from @iblai/iblai-js/data-layer, @iblai/iblai-js/web-containers, @iblai/iblai-js/web-utils)
 
 Existing code:
@@ -130,8 +147,8 @@ The user wants the following customization applied to this app:
 "{prompt}"
 
 App context:
-- App name: {context.get('app_name')}
-- Platform: {context.get('platform_key')}
+- App name: {context.get("app_name")}
+- Platform: {context.get("platform_key")}
 - Uses Next.js 15 App Router, TypeScript, Tailwind CSS
 - SDK: @iblai/iblai-js (imports from @iblai/iblai-js/data-layer, @iblai/iblai-js/web-containers, @iblai/iblai-js/web-utils)
 - Local UI components imported from @/components/ui/*
@@ -154,10 +171,16 @@ Return ONLY valid JSON, no markdown formatting, no code fences, no explanations.
 Example format:
 {{"app/globals.css": "...", "components/navbar.tsx": "..."}}"""
 
+        enhancement_tokens = self.max_tokens or self.DEFAULT_ENHANCEMENT_MAX_TOKENS
+
         if self.provider == "anthropic":
-            response = self._generate_with_anthropic(llm_prompt, max_tokens=8192)
+            response = self._generate_with_anthropic(
+                llm_prompt, max_tokens=enhancement_tokens
+            )
         elif self.provider == "openai":
-            response = self._generate_with_openai(llm_prompt, max_tokens=8192)
+            response = self._generate_with_openai(
+                llm_prompt, max_tokens=enhancement_tokens
+            )
 
         try:
             result = json.loads(response)
@@ -182,9 +205,9 @@ Generate a {component_type} component with these requirements:
 {requirements}
 
 Context:
-- App name: {context.get('app_name')}
-- Platform key: {context.get('platform_key')}
-- Agent ID: {context.get('mentor_id', 'N/A')}
+- App name: {context.get("app_name")}
+- Platform key: {context.get("platform_key")}
+- Agent ID: {context.get("mentor_id", "N/A")}
 - Uses Next.js 15 App Router with TypeScript
 - Available SDK: @iblai/iblai-js (imports from @iblai/iblai-js/data-layer, @iblai/iblai-js/web-containers, @iblai/iblai-js/web-utils)
 - UI components from: @iblai/iblai-js/web-containers/components/ui/*
@@ -201,25 +224,42 @@ Requirements:
 
 Return ONLY the component code, no explanations or markdown formatting."""
 
-    def _generate_with_anthropic(self, prompt: str, max_tokens: int = 4096) -> str:
+    def _generate_with_anthropic(
+        self, prompt: str, max_tokens: Optional[int] = None
+    ) -> str:
         """Generate code using Anthropic's Claude."""
-        message = self.client.messages.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        resolved_max_tokens = max_tokens or self.max_tokens or self.DEFAULT_MAX_TOKENS
+
+        kwargs: Dict[str, Any] = {
+            "model": self.model,
+            "max_tokens": resolved_max_tokens,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
+
+        message = self.client.messages.create(**kwargs)
 
         # Extract text content from response
         content = message.content[0].text if message.content else ""
         return self._clean_code_response(content)
 
-    def _generate_with_openai(self, prompt: str, max_tokens: int = 4096) -> str:
+    def _generate_with_openai(
+        self, prompt: str, max_tokens: Optional[int] = None
+    ) -> str:
         """Generate code using OpenAI's GPT."""
+        resolved_max_tokens = max_tokens or self.max_tokens or self.DEFAULT_MAX_TOKENS
+        resolved_temperature = (
+            self.temperature
+            if self.temperature is not None
+            else self.DEFAULT_OPENAI_TEMPERATURE
+        )
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=0.3,
+            max_tokens=resolved_max_tokens,
+            temperature=resolved_temperature,
         )
 
         content = response.choices[0].message.content or ""

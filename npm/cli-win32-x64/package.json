@@ -1,0 +1,19 @@
+{
+  "name": "@iblai/cli-win32-x64",
+  "version": "0.1.0",
+  "description": "Windows x64 binary for @iblai/cli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iblai/iblai-app-cli.git"
+  },
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "preferUnplugged": true,
+  "files": ["bin"],
+  "engines": { "node": ">=18" },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
