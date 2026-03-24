@@ -287,6 +287,16 @@ class AgentAppGenerator(BaseGenerator):
         content = self.render_template("agent/lib/hooks.ts.j2")
         self.write_file(self.output_dir / "lib" / "hooks.ts", content)
 
+        # lib/iblai/ shims — the ChatWidget, profile, and notification components
+        # (from add/chat/chat-widget.tsx.j2 etc.) import from "@/lib/iblai/config"
+        # and "@/lib/iblai/auth-utils". These re-export shims map those imports to
+        # the agent template's own lib/config.ts and lib/utils.ts.
+        content = self.render_template("base/lib/iblai/config.ts.j2")
+        self.write_file(self.output_dir / "lib" / "iblai" / "config.ts", content)
+
+        content = self.render_template("base/lib/iblai/auth-utils.ts.j2")
+        self.write_file(self.output_dir / "lib" / "iblai" / "auth-utils.ts", content)
+
     def _generate_providers(self) -> None:
         """Generate provider components."""
         # Main providers

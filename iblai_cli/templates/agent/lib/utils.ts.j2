@@ -29,10 +29,15 @@ export async function redirectToAuthSpa(
     localStorage.setItem("redirect_to", currentPath);
   }
 
+  // Use the current origin so the auth SPA always redirects back to the
+  // correct host and port (avoids hardcoded localhost:3000 issues).
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : AGENT_URL;
+
   // Build auth URL with parameters
   const params = new URLSearchParams({
     app: "agent",
-    "redirect-to": redirectTo || AGENT_URL,
+    "redirect-to": redirectTo || origin,
   });
 
   if (platformKey) {

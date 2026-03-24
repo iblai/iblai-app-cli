@@ -182,7 +182,7 @@ class TestAddChatGenerator:
     def test_chat_widget_uses_mentor_ai_web_component(self, widget_content):
         assert "mentor-ai" in widget_content
         assert "@iblai/iblai-web-mentor" in widget_content
-        assert 'authrelyonhost=""' in widget_content
+        assert 'authrelyonhost="true"' in widget_content
 
     def test_chat_widget_uses_config(self, widget_content):
         assert "config.authUrl()" in widget_content
