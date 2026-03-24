@@ -1,17 +1,17 @@
 "use client";
 {% raw %}
 /**
- * Application providers — AuthProvider + TenantProvider.
+ * Application providers — AuthProvider only.
  *
- * TenantProvider is required to fetch dm_token and axd_token for the
- * tenant, which the mentor-ai iframe needs to authenticate API calls.
- * A 15-second timeout and onAuthFailure handler prevent it from hanging.
+ * Before rendering children, fetches the user's tenant list from the LMS API
+ * and stores it in localStorage so the ChatWidget's ibl-data includes the
+ * correct tenants value the MentorAI iframe needs for chat session access.
  */
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
-import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
+import { AuthProvider } from "@iblai/iblai-js/web-utils";
 import { config } from "@/lib/config";
 
 // ---------------------------------------------------------------------------
@@ -69,16 +69,6 @@ function hasNonExpiredAuthToken(): boolean {
   return new Date(tokenExpiry) > new Date();
 }
 
-const resolveTenantKey = (raw: string | null): string => {
-  if (!raw || raw === "[object Object]") return "";
-  try {
-    const p = JSON.parse(raw);
-    if (typeof p === "string") return p;
-    if (p?.key) return p.key;
-  } catch { /* plain string */ }
-  return raw;
-};
-
 // Routes that skip auth
 const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
   [new RegExp("^/sso-login"), async () => false],
@@ -97,29 +87,14 @@ const LOADING = (
 export function Providers({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isInitialized, setIsInitialized] = useState(false);
-  // skipTenant becomes true after a 15-second timeout or on auth failure,
-  // preventing TenantProvider from blocking the app indefinitely.
-  const [skipTenant, setSkipTenant] = useState(false);
+  // tenantsReady gates rendering children so the ChatWidget always receives
+  // a populated tenants list in its ibl-data URL parameter.
+  const [tenantsReady, setTenantsReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Fetch the user's tenant list from the LMS API and store it in
-    // localStorage so the ChatWidget's ibl-data includes the correct tenants.
-    // The MentorAI iframe uses tenants to determine chat session access.
-    const edxToken = localStorage.getItem("edx_jwt_token");
-    const existingTenants = localStorage.getItem("tenants");
-    const needsTenants = !existingTenants || existingTenants === "[]" || existingTenants === "null";
-
-    if (edxToken && needsTenants) {
-      fetch(`${config.lmsUrl()}/api/ibl/users/manage/platform/`, {
-        headers: { Authorization: `JWT ${edxToken}` },
-      })
-        .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
-        .then((data) => localStorage.setItem("tenants", JSON.stringify(data)))
-        .catch((err) => console.warn("[IBL] Failed to fetch tenants:", err));
-    }
-
+    // initialise the data layer (RTK Query API configuration)
     try {
       initializeDataLayer(
         config.dmUrl(),
@@ -133,12 +108,50 @@ export function Providers({ children }: { children: ReactNode }) {
       console.error("[IBL] initializeDataLayer failed:", e);
     }
     setIsInitialized(true);
-  }, []);
 
-  // Safety timeout — if TenantProvider hasn't resolved in 15s, skip it
-  useEffect(() => {
-    const t = setTimeout(() => setSkipTenant(true), 15_000);
-    return () => clearTimeout(t);
+    // Fetch the tenant list from the LMS API if not already in localStorage.
+    // The ChatWidget's ibl-data must include tenants so the MentorAI iframe
+    // can create an authenticated chat session.
+    const existingTenants = localStorage.getItem("tenants");
+    const needsTenants =
+      !existingTenants ||
+      existingTenants === "[]" ||
+      existingTenants === "null";
+
+    if (!needsTenants) {
+      setTenantsReady(true);
+      return;
+    }
+
+    const edxToken = localStorage.getItem("edx_jwt_token");
+    if (!edxToken) {
+      // No token yet (pre-auth) — render anyway and let AuthProvider redirect.
+      setTenantsReady(true);
+      return;
+    }
+
+    // Safety timeout — don't block forever if the fetch hangs.
+    const safety = setTimeout(() => {
+      console.warn("[IBL] Tenant fetch timed out after 15s");
+      setTenantsReady(true);
+    }, 15_000);
+
+    fetch(`${config.lmsUrl()}/api/ibl/users/manage/platform/`, {
+      headers: { Authorization: `JWT ${edxToken}` },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((data) => {
+        localStorage.setItem("tenants", JSON.stringify(data));
+      })
+      .catch((err) => {
+        console.warn("[IBL] Failed to fetch tenants:", err);
+      })
+      .finally(() => {
+        clearTimeout(safety);
+        setTenantsReady(true);
+      });
+
+    return () => clearTimeout(safety);
   }, []);
 
   const username = useMemo(() => {
@@ -149,54 +162,6 @@ export function Providers({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
     return "";
   }, [isInitialized]);
-
-  const tenantKey = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return resolveTenantKey(
-      localStorage.getItem("current_tenant") ?? localStorage.getItem("tenant"),
-    ) || config.mainTenantKey();
-  }, [isInitialized]);
-
-  const saveCurrentTenant = useCallback((t: any) => {
-    const key = typeof t === "string" ? t : t?.key ?? String(t);
-    localStorage.setItem("current_tenant", key);
-    localStorage.setItem("tenant", key);
-  }, []);
-
-  const saveUserTenants = useCallback((tenants: any[]) => {
-    localStorage.setItem("tenants", JSON.stringify(tenants));
-  }, []);
-
-  // saveUserTokens stores the dm_token and axd_token that the mentor-ai
-  // iframe needs to authenticate its API calls.
-  const saveUserTokens = useCallback((tokens: any) => {
-    if (!tokens) return;
-    const dm = tokens.dm_token ?? tokens;
-    const axd = tokens.axd_token ?? tokens;
-    if (dm?.token) {
-      localStorage.setItem("dm_token", dm.token);
-      localStorage.setItem("dm_token_expires", dm.expires ?? "");
-    }
-    if (axd?.token) {
-      localStorage.setItem("axd_token", axd.token);
-      localStorage.setItem("axd_token_expires", axd.expires ?? "");
-    }
-  }, []);
-
-  const saveTenant = useCallback((t: string) => {
-    const key = typeof t === "string" ? t : (t as any)?.key ?? String(t);
-    localStorage.setItem("tenant", key);
-  }, []);
-
-  const handleTenantSwitch = useCallback(async (t: any) => {
-    // Update tenant in localStorage and reload — do NOT redirect to auth SPA.
-    const key = typeof t === "string" ? t : t?.key ?? String(t);
-    if (key) {
-      localStorage.setItem("current_tenant", key);
-      localStorage.setItem("tenant", key);
-    }
-    window.location.reload();
-  }, []);
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
@@ -220,30 +185,7 @@ export function Providers({ children }: { children: ReactNode }) {
         </div>
       }
     >
-      <TenantProvider
-        skip={isSsoRoute || skipTenant}
-        currentTenant={tenantKey}
-        requestedTenant={tenantKey}
-        saveCurrentTenant={saveCurrentTenant}
-        saveUserTenants={saveUserTenants}
-        saveUserTokens={saveUserTokens}
-        saveTenant={saveTenant}
-        handleTenantSwitch={handleTenantSwitch}
-        redirectToAuthSpa={
-          // Suppress TenantProvider's own auth redirect — the host AuthProvider
-          // manages top-level auth. TenantProvider redirecting with redirect-token=null
-          // causes a 409 "Unknown site" error in the auth SPA.
-          () => { console.warn("[TenantProvider] auth redirect suppressed"); setSkipTenant(true); }
-        }
-        username={username}
-        fallback={LOADING}
-        onAuthFailure={(reason) => {
-          console.error("[TenantProvider] auth failure:", reason);
-          setSkipTenant(true);
-        }}
-      >
-        {children}
-      </TenantProvider>
+      {tenantsReady ? children : LOADING}
     </AuthProvider>
   );
 }
