@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
 import { AuthProvider, TenantProvider, MentorProvider } from "@iblai/iblai-js/web-utils";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
@@ -33,6 +33,8 @@ class LocalStorageService implements StorageService {
   }
 }
 
+const storageService = LocalStorageService.getInstance();
+
 function hasNonExpiredAuthToken(): boolean {
   const token = window.localStorage.getItem("axd_token");
   if (!token) return false;
@@ -43,10 +45,17 @@ function hasNonExpiredAuthToken(): boolean {
   return new Date(tokenExpiry) > new Date();
 }
 
-// Routes that do NOT require authentication (e.g. the SSO callback).
+// Routes that skip auth checks (the SSO callback processes tokens, so it
+// must NOT be behind an auth redirect).
 const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
   [new RegExp("^/sso-login"), async () => false],
 ]);
+
+const LOADING = (
+  <div className="flex min-h-screen items-center justify-center">
+    <p className="text-sm text-gray-400">Loading…</p>
+  </div>
+);
 
 export function Providers({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -54,14 +63,15 @@ export function Providers({ children }: { children: ReactNode }) {
   const params = useParams();
   const router = useRouter();
   const username = useUsername();
-  const mainTenantKey = config.mainTenantKey();
 
-  const loadDataLayer = () => {
+  const mainTenantKey = useMemo(() => config.mainTenantKey(), []);
+
+  const loadDataLayer = useCallback(() => {
     try {
       initializeDataLayer(
         config.dmUrl(),
         config.lmsUrl(),
-        LocalStorageService.getInstance(),
+        storageService,
         {
           401: () => {
             console.log("[auth-redirect] API returned 401 Unauthorized");
@@ -73,7 +83,7 @@ export function Providers({ children }: { children: ReactNode }) {
       console.error("[IBL] Failed to initialize data layer:", e);
     }
     setIsInitialized(true);
-  };
+  }, []);
 
   useEffect(() => {
     if (typeof (window as any).__ENV__ !== "undefined") {
@@ -86,15 +96,19 @@ export function Providers({ children }: { children: ReactNode }) {
       script.onerror = () => loadDataLayer();
       document.head.appendChild(script);
     }
-  }, []);
+  }, [loadDataLayer]);
 
   const handleTenantSwitch = useCallback(async (tenant: string) => {
-    localStorage.setItem("ibl_current_tenant", JSON.stringify({ key: tenant }));
-    router.push(`/platform/${tenant}/${config.defaultAgentId()}`);
+    const key = typeof tenant === "string" ? tenant : (tenant as any)?.key ?? String(tenant);
+    localStorage.setItem("current_tenant", key);
+    localStorage.setItem("tenant", key);
+    router.push(`/platform/${key}/${config.defaultAgentId()}`);
   }, [router]);
 
   const saveCurrentTenant = useCallback((tenant: unknown) => {
-    localStorage.setItem("ibl_current_tenant", JSON.stringify(tenant));
+    const key = typeof tenant === "string" ? tenant : (tenant as any)?.key ?? String(tenant);
+    localStorage.setItem("current_tenant", key);
+    localStorage.setItem("tenant", key);
   }, []);
 
   const saveUserTenants = useCallback((tenants: unknown[]) => {
@@ -116,21 +130,23 @@ export function Providers({ children }: { children: ReactNode }) {
     router.push("/");
   }, [router]);
 
+  const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
+
   if (!isInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-gray-400">Loading…</p>
-      </div>
-    );
+    return LOADING;
   }
 
   return (
     <AuthProvider
+      skip={isSsoRoute}
       redirectToAuthSpa={redirectToAuthSpa}
       hasNonExpiredAuthToken={hasNonExpiredAuthToken}
       username={username}
       pathname={pathname}
+      storageService={storageService}
       middleware={PUBLIC_ROUTES}
+      enableStorageSync
+      fallback={LOADING}
     >
       <TenantProvider
         currentTenant={mainTenantKey}
@@ -138,6 +154,9 @@ export function Providers({ children }: { children: ReactNode }) {
         handleTenantSwitch={handleTenantSwitch}
         saveCurrentTenant={saveCurrentTenant}
         saveUserTenants={saveUserTenants}
+        redirectToAuthSpa={redirectToAuthSpa}
+        username={username}
+        fallback={LOADING}
       >
         <MentorProvider
           redirectToAuthSpa={handleRedirectToAuth}

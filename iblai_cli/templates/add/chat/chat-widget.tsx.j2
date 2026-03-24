@@ -48,8 +48,14 @@ export function ChatWidget({
   const [mounted, setMounted] = useState(false);
 
   // Import the web component on the client only (it needs the DOM).
+  // .catch ensures mounted=true even if the import fails.
   useEffect(() => {
-    import("@iblai/iblai-web-mentor").then(() => setMounted(true));
+    import("@iblai/iblai-web-mentor")
+      .then(() => setMounted(true))
+      .catch((e) => {
+        console.error("[IBL] Failed to load @iblai/iblai-web-mentor:", e);
+        setMounted(true);
+      });
   }, []);
 
   const resolvedTenant = useMemo(() => {
