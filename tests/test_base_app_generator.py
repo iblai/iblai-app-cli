@@ -81,13 +81,15 @@ class TestBaseAppGenerator:
         assert "chatSliceReducerShared" not in store
         assert "filesReducer" not in store
 
-    def test_providers_auth_only(self, generated_dir):
+    def test_providers_structure(self, generated_dir):
         providers = (generated_dir / "providers" / "index.tsx").read_text()
         assert "AuthProvider" in providers
-        # TenantProvider removed — causes "Loading tenant..." hang in SDK
-        assert "<TenantProvider" not in providers
-        assert "import { AuthProvider, TenantProvider" not in providers
-        # MentorProvider not included either
+        assert "TenantProvider" in providers
+        # TenantProvider has timeout + onAuthFailure safety mechanisms
+        assert "skipTenant" in providers
+        assert "onAuthFailure" in providers
+        assert "saveUserTokens" in providers
+        # MentorProvider not included
         assert "<MentorProvider" not in providers
         assert "<MentorProvider" not in providers
 
