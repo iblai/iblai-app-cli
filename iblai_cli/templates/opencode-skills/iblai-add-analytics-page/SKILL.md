@@ -28,11 +28,12 @@ Create `app/(app)/analytics/page.tsx`:
 ```tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AnalyticsOverview,
   ChartFiltersProvider,
 } from "@iblai/iblai-js/web-containers";
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
 import { config } from "@/lib/config";
 
 function resolveTenantKey(raw: string | null): string {
@@ -49,6 +50,11 @@ export default function AnalyticsPage() {
   const [tenantKey, setTenantKey] = useState("");
   const [username, setUsername] = useState("");
   const [ready, setReady] = useState(false);
+
+  const handleOutsideFilters = useCallback(
+    (_filters: Partial<ChartFilters>) => {},
+    []
+  );
 
   useEffect(() => {
     try {
@@ -86,7 +92,7 @@ export default function AnalyticsPage() {
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "auto" }}>
-      <ChartFiltersProvider>
+      <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}>
         <AnalyticsOverview
           tenantKey={tenantKey}
           mentorId=""
@@ -133,7 +139,7 @@ export default function AnalyticsLayoutWrapper({
     <AnalyticsLayout
       currentPath={pathname ?? basePath}
       basePath={basePath}
-      onTabChange={(path) => router.push(path)}
+      onTabChange={(tabValue) => router.push(tabValue ? `${basePath}/${tabValue}` : basePath)}
       excludeTabs={["courses", "programs"]}
     >
       {children}
@@ -149,39 +155,57 @@ Create one file per tab:
 **`app/(app)/analytics/page.tsx`** — Overview (default)
 ```tsx
 "use client";
+import { useCallback } from "react";
 import { AnalyticsOverview, ChartFiltersProvider } from "@iblai/iblai-js/web-containers";
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
 // ... same tenantKey/username setup as above ...
-return <ChartFiltersProvider><AnalyticsOverview tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
+const handleOutsideFilters = useCallback((_filters: Partial<ChartFilters>) => {}, []);
+return <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}><AnalyticsOverview tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
 ```
 
 **`app/(app)/analytics/users/page.tsx`**
 ```tsx
+import { useCallback } from "react";
 import { AnalyticsUsersStats, ChartFiltersProvider } from "@iblai/iblai-js/web-containers";
-return <ChartFiltersProvider><AnalyticsUsersStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
+// ... same tenantKey setup + handleOutsideFilters ...
+return <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}><AnalyticsUsersStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
 ```
 
 **`app/(app)/analytics/topics/page.tsx`**
 ```tsx
+import { useCallback } from "react";
 import { AnalyticsTopicsStats, ChartFiltersProvider } from "@iblai/iblai-js/web-containers";
-return <ChartFiltersProvider><AnalyticsTopicsStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
+// ... same tenantKey setup + handleOutsideFilters ...
+return <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}><AnalyticsTopicsStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
 ```
 
 **`app/(app)/analytics/financial/page.tsx`**
 ```tsx
+import { useCallback } from "react";
 import { AnalyticsFinancialStats, ChartFiltersProvider } from "@iblai/iblai-js/web-containers";
-return <ChartFiltersProvider><AnalyticsFinancialStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
+// ... same tenantKey setup + handleOutsideFilters ...
+return <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}><AnalyticsFinancialStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
 ```
 
 **`app/(app)/analytics/transcripts/page.tsx`** *(requires Next.js)*
 ```tsx
+import { useCallback } from "react";
 import { AnalyticsTranscriptsStats, ChartFiltersProvider } from "@iblai/iblai-js/web-containers";
-return <ChartFiltersProvider><AnalyticsTranscriptsStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
+// ... same tenantKey setup + handleOutsideFilters ...
+return <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}><AnalyticsTranscriptsStats tenantKey={tenantKey} mentorId="" /></ChartFiltersProvider>;
 ```
 
 **`app/(app)/analytics/reports/page.tsx`**
 ```tsx
+import { useCallback } from "react";
 import { AnalyticsReports, ChartFiltersProvider } from "@iblai/iblai-js/web-containers";
-return <ChartFiltersProvider><AnalyticsReports tenantKey={tenantKey} selectedMentorId="" /></ChartFiltersProvider>;
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
+// ... same tenantKey setup + handleOutsideFilters ...
+return <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}><AnalyticsReports tenantKey={tenantKey} selectedMentorId="" /></ChartFiltersProvider>;
 ```
 
 ---
@@ -203,7 +227,7 @@ return <ChartFiltersProvider><AnalyticsReports tenantKey={tenantKey} selectedMen
 |------|------|-------------|
 | `currentPath` | `string` | Current pathname (from `usePathname()`) |
 | `basePath` | `string` | Base path for analytics routes (e.g., `"/analytics"`) |
-| `onTabChange` | `(path: string) => void` | Called when user clicks a tab |
+| `onTabChange` | `(tabValue: string) => void` | Called when user clicks a tab — receives the tab value (e.g. `"users"`), not the full path. Prepend `basePath` yourself: `router.push(tabValue ? \`${basePath}/${tabValue}\` : basePath)` |
 | `excludeTabs` | `string[]?` | Tab IDs to hide (e.g., `["courses", "programs"]`) |
 | `children` | `ReactNode` | The page content for the current tab |
 
@@ -211,6 +235,12 @@ return <ChartFiltersProvider><AnalyticsReports tenantKey={tenantKey} selectedMen
 
 Wrap all analytics components with `ChartFiltersProvider` — it provides
 time-range filter state (`activeFilter`, `dateRange`) to all charts via context.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `children` | `ReactNode` | Analytics components to wrap |
+| `setOutsideFilters` | `(next: Partial<ChartFilters>) => void` | **Required.** Callback invoked when filters change. Use a no-op `useCallback(() => {}, [])` if you don't need external filter sync. |
+| `initialFilters` | `Partial<ChartFilters>?` | Optional initial filter state |
 
 ---
 
@@ -225,3 +255,5 @@ time-range filter state (`activeFilter`, `dateRange`) to all charts via context.
   `(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)` (v1.2+ signature)
 - **RTK dedup**: `@reduxjs/toolkit` is deduplicated via webpack aliases
 - **`mentorId` empty string**: For org-wide analytics pass `""` not `undefined`
+
+
