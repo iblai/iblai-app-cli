@@ -270,56 +270,56 @@ def startapp(
             return
         app_name = answers["app_name"]
 
-# Determine output directory
-output_path = Path(output) / app_name
-if output_path.exists():
-    console.print(f"[red]Error: Directory '{output_path}' already exists[/red]")
-    return
+    # Determine output directory
+    output_path = Path(output) / app_name
+    if output_path.exists():
+        console.print(f"[red]Error: Directory '{output_path}' already exists[/red]")
+        return
 
-# Generate the app based on template
-try:
-    if template.lower() == "agent":
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Generating agent app...", total=None)
+    # Generate the app based on template
+    try:
+        if template.lower() == "agent":
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Generating agent app...", total=None)
 
-            generator = AgentAppGenerator(
-                app_name=app_name,
-                platform_key=platform,
-                mentor_id=agent,
-                output_dir=str(output_path),
-                use_ai=use_ai,
-                ai_provider=ai_provider,
-                openai_key=openai_key,
-                anthropic_key=anthropic_key,
-                prompt=prompt,
-                ai_model=ai_model,
-                ai_temperature=ai_temperature,
-                ai_max_tokens=ai_max_tokens,
-            )
-            generator.generate()
+                generator = AgentAppGenerator(
+                    app_name=app_name,
+                    platform_key=platform,
+                    mentor_id=agent,
+                    output_dir=str(output_path),
+                    use_ai=use_ai,
+                    ai_provider=ai_provider,
+                    openai_key=openai_key,
+                    anthropic_key=anthropic_key,
+                    prompt=prompt,
+                    ai_model=ai_model,
+                    ai_temperature=ai_temperature,
+                    ai_max_tokens=ai_max_tokens,
+                )
+                generator.generate()
 
-            if prompt and generator.ai_helper:
-                progress.update(task, description="Enhancing with AI...")
-                generator.enhance_with_prompt()
+                if prompt and generator.ai_helper:
+                    progress.update(task, description="Enhancing with AI...")
+                    generator.enhance_with_prompt()
 
-            progress.update(task, completed=True)
+                progress.update(task, completed=True)
 
-        console.print()
-        console.print(
-            Panel.fit(
-                f"[bold green]✓ Successfully created {template} app![/bold green]"
-                + (" [bold yellow](AI-enhanced)[/bold yellow]" if prompt else "")
-                + "\n\n"
-                f"[cyan]App name:[/cyan] {app_name}\n"
-                f"[cyan]Platform:[/cyan] {platform}\n"
-                + (f"[cyan]Agent ID:[/cyan] {agent}\n" if agent else "")
-                + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
-                + (f"[cyan]AI Model:[/cyan] {ai_model}\n" if ai_model else "")
-                + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
+            console.print()
+            console.print(
+                Panel.fit(
+                    f"[bold green]✓ Successfully created {template} app![/bold green]"
+                    + (" [bold yellow](AI-enhanced)[/bold yellow]" if prompt else "")
+                    + "\n\n"
+                    f"[cyan]App name:[/cyan] {app_name}\n"
+                    f"[cyan]Platform:[/cyan] {platform}\n"
+                    + (f"[cyan]Agent ID:[/cyan] {agent}\n" if agent else "")
+                    + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
+                    + (f"[cyan]AI Model:[/cyan] {ai_model}\n" if ai_model else "")
+                    + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
                     + f"[cyan]Location:[/cyan] {output_path}\n\n"
                     "[bold]Next steps:[/bold]\n"
                     f"  1. cd {output_path}\n"
