@@ -47,24 +47,29 @@ class AddMcpGenerator:
         self._write(mcp_path, json.dumps(MCP_CONFIG, indent=2) + "\n")
         created.append(".mcp.json")
 
-        # 2. Claude skills (flat .md files in .claude/skills/)
+        # 2. Claude skills (.claude/skills/) — copy all files (md + images)
         skills_dest = self.project.root / ".claude" / "skills"
         if self.skills_source_dir.is_dir():
-            for skill_file in sorted(self.skills_source_dir.glob("*.md")):
-                dest = skills_dest / skill_file.name
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(skill_file, dest)
-                created.append(str(dest.relative_to(self.project.root)))
+            for skill_file in sorted(self.skills_source_dir.iterdir()):
+                if skill_file.is_file():
+                    dest = skills_dest / skill_file.name
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(skill_file, dest)
+                    if skill_file.suffix == ".md":
+                        created.append(str(dest.relative_to(self.project.root)))
 
-        # 3. OpenCode skills (SKILL.md in .opencode/skills/<name>/)
+        # 3. OpenCode skills (.opencode/skills/<name>/) — copy all files
         opencode_dest = self.project.root / ".opencode" / "skills"
         if self.opencode_skills_source_dir.is_dir():
             for skill_dir in sorted(self.opencode_skills_source_dir.iterdir()):
                 if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
-                    dest = opencode_dest / skill_dir.name / "SKILL.md"
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(skill_dir / "SKILL.md", dest)
-                    created.append(str(dest.relative_to(self.project.root)))
+                    for skill_file in sorted(skill_dir.iterdir()):
+                        if skill_file.is_file():
+                            dest = opencode_dest / skill_dir.name / skill_file.name
+                            dest.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copy2(skill_file, dest)
+                            if skill_file.name == "SKILL.md":
+                                created.append(str(dest.relative_to(self.project.root)))
 
         # 4. Install @iblai/mcp as dev dependency
         install_dev_packages(self.project.root, MCP_DEPS)

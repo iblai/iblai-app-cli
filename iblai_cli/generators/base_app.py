@@ -158,30 +158,33 @@ class BaseAppGenerator(BaseGenerator):
         self._write("public/env.js", self._render("public/env.js.j2"))
         self._write("public/README.md", self._render("public/README.md.j2"))
 
-        # --- Claude skills (flat .md files in .claude/skills/) ---
+        # --- Claude skills (.claude/skills/) — copy all files (md + images) ---
         import shutil
 
         skills_src = self.template_dir / "skills"
         if skills_src.is_dir():
-            for skill_file in sorted(skills_src.glob("*.md")):
-                dest = self.output_dir / ".claude" / "skills" / skill_file.name
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(skill_file, dest)
+            for skill_file in sorted(skills_src.iterdir()):
+                if skill_file.is_file():
+                    dest = self.output_dir / ".claude" / "skills" / skill_file.name
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(skill_file, dest)
 
-        # --- OpenCode skills (SKILL.md in .opencode/skills/<name>/) ---
+        # --- OpenCode skills (.opencode/skills/<name>/) — copy all files ---
         opencode_src = self.template_dir / "opencode-skills"
         if opencode_src.is_dir():
             for skill_dir in sorted(opencode_src.iterdir()):
                 if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
-                    dest = (
-                        self.output_dir
-                        / ".opencode"
-                        / "skills"
-                        / skill_dir.name
-                        / "SKILL.md"
-                    )
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(skill_dir / "SKILL.md", dest)
+                    for skill_file in sorted(skill_dir.iterdir()):
+                        if skill_file.is_file():
+                            dest = (
+                                self.output_dir
+                                / ".opencode"
+                                / "skills"
+                                / skill_dir.name
+                                / skill_file.name
+                            )
+                            dest.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copy2(skill_file, dest)
 
         # --- Playwright E2E tests (e2e/ directory) ---
         self._write(
