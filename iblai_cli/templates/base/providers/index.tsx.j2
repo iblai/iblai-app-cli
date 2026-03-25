@@ -86,15 +86,13 @@ const LOADING = (
 
 export function Providers({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [isInitialized, setIsInitialized] = useState(false);
-  // tenantsReady gates rendering children so the ChatWidget always receives
-  // a populated tenants list in its ibl-data URL parameter.
-  const [tenantsReady, setTenantsReady] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // initialise the data layer (RTK Query API configuration)
+  // initializeDataLayer MUST be called synchronously before any children
+  // render so that Config.lmsUrl / Config.dmUrl are set before RTK Query
+  // hooks (e.g. inside the Profile component) fire their first queries.
+  // useState initializer runs during the render cycle, not after it.
+  const [isInitialized] = useState(() => {
+    if (typeof window === "undefined") return false;
     try {
       initializeDataLayer(
         config.dmUrl(),
@@ -107,7 +105,15 @@ export function Providers({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error("[IBL] initializeDataLayer failed:", e);
     }
-    setIsInitialized(true);
+    return true;
+  });
+
+  // tenantsReady gates rendering children so the ChatWidget always receives
+  // a populated tenants list in its ibl-data URL parameter.
+  const [tenantsReady, setTenantsReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
     // Fetch the tenant list from the LMS API if not already in localStorage.
     // The ChatWidget's ibl-data must include tenants so the MentorAI iframe
