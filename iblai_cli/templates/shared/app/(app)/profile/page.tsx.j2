@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [tenantKey, setTenantKey] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [ready, setReady] = useState(false);
 
   // Read auth data from localStorage after client-side mount.
@@ -40,6 +41,16 @@ export default function ProfilePage() {
       localStorage.getItem("tenant");
     const resolved = resolveTenantKey(stored) || config.mainTenantKey();
     setTenantKey(resolved);
+
+    // isAdmin — find current tenant in the tenants array and read is_admin
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const tenants = JSON.parse(tenantsRaw);
+        const match = tenants.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch { /* ignore */ }
 
     setReady(true);
   }, []);
@@ -73,9 +84,10 @@ export default function ProfilePage() {
       <Profile
         tenant={tenantKey}
         username={username}
+        isAdmin={isAdmin}
         onClose={() => router.push("/")}
         customization={{
-          showUsernameField: true,
+          showUsernameField: false,
           showPlatformName: true,
           useGravatarPicFallback: true,
         }}
