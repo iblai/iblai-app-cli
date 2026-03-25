@@ -1,0 +1,41 @@
+{
+  "name": "@iblai/cli",
+  "version": "0.1.0",
+  "description": "CLI to scaffold IBL.ai applications",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iblai/iblai-app-cli.git"
+  },
+  "homepage": "https://ibl.ai",
+  "bugs": {
+    "url": "https://github.com/iblai/iblai-app-cli/issues"
+  },
+  "keywords": [
+    "iblai",
+    "cli",
+    "nextjs",
+    "ai",
+    "scaffold",
+    "agent"
+  ],
+  "bin": {
+    "iblai": "bin/iblai.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@iblai/cli-linux-x64": "0.1.0",
+    "@iblai/cli-linux-arm64": "0.1.0",
+    "@iblai/cli-darwin-arm64": "0.1.0",
+    "@iblai/cli-win32-x64": "0.1.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

@@ -1,6 +1,7 @@
 """Base generator class for all app templates."""
 
 import os
+import sys
 import shutil
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -22,6 +23,9 @@ class BaseGenerator:
         openai_key: Optional[str] = None,
         anthropic_key: Optional[str] = None,
         prompt: Optional[str] = None,
+        ai_model: Optional[str] = None,
+        ai_temperature: Optional[float] = None,
+        ai_max_tokens: Optional[int] = None,
     ):
         """
         Initialize the generator.
@@ -36,26 +40,40 @@ class BaseGenerator:
             openai_key: OpenAI API key
             anthropic_key: Anthropic API key
             prompt: Optional enhancement prompt for AI customization
+            ai_model: Override the default AI model
+            ai_temperature: Override the default AI temperature
+            ai_max_tokens: Override the default AI max_tokens
         """
         self.app_name = app_name
         self.platform_key = platform_key
         self.mentor_id = mentor_id
         self.output_dir = Path(output_dir)
-        self.template_dir = Path(__file__).parent.parent / "templates"
+        # Support both source and PyInstaller frozen binary paths
+        if getattr(sys, "_MEIPASS", None):
+            self.template_dir = Path(sys._MEIPASS) / "iblai_cli" / "templates"
+        else:
+            self.template_dir = Path(__file__).parent.parent / "templates"
         self.use_ai = use_ai
         self.ai_provider = ai_provider
         self.openai_key = openai_key
         self.anthropic_key = anthropic_key
         self.prompt = prompt
+        self.ai_model = ai_model
+        self.ai_temperature = ai_temperature
+        self.ai_max_tokens = ai_max_tokens
 
         # Initialize AI helper if AI is enabled
         self.ai_helper = None
         if self.use_ai and self.ai_provider:
             from iblai_cli.ai_helper import AIHelper
+
             self.ai_helper = AIHelper(
                 provider=self.ai_provider,
                 anthropic_key=self.anthropic_key,
                 openai_key=self.openai_key,
+                model=self.ai_model,
+                temperature=self.ai_temperature,
+                max_tokens=self.ai_max_tokens,
             )
 
     def get_context(self) -> Dict[str, Any]:
@@ -72,7 +90,9 @@ class BaseGenerator:
             "has_mentor_id": bool(self.mentor_id),
         }
 
-    def create_directory_structure(self, structure: Dict[str, Any], base_path: Optional[Path] = None) -> None:
+    def create_directory_structure(
+        self, structure: Dict[str, Any], base_path: Optional[Path] = None
+    ) -> None:
         """
         Create directory structure from a nested dictionary.
 

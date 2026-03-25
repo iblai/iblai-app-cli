@@ -4,8 +4,13 @@ import click
 from rich.console import Console
 
 from iblai_cli import __version__
+from iblai_cli.config import load_config
 from iblai_cli.commands.startapp import startapp
 from iblai_cli.commands.add import add
+
+# Load .env and .env.{DEV_STAGE} before Click parses options.
+# This injects values into os.environ so Click's envvar= resolves them.
+load_config()
 
 console = Console()
 

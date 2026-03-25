@@ -1,0 +1,81 @@
+name: Build Binaries
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-x64
+            artifact: iblai
+          - os: ubuntu-22.04-arm
+            target: linux-arm64
+            artifact: iblai
+          - os: macos-14
+            target: darwin-arm64
+            artifact: iblai
+          - os: windows-latest
+            target: win32-x64
+            artifact: iblai.exe
+
+    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.target }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install .
+
+      - name: Build binary with PyInstaller
+        run: |
+          pyinstaller \
+            --onefile \
+            --name iblai \
+            --add-data "iblai_cli/templates:iblai_cli/templates" \
+            --hidden-import=iblai_cli \
+            --hidden-import=iblai_cli.config \
+            --hidden-import=iblai_cli.commands \
+            --hidden-import=iblai_cli.commands.startapp \
+            --hidden-import=iblai_cli.generators \
+            --hidden-import=iblai_cli.generators.base \
+            --hidden-import=iblai_cli.generators.agent \
+            --hidden-import=iblai_cli.ai_helper \
+            --copy-metadata readchar \
+            --copy-metadata rich \
+            --copy-metadata inquirer \
+            iblai_cli/cli.py
+        shell: bash
+
+      - name: Verify binary runs
+        run: ./dist/iblai --version
+        shell: bash
+        if: runner.os != 'Windows'
+
+      - name: Verify binary runs (Windows)
+        run: ./dist/iblai.exe --version
+        shell: bash
+        if: runner.os == 'Windows'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iblai-${{ matrix.target }}
+          path: dist/${{ matrix.artifact }}
+          if-no-files-found: error

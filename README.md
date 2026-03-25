@@ -137,15 +137,71 @@ Interactive wizard that walks you through:
 
 ```
 Options:
-  --platform, -p TEXT       Platform key (tenant identifier)
-  --agent, -a TEXT          Agent ID
-  --output, -o PATH         Output directory (default: current directory)
-  --openai-key TEXT         OpenAI API key for AI-assisted customization
-  --anthropic-key TEXT      Anthropic API key for AI-assisted customization
-  --ai-provider TEXT        AI provider: "openai" or "anthropic"
-  --prompt, -P TEXT         Natural language prompt to customize the app
-  --help                    Show this message and exit
+  --platform, -p TEXT         Platform key (tenant identifier)
+  --agent, -a TEXT            Agent ID
+  --app-name TEXT             App name (used for directory and package.json)
+  --output, -o PATH           Output directory (default: current directory)
+  --openai-key TEXT           OpenAI API key for AI-assisted customization
+  --anthropic-key TEXT        Anthropic API key for AI-assisted customization
+  --ai-provider TEXT          AI provider: "openai" or "anthropic"
+  --ai-model TEXT             AI model override (e.g., claude-sonnet-4-20250514)
+  --ai-temperature FLOAT      AI temperature (0.0-2.0)
+  --ai-max-tokens INTEGER     AI max tokens for generation
+  --prompt, -P TEXT           Natural language prompt to customize the app
+  --env-file PATH             Path to a custom .env file
+  --stage TEXT                Stage name to load .env.{stage} overrides
+  --help                      Show this message and exit
 ```
+
+#### Configuration via `.env` files
+
+Instead of passing all options as CLI flags, you can create a `.env` file:
+
+```bash
+# .env
+IBLAI_PLATFORM_KEY=acme
+IBLAI_AGENT_ID=my-agent-123
+IBLAI_APP_NAME=my-custom-app
+OPENAI_API_KEY=sk-...
+IBLAI_AI_PROVIDER=openai
+IBLAI_AI_MODEL=gpt-4-turbo-preview
+IBLAI_AI_TEMPERATURE=0.5
+IBLAI_PROMPT="Make this a kids learning assistant"
+```
+
+Stage-specific overrides are supported via `.env.{stage}` files:
+
+```bash
+# .env.production
+IBLAI_PLATFORM_KEY=acme-prod
+IBLAI_AGENT_ID=production-agent-456
+```
+```bash
+iblai startapp agent --stage production
+```
+
+Configuration priority (highest wins):
+
+```
+CLI flags > System env vars > .env.{DEV_STAGE} > .env > interactive prompts
+```
+
+#### Environment variables
+
+| Variable | CLI Flag | Description |
+|----------|----------|-------------|
+| `IBLAI_PLATFORM_KEY` | `--platform` | Platform key (tenant identifier) |
+| `IBLAI_AGENT_ID` | `--agent` | Agent / mentor ID |
+| `IBLAI_APP_NAME` | `--app-name` | App name for directory and package.json |
+| `IBLAI_OUTPUT_DIR` | `--output` | Output directory |
+| `OPENAI_API_KEY` | `--openai-key` | OpenAI API key |
+| `ANTHROPIC_API_KEY` | `--anthropic-key` | Anthropic API key |
+| `IBLAI_AI_PROVIDER` | `--ai-provider` | AI provider (`openai` or `anthropic`) |
+| `IBLAI_AI_MODEL` | `--ai-model` | AI model override |
+| `IBLAI_AI_TEMPERATURE` | `--ai-temperature` | AI temperature |
+| `IBLAI_AI_MAX_TOKENS` | `--ai-max-tokens` | AI max tokens |
+| `IBLAI_PROMPT` | `--prompt` | Enhancement prompt |
+| `DEV_STAGE` | `--stage` | Stage name for `.env.{stage}` |
 
 #### Examples
 
@@ -156,6 +212,9 @@ iblai startapp agent
 # Non-interactive with platform and agent
 iblai startapp agent --platform acme --agent my-agent-123
 
+# Fully non-interactive
+iblai startapp agent --platform acme --agent my-agent-123 --app-name my-app
+
 # Generate into a specific directory
 iblai startapp agent --platform acme --output ./projects
 
@@ -163,6 +222,19 @@ iblai startapp agent --platform acme --output ./projects
 iblai startapp agent --platform acme \
   --anthropic-key sk-ant-... \
   --prompt "Make this a kids learning assistant with bright colors"
+
+# With AI model and temperature overrides
+iblai startapp agent --platform acme \
+  --anthropic-key sk-ant-... \
+  --ai-model claude-sonnet-4-20250514 \
+  --ai-temperature 0.5 \
+  --prompt "Make this a developer tools assistant"
+
+# Using a custom .env file
+iblai startapp agent --env-file ./config/.env
+
+# Using stage-specific config
+iblai startapp agent --stage production
 ```
 
 ### Running the generated app
@@ -175,6 +247,18 @@ pnpm install
 cp .env.example .env.local    # Edit with your platform URL and keys
 pnpm dev                       # Starts on http://localhost:3000
 ```
+
+## Add UI blocks (shadcnspace)
+
+Generated apps include a `components.json` that enables the [shadcn/ui CLI](https://ui.shadcn.com/docs/cli). You can add production-ready UI blocks from [shadcnspace](https://shadcnspace.com) with a single command:
+
+```bash
+npx shadcn@latest add @shadcn-space/hero-01
+npx shadcn@latest add @shadcn-space/pricing-01
+npx shadcn@latest add @shadcn-space/dashboard-shell-01
+```
+
+Browse all available blocks at [shadcnspace.com/blocks](https://shadcnspace.com/blocks).
 
 ## `iblai add` -- Add IBL.ai Features to Existing Apps
 
@@ -347,6 +431,12 @@ When you provide a `--prompt` flag with an API key, the CLI uses AI to customize
 
 The AI follows strict rules: it modifies text, colors, and styling but never changes imports, component interfaces, or hook calls.
 
+## CI/CD
+
+- **`build-binaries.yml`** -- Builds PyInstaller binaries for 4 platforms (linux-x64, linux-arm64, darwin-arm64, win32-x64)
+- **`publish-npm.yml`** -- Publishes `@iblai/cli` and 4 platform packages to npm
+- **`publish-pypi.yml`** -- Publishes `iblai-app-cli` to PyPI
+
 ## Development
 
 ### Running tests
@@ -368,17 +458,48 @@ uv run pytest tests/ --cov=iblai_cli --cov-report=term-missing
 iblai-app-cli/
 ├── iblai_cli/
 │   ├── cli.py                    # Click CLI entry point
+│   ├── config.py                 # .env file loading with stage overrides
 │   ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
+│   ├── project_detector.py       # Next.js project detection
+│   ├── package_manager.py        # Package manager detection (pnpm/yarn/npm/bun)
+│   ├── next_config_patcher.py    # next.config.mjs / globals.css / store patching
 │   ├── commands/
-│   │   └── startapp.py           # startapp command handler
+│   │   ├── startapp.py           # startapp command handler
+│   │   └── add.py                # iblai add command group
 │   ├── generators/
 │   │   ├── base.py               # BaseGenerator (template rendering)
-│   │   └── agent.py              # AgentAppGenerator (48+ files)
+│   │   ├── base_app.py           # BaseAppGenerator (base template)
+│   │   ├── agent.py              # AgentAppGenerator (extends BaseAppGenerator)
+│   │   ├── add_auth.py           # iblai add auth generator
+│   │   ├── add_chat.py           # iblai add chat generator
+│   │   ├── add_profile.py        # iblai add profile generator
+│   │   ├── add_notifications.py  # iblai add notifications generator
+│   │   └── add_mcp.py            # iblai add mcp generator
 │   └── templates/
-│       └── agent/                # Jinja2 templates for agent apps
+│       ├── base/                 # Base template files
+│       ├── agent/                # Agent template overrides
+│       ├── shared/               # Shared templates (layout, SSO, providers, etc.)
+│       ├── add/                  # iblai add templates (auth, chat, profile, etc.)
+│       └── skills/               # Claude skill files
 ├── tests/
 │   ├── test_cli.py               # CLI integration tests
-│   └── test_generators.py        # Generator unit tests
+│   ├── test_generators.py        # Generator unit tests
+│   ├── test_base_app_generator.py # Base template tests
+│   ├── test_add_generators.py    # iblai add tests
+│   ├── test_project_detector.py  # Project detection tests
+│   ├── test_package_manager.py   # Package manager tests
+│   └── test_next_config_patcher.py # Config patching tests
+├── .github/workflows/
+│   ├── build-binaries.yml        # PyInstaller builds
+│   ├── publish-npm.yml           # npm publishing
+│   └── publish-pypi.yml          # PyPI publishing
+├── npm/                          # npm platform binary packages
+│   ├── cli/                      # @iblai/cli wrapper
+│   ├── cli-linux-x64/
+│   ├── cli-linux-arm64/
+│   ├── cli-darwin-arm64/
+│   └── cli-win32-x64/
+├── components.json               # shadcnspace configuration
 └── pyproject.toml
 ```
 

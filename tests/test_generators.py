@@ -290,3 +290,70 @@ class TestAgentRouteGroups:
         pkg = json.loads((generated_dir / "package.json").read_text())
         assert pkg["dependencies"]["next"] == "15.5.14"
         assert pkg["devDependencies"]["eslint-config-next"] == "15.5.14"
+
+
+class TestComponentsJsonGeneration:
+    """Tests for shadcnspace components.json generation."""
+
+    @pytest.fixture
+    def generated_dir(self, tmp_path):
+        """Generate a full agent app and return the output directory."""
+        from iblai_cli.generators.agent import AgentAppGenerator
+
+        output = tmp_path / "test-app"
+        gen = AgentAppGenerator(
+            app_name="test-app",
+            platform_key="acme",
+            output_dir=str(output),
+        )
+        gen.generate()
+        return output
+
+    def test_generate_creates_components_json(self, generated_dir):
+        """components.json exists after generate()."""
+        assert (generated_dir / "components.json").exists()
+
+    def test_components_json_is_valid_json(self, generated_dir):
+        """components.json is valid JSON."""
+        import json
+
+        content = (generated_dir / "components.json").read_text()
+        data = json.loads(content)
+        assert isinstance(data, dict)
+
+    def test_components_json_has_shadcn_schema(self, generated_dir):
+        """components.json has the correct $schema for shadcn/ui."""
+        import json
+
+        data = json.loads((generated_dir / "components.json").read_text())
+        assert data["$schema"] == "https://ui.shadcn.com/schema.json"
+
+    def test_components_json_has_correct_aliases(self, generated_dir):
+        """Aliases map to standard @/ paths."""
+        import json
+
+        data = json.loads((generated_dir / "components.json").read_text())
+        aliases = data["aliases"]
+        assert aliases["components"] == "@/components"
+        assert aliases["utils"] == "@/lib/utils"
+        assert aliases["ui"] == "@/components/ui"
+        assert aliases["lib"] == "@/lib"
+        assert aliases["hooks"] == "@/hooks"
+
+    def test_components_json_tailwind_config(self, generated_dir):
+        """Tailwind section has correct css path and variables enabled."""
+        import json
+
+        data = json.loads((generated_dir / "components.json").read_text())
+        tailwind = data["tailwind"]
+        assert tailwind["css"] == "app/globals.css"
+        assert tailwind["cssVariables"] is True
+        assert tailwind["baseColor"] == "neutral"
+
+    def test_components_json_rsc_tsx_enabled(self, generated_dir):
+        """RSC and TSX are enabled."""
+        import json
+
+        data = json.loads((generated_dir / "components.json").read_text())
+        assert data["rsc"] is True
+        assert data["tsx"] is True

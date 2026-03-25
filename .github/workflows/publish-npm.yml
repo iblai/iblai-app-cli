@@ -1,0 +1,108 @@
+name: Publish npm Packages
+
+on:
+  workflow_run:
+    workflows: ["Build Binaries"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      # Download all binary artifacts from the build workflow
+      - name: Download linux-x64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: iblai-linux-x64
+          path: npm/cli-linux-x64/bin/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download linux-arm64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: iblai-linux-arm64
+          path: npm/cli-linux-arm64/bin/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download darwin-arm64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: iblai-darwin-arm64
+          path: npm/cli-darwin-arm64/bin/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download win32-x64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: iblai-win32-x64
+          path: npm/cli-win32-x64/bin/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Mark binaries as executable
+      - name: Set binary permissions
+        run: |
+          chmod +x npm/cli-linux-x64/bin/iblai
+          chmod +x npm/cli-linux-arm64/bin/iblai
+          chmod +x npm/cli-darwin-arm64/bin/iblai
+
+      # Verify artifacts were downloaded
+      - name: Verify binaries
+        run: |
+          echo "=== linux-x64 ==="
+          ls -la npm/cli-linux-x64/bin/
+          echo "=== linux-arm64 ==="
+          ls -la npm/cli-linux-arm64/bin/
+          echo "=== darwin-arm64 ==="
+          ls -la npm/cli-darwin-arm64/bin/
+          echo "=== win32-x64 ==="
+          ls -la npm/cli-win32-x64/bin/
+
+      # Publish platform packages first, then the main package
+      - name: Publish @iblai/cli-linux-x64
+        run: npm publish --access public
+        working-directory: npm/cli-linux-x64
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @iblai/cli-linux-arm64
+        run: npm publish --access public
+        working-directory: npm/cli-linux-arm64
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @iblai/cli-darwin-arm64
+        run: npm publish --access public
+        working-directory: npm/cli-darwin-arm64
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @iblai/cli-win32-x64
+        run: npm publish --access public
+        working-directory: npm/cli-win32-x64
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Publish main wrapper package last (depends on platform packages)
+      - name: Publish @iblai/cli
+        run: npm publish --access public
+        working-directory: npm/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
