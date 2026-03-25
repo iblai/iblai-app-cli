@@ -54,11 +54,13 @@ function redirectToAuthSpa(
   const path = redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
   if (saveRedirect) localStorage.setItem("redirect-to", path);
 
-  const params = new URLSearchParams({ "redirect-to": origin, app: "agent" });
-  if (platformKey) params.set("tenant", platformKey);
-  if (logout) params.set("logout", "1");
+  // Build URL manually to avoid URLSearchParams percent-encoding
+  // app= first so auth helpers can detect the login page
+  let authUrl = `${config.authUrl()}/login?app=agent&redirect-to=${origin}`;
+  if (platformKey) authUrl += `&tenant=${encodeURIComponent(platformKey)}`;
+  if (logout) authUrl += `&logout=1`;
 
-  window.location.href = `${config.authUrl()}/login?${params.toString()}`;
+  window.location.href = authUrl;
 }
 
 function hasNonExpiredAuthToken(): boolean {
