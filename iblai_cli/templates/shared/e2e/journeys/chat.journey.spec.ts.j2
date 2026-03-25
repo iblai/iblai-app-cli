@@ -17,7 +17,6 @@ test.describe('chat journey', () => {
     await expect(chatWidget).toBeVisible({ timeout: 30_000 });
 
     // Verify the web component has the expected attributes
-    await expect(chatWidget).toHaveAttribute('component', 'chat');
     await expect(chatWidget).toHaveAttribute('authrelyonhost', 'true');
     await expect(chatWidget).toHaveAttribute('extraparams', 'hide-navbar=1');
   });

@@ -24,8 +24,12 @@ test.describe('auth journey', () => {
 
     await page.goto(appHost);
 
-    // Wait for the app to finish loading
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    // Wait for the app to finish loading (avoid networkidle — WebKit keeps connections open)
+    await page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
+    // Give the app a moment to restore localStorage from storage state
+    await page.waitForFunction(() => !!window.localStorage.getItem('axd_token'), {
+      timeout: 10_000,
+    });
 
     // IBL.ai auth tokens should be present after login
     const axdToken = await page.evaluate(() =>
