@@ -14,14 +14,13 @@ MCP_CONFIG = {
     "mcpServers": {
         "iblai-js-mcp": {
             "command": "npx",
-            "args": ["@iblai/mcp@^1.1.0"],
+            "args": ["@iblai/mcp"],
         }
     }
 }
 
-# MCP dev dependency — pinned to the latest published version.
-# @iblai/mcp@1.1.2 does not exist on npm; 1.1.0 is the latest stable.
-MCP_DEPS = ["@iblai/mcp@^1.1.0"]
+# MCP dev dependency.
+MCP_DEPS = ["@iblai/mcp"]
 
 
 class AddMcpGenerator:
