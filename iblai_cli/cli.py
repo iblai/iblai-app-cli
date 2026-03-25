@@ -6,6 +6,7 @@ from rich.console import Console
 from iblai_cli import __version__
 from iblai_cli.config import load_config
 from iblai_cli.commands.startapp import startapp
+from iblai_cli.commands.add import add
 
 # Load .env and .env.{DEV_STAGE} before Click parses options.
 # This injects values into os.environ so Click's envvar= resolves them.
@@ -29,6 +30,7 @@ def cli(ctx: click.Context) -> None:
 
 # Register commands
 cli.add_command(startapp)
+cli.add_command(add)
 
 
 if __name__ == "__main__":

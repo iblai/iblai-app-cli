@@ -4,7 +4,7 @@
 
 # App CLI
 
-Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications. Generates production-ready Next.js apps with chat interfaces, authentication, and full integration with the ibl.ai platform SDK.
+Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications, or adding IBL.ai features (auth, chat, profile, notifications) to existing Next.js apps. Generates production-ready code with SSO authentication, WebSocket chat, and full integration with the ibl.ai platform SDK.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
@@ -35,18 +35,32 @@ The following are installed as Python package dependencies:
 
 ## Install
 
-### pip (from source)
+Using [uv](https://docs.astral.sh/uv/) (recommended):
 
 ```bash
+# Install uv if you don't have it
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone the repo
 git clone git@github.com:iblai/iblai-app-cli.git
 cd iblai-app-cli
-pip install .
+
+# Create a virtual environment and install
+uv venv
+source .venv/bin/activate
+uv pip install .
 ```
 
 For development:
 
 ```bash
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
+```
+
+Using pip:
+
+```bash
+pip install .
 ```
 
 ### Verify installation
@@ -54,17 +68,6 @@ pip install -e ".[dev]"
 ```bash
 iblai --version
 ```
-
-
-### CI/CD
-
-Releases are automated via GitHub Actions:
-
-- **`build-binaries.yml`** -- Builds PyInstaller binaries for Linux (x64, arm64), macOS (Intel, Apple Silicon), and Windows (x64)
-- **`publish-npm.yml`** -- Publishes `@iblai/cli` and 5 platform packages to npm
-- **`publish-pypi.yml`** -- Publishes `iblai-app-cli` to PyPI
-
-Required repository secrets: `NPM_TOKEN`, `PYPI_TOKEN`
 
 ## Usage
 
@@ -83,12 +86,45 @@ Commands:
   startapp  Create a new IBL.ai application from a template.
 ```
 
+### Templates
+
+| Template | Description | Command |
+|----------|-------------|---------|
+| `base` | Minimal app with IBL.ai auth — blank canvas for custom development | `iblai startapp base` |
+| `agent` | Full AI agent chat application with sidebar, navbar, WebSocket chat | `iblai startapp agent` |
+
+### `iblai startapp base`
+
+Scaffolds a minimal Next.js 15 app with IBL.ai SSO authentication, Redux store, and providers — no chat UI, no sidebar, no agent routes. A blank canvas for building your own app with `iblai add` features or custom code.
+
+```bash
+iblai startapp base --platform acme
+```
+
+What you get (~22 files):
+- SSO authentication with route group isolation (`(auth)/sso-login-complete`)
+- Redux store with `coreApiSlice` (no chat/mentor slices)
+- `AuthProvider` + `TenantProvider` (no `MentorProvider`)
+- Consolidated API URL config (`api.basedomain/lms`, `/dm`, `/axd`)
+- Home page with user greeting, logout, and hints for `iblai add`
+- `components.json` for shadcnspace UI blocks
+- `.mcp.json` for AI-assisted development
+- Pinned dependency versions matching the IBL.ai SDK
+
+Add features later:
+```bash
+iblai add chat           # AI chat widget
+iblai add profile        # User profile dropdown
+iblai add notifications  # Notification bell
+iblai add mcp            # Claude skills
+```
+
 ### `iblai startapp agent`
 
 Scaffolds a complete Next.js 15 agent chat application with SSO authentication, Redux state management, and full ibl.ai SDK integration.
 
 ```bash
-iblai startapp agent
+iblai startapp agent --platform acme --agent my-bot-123
 ```
 
 Interactive wizard that walks you through:
@@ -101,20 +137,20 @@ Interactive wizard that walks you through:
 
 ```
 Options:
-  --platform, -p TEXT           Platform key (tenant identifier)
-  --agent, -a TEXT              Agent ID
-  --app-name TEXT               App name (directory and package.json name)
-  --output, -o PATH             Output directory (default: current directory)
-  --openai-key TEXT             OpenAI API key for AI-assisted customization
-  --anthropic-key TEXT          Anthropic API key for AI-assisted customization
-  --ai-provider [openai|anthropic]  AI provider to use
-  --ai-model TEXT               AI model override (e.g., claude-sonnet-4-20250514)
-  --ai-temperature FLOAT        AI temperature (0.0-2.0)
-  --ai-max-tokens INTEGER       AI max tokens for generation
-  --prompt, -P TEXT             Natural language prompt to customize the app
-  --env-file PATH               Path to a custom .env file
-  --stage TEXT                  Stage name to load .env.{stage} overrides
-  --help                        Show this message and exit
+  --platform, -p TEXT         Platform key (tenant identifier)
+  --agent, -a TEXT            Agent ID
+  --app-name TEXT             App name (used for directory and package.json)
+  --output, -o PATH           Output directory (default: current directory)
+  --openai-key TEXT           OpenAI API key for AI-assisted customization
+  --anthropic-key TEXT        Anthropic API key for AI-assisted customization
+  --ai-provider TEXT          AI provider: "openai" or "anthropic"
+  --ai-model TEXT             AI model override (e.g., claude-sonnet-4-20250514)
+  --ai-temperature FLOAT      AI temperature (0.0-2.0)
+  --ai-max-tokens INTEGER     AI max tokens for generation
+  --prompt, -P TEXT           Natural language prompt to customize the app
+  --env-file PATH             Path to a custom .env file
+  --stage TEXT                Stage name to load .env.{stage} overrides
+  --help                      Show this message and exit
 ```
 
 #### Configuration via `.env` files
@@ -124,16 +160,13 @@ Instead of passing all options as CLI flags, you can create a `.env` file:
 ```bash
 # .env
 IBLAI_PLATFORM_KEY=acme
-IBLAI_APP_NAME=my-app
 IBLAI_AGENT_ID=my-agent-123
-ANTHROPIC_API_KEY=sk-ant-...
-IBLAI_PROMPT=Make this a kids learning assistant
-```
-
-Then run with no flags:
-
-```bash
-iblai startapp agent
+IBLAI_APP_NAME=my-custom-app
+OPENAI_API_KEY=sk-...
+IBLAI_AI_PROVIDER=openai
+IBLAI_AI_MODEL=gpt-4-turbo-preview
+IBLAI_AI_TEMPERATURE=0.5
+IBLAI_PROMPT="Make this a kids learning assistant"
 ```
 
 Stage-specific overrides are supported via `.env.{stage}` files:
@@ -141,14 +174,13 @@ Stage-specific overrides are supported via `.env.{stage}` files:
 ```bash
 # .env.production
 IBLAI_PLATFORM_KEY=acme-prod
-IBLAI_AGENT_ID=prod-agent
-
-# Load with:
+IBLAI_AGENT_ID=production-agent-456
+```
+```bash
 iblai startapp agent --stage production
-# Or set DEV_STAGE=production in your environment
 ```
 
-**Resolution priority** (highest wins):
+Configuration priority (highest wins):
 
 ```
 CLI flags > System env vars > .env.{DEV_STAGE} > .env > interactive prompts
@@ -158,16 +190,16 @@ CLI flags > System env vars > .env.{DEV_STAGE} > .env > interactive prompts
 
 | Variable | CLI Flag | Description |
 |----------|----------|-------------|
-| `IBLAI_PLATFORM_KEY` | `--platform` | Platform/tenant key |
-| `IBLAI_AGENT_ID` | `--agent` | Agent/mentor ID |
-| `IBLAI_APP_NAME` | `--app-name` | App name |
+| `IBLAI_PLATFORM_KEY` | `--platform` | Platform key (tenant identifier) |
+| `IBLAI_AGENT_ID` | `--agent` | Agent / mentor ID |
+| `IBLAI_APP_NAME` | `--app-name` | App name for directory and package.json |
 | `IBLAI_OUTPUT_DIR` | `--output` | Output directory |
-| `IBLAI_AI_PROVIDER` | `--ai-provider` | AI provider (openai/anthropic) |
+| `OPENAI_API_KEY` | `--openai-key` | OpenAI API key |
+| `ANTHROPIC_API_KEY` | `--anthropic-key` | Anthropic API key |
+| `IBLAI_AI_PROVIDER` | `--ai-provider` | AI provider (`openai` or `anthropic`) |
 | `IBLAI_AI_MODEL` | `--ai-model` | AI model override |
 | `IBLAI_AI_TEMPERATURE` | `--ai-temperature` | AI temperature |
 | `IBLAI_AI_MAX_TOKENS` | `--ai-max-tokens` | AI max tokens |
-| `OPENAI_API_KEY` | `--openai-key` | OpenAI API key |
-| `ANTHROPIC_API_KEY` | `--anthropic-key` | Anthropic API key |
 | `IBLAI_PROMPT` | `--prompt` | Enhancement prompt |
 | `DEV_STAGE` | `--stage` | Stage name for `.env.{stage}` |
 
@@ -180,24 +212,29 @@ iblai startapp agent
 # Non-interactive with platform and agent
 iblai startapp agent --platform acme --agent my-agent-123
 
-# Non-interactive with app name (skips prompt)
-iblai startapp agent --platform acme --app-name my-app
+# Fully non-interactive
+iblai startapp agent --platform acme --agent my-agent-123 --app-name my-app
 
 # Generate into a specific directory
 iblai startapp agent --platform acme --output ./projects
 
-# AI-assisted customization with model override
+# AI-assisted customization (modifies styling, copy, and layout)
+iblai startapp agent --platform acme \
+  --anthropic-key sk-ant-... \
+  --prompt "Make this a kids learning assistant with bright colors"
+
+# With AI model and temperature overrides
 iblai startapp agent --platform acme \
   --anthropic-key sk-ant-... \
   --ai-model claude-sonnet-4-20250514 \
   --ai-temperature 0.5 \
-  --prompt "Make this a kids learning assistant with bright colors"
+  --prompt "Make this a developer tools assistant"
 
 # Using a custom .env file
 iblai startapp agent --env-file ./config/.env
 
 # Using stage-specific config
-DEV_STAGE=production iblai startapp agent
+iblai startapp agent --stage production
 ```
 
 ### Running the generated app
@@ -216,7 +253,6 @@ pnpm dev                       # Starts on http://localhost:3000
 Generated apps include a `components.json` that enables the [shadcn/ui CLI](https://ui.shadcn.com/docs/cli). You can add production-ready UI blocks from [shadcnspace](https://shadcnspace.com) with a single command:
 
 ```bash
-# After pnpm install:
 npx shadcn@latest add @shadcn-space/hero-01
 npx shadcn@latest add @shadcn-space/pricing-01
 npx shadcn@latest add @shadcn-space/dashboard-shell-01
@@ -224,7 +260,96 @@ npx shadcn@latest add @shadcn-space/dashboard-shell-01
 
 Browse all available blocks at [shadcnspace.com/blocks](https://shadcnspace.com/blocks).
 
-The blocks are copied into your project as source code (not a dependency) -- you have full ownership to customize them.
+## `iblai add` -- Add IBL.ai Features to Existing Apps
+
+Already have a Next.js app? Use `iblai add` to integrate IBL.ai features without scaffolding a new project.
+
+```bash
+iblai add auth           # SSO authentication + Redux store + providers
+iblai add chat           # AI chat widget with WebSocket streaming
+iblai add profile        # User profile dropdown
+iblai add notifications  # Notification bell with unread badge
+iblai add mcp            # MCP config + Claude skills for AI-assisted development
+```
+
+### `iblai add auth`
+
+Adds SSO authentication to your project. Generates 7 files:
+
+| File | Purpose |
+|------|---------|
+| `app/sso-login-complete/page.tsx` | SSO callback handler |
+| `lib/iblai/config.ts` | API URL configuration (supports consolidated `api.domain/lms` pattern) |
+| `lib/iblai/storage-service.ts` | localStorage wrapper for the SDK |
+| `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
+| `store/iblai-store.ts` | Redux store with IBL API slices |
+| `providers/iblai-providers.tsx` | `AuthProvider` + `TenantProvider` wrapper |
+| `app/iblai-styles.css` | SDK component styles |
+
+After running, follow the printed instructions to install dependencies, configure webpack, and set environment variables.
+
+```bash
+iblai add auth --platform my-tenant
+```
+
+### `iblai add chat`
+
+Adds a self-contained AI chat widget with WebSocket streaming, markdown rendering, session management, and conversation starters. Requires auth to be added first.
+
+```tsx
+import { ChatWidget } from "@/components/iblai/chat-widget";
+
+<ChatWidget mentorId="your-mentor-id" />
+```
+
+### `iblai add profile`
+
+Adds a user profile dropdown using the SDK's `UserProfileDropdown` component.
+
+```tsx
+import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";
+
+<IblaiProfileDropdown />
+```
+
+### `iblai add notifications`
+
+Adds a notification bell with unread count badge.
+
+```tsx
+import { IblaiNotificationBell } from "@/components/iblai/notification-bell";
+
+<IblaiNotificationBell />
+```
+
+### `iblai add mcp`
+
+Adds `.mcp.json` and Claude skill files for AI-assisted development:
+
+| Skill | Slash Command | Purpose |
+|-------|--------------|---------|
+| `iblai-setup.md` | `/iblai-setup` | Full setup from scratch |
+| `iblai-add-auth.md` | `/iblai-add-auth` | Step-by-step auth integration |
+| `iblai-add-chat.md` | `/iblai-add-chat` | Step-by-step chat integration |
+| `iblai-add-profile.md` | `/iblai-add-profile` | Step-by-step profile integration |
+| `iblai-add-notifications.md` | `/iblai-add-notifications` | Step-by-step notifications integration |
+
+### Prerequisites
+
+- `auth` must be added before `chat`, `profile`, or `notifications`
+- Project must be a Next.js app with App Router (`app/` directory)
+- Files are created in namespaced directories (`lib/iblai/`, `components/iblai/`) to avoid conflicts
+
+### Environment variables
+
+```bash
+# Consolidated API (recommended)
+NEXT_PUBLIC_API_BASE_URL=https://api.iblai.org
+NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org
+NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.org
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
+```
 
 ## What gets generated
 
@@ -235,13 +360,16 @@ The `startapp agent` command creates a complete Next.js 15 application:
 ```
 <app-name>/
 ├── app/                              # Next.js App Router
-│   ├── layout.tsx                    # Root layout with providers
-│   ├── page.tsx                      # Home page (redirects to agent)
+│   ├── layout.tsx                    # Root layout (html/body, no providers)
 │   ├── globals.css                   # Global styles (Tailwind)
-│   ├── sso-login-complete/           # SSO callback handler
-│   └── platform/[tenantKey]/         # Dynamic tenant routing
-│       └── [agentId]/                # Dynamic agent routing
-│           └── page.tsx              # Chat interface
+│   ├── (auth)/                       # Auth route group (no AppShell)
+│   │   └── sso-login-complete/       # SSO callback handler
+│   └── (app)/                        # Authenticated route group (AppShell)
+│       ├── layout.tsx                # Wraps children with AppShell/providers
+│       ├── page.tsx                  # Home page (redirects to agent)
+│       └── platform/[tenantKey]/     # Dynamic tenant routing
+│           └── [agentId]/            # Dynamic agent routing
+│               └── page.tsx          # Chat interface
 ├── components/
 │   ├── app-shell.tsx                 # Client-side provider wrapper
 │   ├── app-sidebar.tsx               # Collapsible sidebar navigation
@@ -259,7 +387,6 @@ The `startapp agent` command creates a complete Next.js 15 application:
 ├── providers/                        # Redux and app providers
 ├── store/                            # Redux store setup
 ├── public/env.js                     # Runtime environment config
-├── components.json                   # shadcn/ui CLI configuration
 ├── package.json                      # Dependencies
 ├── next.config.mjs                   # Next.js configuration
 ├── tailwind.config.ts                # Tailwind CSS configuration
@@ -304,6 +431,12 @@ When you provide a `--prompt` flag with an API key, the CLI uses AI to customize
 
 The AI follows strict rules: it modifies text, colors, and styling but never changes imports, component interfaces, or hook calls.
 
+## CI/CD
+
+- **`build-binaries.yml`** -- Builds PyInstaller binaries for 4 platforms (linux-x64, linux-arm64, darwin-arm64, win32-x64)
+- **`publish-npm.yml`** -- Publishes `@iblai/cli` and 4 platform packages to npm
+- **`publish-pypi.yml`** -- Publishes `iblai-app-cli` to PyPI
+
 ## Development
 
 ### Running tests
@@ -325,17 +458,48 @@ uv run pytest tests/ --cov=iblai_cli --cov-report=term-missing
 iblai-app-cli/
 ├── iblai_cli/
 │   ├── cli.py                    # Click CLI entry point
+│   ├── config.py                 # .env file loading with stage overrides
 │   ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
+│   ├── project_detector.py       # Next.js project detection
+│   ├── package_manager.py        # Package manager detection (pnpm/yarn/npm/bun)
+│   ├── next_config_patcher.py    # next.config.mjs / globals.css / store patching
 │   ├── commands/
-│   │   └── startapp.py           # startapp command handler
+│   │   ├── startapp.py           # startapp command handler
+│   │   └── add.py                # iblai add command group
 │   ├── generators/
 │   │   ├── base.py               # BaseGenerator (template rendering)
-│   │   └── agent.py              # AgentAppGenerator (48+ files)
+│   │   ├── base_app.py           # BaseAppGenerator (base template)
+│   │   ├── agent.py              # AgentAppGenerator (extends BaseAppGenerator)
+│   │   ├── add_auth.py           # iblai add auth generator
+│   │   ├── add_chat.py           # iblai add chat generator
+│   │   ├── add_profile.py        # iblai add profile generator
+│   │   ├── add_notifications.py  # iblai add notifications generator
+│   │   └── add_mcp.py            # iblai add mcp generator
 │   └── templates/
-│       └── agent/                # Jinja2 templates for agent apps
+│       ├── base/                 # Base template files
+│       ├── agent/                # Agent template overrides
+│       ├── shared/               # Shared templates (layout, SSO, providers, etc.)
+│       ├── add/                  # iblai add templates (auth, chat, profile, etc.)
+│       └── skills/               # Claude skill files
 ├── tests/
 │   ├── test_cli.py               # CLI integration tests
-│   └── test_generators.py        # Generator unit tests
+│   ├── test_generators.py        # Generator unit tests
+│   ├── test_base_app_generator.py # Base template tests
+│   ├── test_add_generators.py    # iblai add tests
+│   ├── test_project_detector.py  # Project detection tests
+│   ├── test_package_manager.py   # Package manager tests
+│   └── test_next_config_patcher.py # Config patching tests
+├── .github/workflows/
+│   ├── build-binaries.yml        # PyInstaller builds
+│   ├── publish-npm.yml           # npm publishing
+│   └── publish-pypi.yml          # PyPI publishing
+├── npm/                          # npm platform binary packages
+│   ├── cli/                      # @iblai/cli wrapper
+│   ├── cli-linux-x64/
+│   ├── cli-linux-arm64/
+│   ├── cli-darwin-arm64/
+│   └── cli-win32-x64/
+├── components.json               # shadcnspace configuration
 └── pyproject.toml
 ```
 

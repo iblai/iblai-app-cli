@@ -230,27 +230,20 @@ def startapp(
             return
         platform = answers["platform"]
 
-    # Optionally prompt for agent ID
-    if not agent:
+    # Require agent ID for the agent template
+    if template.lower() == "agent" and not agent:
         questions = [
-            inquirer.Confirm(
-                "add_agent",
-                message="Do you want to specify an agent ID?",
-                default=False,
+            inquirer.Text(
+                "agent",
+                message="Enter the agent ID (mentor ID)",
+                validate=lambda _, x: len(x) > 0,
             ),
         ]
         answers = inquirer.prompt(questions)
-        if answers and answers["add_agent"]:
-            questions = [
-                inquirer.Text(
-                    "agent",
-                    message="Enter the agent ID",
-                    validate=lambda _, x: len(x) > 0,
-                ),
-            ]
-            answers = inquirer.prompt(questions)
-            if answers:
-                agent = answers["agent"]
+        if not answers:
+            console.print("[red]Operation cancelled[/red]")
+            return
+        agent = answers["agent"]
 
     # Prompt for app name if not provided via flag or env
     if not app_name:

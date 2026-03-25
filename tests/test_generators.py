@@ -134,8 +134,8 @@ class TestAgentAppGenerator:
         for file_name in essential_files:
             assert (temp_dir / file_name).exists(), f"Missing {file_name}"
 
-    def test_generate_creates_chat_components(self, temp_dir):
-        """Test that generate() creates chat components."""
+    def test_generate_creates_iblai_components(self, temp_dir):
+        """Test that generate() creates the iblai/ components using ChatWidget."""
         generator = AgentAppGenerator(
             app_name="test-app",
             platform_key="acme",
@@ -144,17 +144,19 @@ class TestAgentAppGenerator:
 
         generator.generate()
 
-        # Check chat components
-        chat_components = [
-            "components/chat/index.tsx",
-            "components/chat/chat-messages.tsx",
-            "components/chat/chat-input-form.tsx",
-            "components/chat/welcome.tsx",
-        ]
+        # Custom chat components are gone — replaced by the ChatWidget web component
+        assert not (temp_dir / "components" / "chat").exists()
 
-        for component_path in chat_components:
-            file_path = temp_dir / component_path
-            assert file_path.exists(), f"Missing {component_path}"
+        # ChatWidget + profile + notifications should be generated
+        assert (temp_dir / "components" / "iblai" / "chat-widget.tsx").exists()
+        assert (temp_dir / "components" / "iblai" / "profile-dropdown.tsx").exists()
+        assert (temp_dir / "components" / "iblai" / "notification-bell.tsx").exists()
+
+        # Verify the ChatWidget uses mentor-ai
+        widget = (temp_dir / "components" / "iblai" / "chat-widget.tsx").read_text()
+        assert "mentor-ai" in widget
+        assert "@iblai/iblai-web-mentor" in widget
+        assert 'authrelyonhost="true"' in widget
 
     def test_generate_with_mentor_id_in_env(self, temp_dir):
         """Test that mentor ID appears in env file when provided."""
@@ -190,7 +192,7 @@ class TestAgentAppGenerator:
         assert "NEXT_PUBLIC_DEFAULT_AGENT_ID" not in content
 
     def test_generate_creates_ui_components(self, temp_dir):
-        """Test that generate() creates UI component re-exports."""
+        """Test that generate() creates base UI components (button, sonner)."""
         generator = AgentAppGenerator(
             app_name="test-app",
             platform_key="acme",
@@ -199,20 +201,12 @@ class TestAgentAppGenerator:
 
         generator.generate()
 
-        # Check UI components
-        ui_components = [
-            "components/ui/button.tsx",
-            "components/ui/sidebar.tsx",
-            "components/ui/avatar.tsx",
-            "components/ui/dropdown-menu.tsx",
-            "components/ui/input.tsx",
-            "components/ui/textarea.tsx",
-            "components/ui/skeleton.tsx",
-        ]
-
-        for component_path in ui_components:
-            file_path = temp_dir / component_path
-            assert file_path.exists(), f"Missing {component_path}"
+        # Agent template inherits base components: button + sonner only
+        # (sidebar, avatar, dropdown, etc. removed — not needed with ChatWidget)
+        assert (temp_dir / "components" / "ui" / "button.tsx").exists()
+        assert (temp_dir / "components" / "ui" / "sonner.tsx").exists()
+        # Heavy sidebar components are gone
+        assert not (temp_dir / "components" / "ui" / "sidebar.tsx").exists()
 
     def test_platform_key_in_config(self, temp_dir):
         """Test that platform key appears in config files."""
@@ -233,6 +227,69 @@ class TestAgentAppGenerator:
         config_file = temp_dir / "lib" / "config.ts"
         config_content = config_file.read_text()
         assert "my-platform" in config_content
+
+
+class TestAgentRouteGroups:
+    """Tests for the Next.js route group structure (app/(app)/ and app/(auth)/)."""
+
+    @pytest.fixture
+    def generated_dir(self, tmp_path):
+        from iblai_cli.generators.agent import AgentAppGenerator
+
+        output = tmp_path / "route-group-app"
+        gen = AgentAppGenerator(
+            app_name="route-group-app",
+            platform_key="acme",
+            mentor_id="test-agent",
+            output_dir=str(output),
+        )
+        gen.generate()
+        return output
+
+    def test_generate_creates_route_groups(self, generated_dir):
+        """Both (app) and (auth) route group directories exist."""
+        assert (generated_dir / "app" / "(app)").is_dir()
+        assert (generated_dir / "app" / "(auth)").is_dir()
+
+    def test_sso_page_in_auth_route_group(self, generated_dir):
+        """SSO callback page is inside (auth) route group, outside auth providers."""
+        sso = generated_dir / "app" / "(auth)" / "sso-login-complete" / "page.tsx"
+        assert sso.exists()
+        content = sso.read_text()
+        assert "SsoLogin" in content
+
+    def test_home_page_has_fullscreen_chat(self, generated_dir):
+        """Home page renders a full-screen ChatWidget, no /platform/ routes."""
+        page = generated_dir / "app" / "(app)" / "page.tsx"
+        assert page.exists()
+        content = page.read_text()
+        assert "ChatWidget" in content
+        assert "100vw" in content
+        assert "100vh" in content
+        # /platform/ routing is gone — agent = base + ChatWidget home
+        assert not (generated_dir / "app" / "(app)" / "platform").exists()
+
+    def test_authenticated_layout_in_app_group(self, generated_dir):
+        """(app)/layout.tsx exists and wraps children with AppShell."""
+        layout = generated_dir / "app" / "(app)" / "layout.tsx"
+        assert layout.exists()
+        content = layout.read_text()
+        assert "AppShell" in content
+
+    def test_agent_generates_e2e_tests(self, generated_dir):
+        """Agent app inherits e2e tests from base generator."""
+        assert (generated_dir / "e2e" / "playwright.config.ts").exists()
+        assert (generated_dir / "e2e" / "auth.setup.ts").exists()
+        assert (generated_dir / "e2e" / "journeys" / "auth.journey.spec.ts").exists()
+        assert (generated_dir / "e2e" / "journeys" / "chat.journey.spec.ts").exists()
+
+    def test_next_version_bumped(self, generated_dir):
+        """Next.js version is bumped to 15.5.14."""
+        import json
+
+        pkg = json.loads((generated_dir / "package.json").read_text())
+        assert pkg["dependencies"]["next"] == "15.5.14"
+        assert pkg["devDependencies"]["eslint-config-next"] == "15.5.14"
 
 
 class TestComponentsJsonGeneration:

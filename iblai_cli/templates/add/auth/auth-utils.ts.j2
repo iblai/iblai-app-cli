@@ -1,0 +1,52 @@
+{% raw %}
+/**
+ * IBL.ai auth helper utilities.
+ *
+ * These are thin wrappers used by IblaiProviders. You can customise the
+ * redirect behaviour here without touching the provider component.
+ */
+
+import config from "./config";
+
+/** Redirect the browser to the IBL Auth SPA for login. */
+export function redirectToAuthSpa(
+  redirectTo?: string,
+  platformKey?: string,
+  logout?: boolean,
+  saveRedirect?: boolean,
+) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const path = redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+
+  if (saveRedirect) {
+    localStorage.setItem("redirect-to", path);
+  }
+
+  const params = new URLSearchParams({
+    "redirect-to": origin,
+    app: "custom",
+  });
+  if (platformKey) params.set("tenant", platformKey);
+  if (logout) params.set("logout", "1");
+
+  window.location.href = `${config.authUrl()}/login?${params.toString()}`;
+}
+
+/** Check whether a non-expired auth token exists in localStorage. */
+export function hasNonExpiredAuthToken(): boolean {
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem("axd_token");
+  if (!token) return false;
+  const expiry = localStorage.getItem("axd_token_expires");
+  if (!expiry) return false;
+  return new Date(expiry) > new Date();
+}
+
+/** Handle logout: clear state and redirect to the Auth SPA logout page. */
+export function handleLogout() {
+  const tenant = localStorage.getItem("tenant") ?? "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  localStorage.clear();
+  window.location.href = `${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`;
+}
+{% endraw %}

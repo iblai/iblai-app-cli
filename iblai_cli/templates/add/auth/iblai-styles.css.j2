@@ -1,0 +1,75 @@
+{% raw %}
+/*
+ * IBL.ai Styles
+ *
+ * Import this file in your globals.css:
+ *   @import './iblai-styles.css';
+ *
+ * This provides:
+ *   1. SDK base styles (CSS variables + utility classes for SDK components)
+ *   2. Tailwind class scanning for SDK component internals
+ *   3. IBL custom utility classes
+ */
+
+/* SDK base styles — injects ~130 CSS variables + utility classes onto :root */
+@import '@iblai/iblai-js/web-containers/styles';
+
+/* Scan SDK compiled JS so Tailwind generates classes used inside SDK components */
+@source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
+
+/* ------------------------------------------------------------------ */
+/* IBL custom utility classes                                          */
+/* ------------------------------------------------------------------ */
+
+.ibl-dialog-title {
+  color: #646464;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.ibl-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background: linear-gradient(135deg, #2563EB 0%, #93C5FD 100%);
+  transition: opacity 0.2s;
+}
+
+.ibl-button-primary:hover {
+  opacity: 0.9;
+}
+
+.ibl-outline-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563EB;
+  border: 1px solid #2563EB;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.ibl-outline-primary:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.ibl-tooltip-content {
+  background-color: #374151;
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+{% endraw %}
