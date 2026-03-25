@@ -45,10 +45,19 @@ const nextConfig = {
     ],
   },
   webpack: (config) => {
+    // Deduplicate packages that the SDK may pull in with different versions.
+    // If both the app and the SDK bundle their own copy of @reduxjs/toolkit
+    // or react-redux, RTK Query hooks inside SDK components (e.g. Profile)
+    // end up using a different ReactReduxContext than our StoreProvider —
+    // so they silently return undefined with no HTTP requests ever fired.
     const dataLayerDir = dedup('@iblai/data-layer');
-    if (dataLayerDir) {
-      config.resolve.alias['@iblai/data-layer'] = dataLayerDir;
-    }
+    if (dataLayerDir) config.resolve.alias['@iblai/data-layer'] = dataLayerDir;
+
+    const rtkDir = dedup('@reduxjs/toolkit');
+    if (rtkDir) config.resolve.alias['@reduxjs/toolkit'] = rtkDir;
+
+    const reactReduxDir = dedup('react-redux');
+    if (reactReduxDir) config.resolve.alias['react-redux'] = reactReduxDir;
 
     // Stub out @tauri-apps/api imports — the SDK references them for
     // desktop (Tauri) builds, but they are not needed in web-only apps.
