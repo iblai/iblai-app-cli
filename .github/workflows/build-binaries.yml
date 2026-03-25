@@ -20,9 +20,6 @@ jobs:
           - os: ubuntu-22.04-arm
             target: linux-arm64
             artifact: iblai
-          - os: macos-13
-            target: darwin-x64
-            artifact: iblai
           - os: macos-14
             target: darwin-arm64
             artifact: iblai
@@ -53,6 +50,7 @@ jobs:
             --name iblai \
             --add-data "iblai_cli/templates:iblai_cli/templates" \
             --hidden-import=iblai_cli \
+            --hidden-import=iblai_cli.config \
             --hidden-import=iblai_cli.commands \
             --hidden-import=iblai_cli.commands.startapp \
             --hidden-import=iblai_cli.generators \

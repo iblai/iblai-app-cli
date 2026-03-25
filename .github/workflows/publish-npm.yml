@@ -40,14 +40,6 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download darwin-x64 binary
-        uses: actions/download-artifact@v4
-        with:
-          name: iblai-darwin-x64
-          path: npm/cli-darwin-x64/bin/
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Download darwin-arm64 binary
         uses: actions/download-artifact@v4
         with:
@@ -69,7 +61,6 @@ jobs:
         run: |
           chmod +x npm/cli-linux-x64/bin/iblai
           chmod +x npm/cli-linux-arm64/bin/iblai
-          chmod +x npm/cli-darwin-x64/bin/iblai
           chmod +x npm/cli-darwin-arm64/bin/iblai
 
       # Verify artifacts were downloaded
@@ -79,8 +70,6 @@ jobs:
           ls -la npm/cli-linux-x64/bin/
           echo "=== linux-arm64 ==="
           ls -la npm/cli-linux-arm64/bin/
-          echo "=== darwin-x64 ==="
-          ls -la npm/cli-darwin-x64/bin/
           echo "=== darwin-arm64 ==="
           ls -la npm/cli-darwin-arm64/bin/
           echo "=== win32-x64 ==="
@@ -96,12 +85,6 @@ jobs:
       - name: Publish @iblai/cli-linux-arm64
         run: npm publish --access public
         working-directory: npm/cli-linux-arm64
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish @iblai/cli-darwin-x64
-        run: npm publish --access public
-        working-directory: npm/cli-darwin-x64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
