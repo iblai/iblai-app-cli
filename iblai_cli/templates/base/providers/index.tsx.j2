@@ -94,8 +94,12 @@ export function Providers({ children }: { children: ReactNode }) {
   const [isInitialized] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
+      // The data-layer v1.2+ initializeDataLayer signature is:
+      // (dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)
+      // legacyLmsUrl is the non-consolidated LMS URL (same as lmsUrl here).
       initializeDataLayer(
         config.dmUrl(),
+        config.lmsUrl(),
         config.lmsUrl(),
         storageService,
         {
