@@ -146,18 +146,20 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 9
+        assert len(skills) == 10
         assert "iblai-startapp-base.md" in skills
         assert "iblai-customize-chat.md" in skills
         assert "iblai-add-profile-page.md" in skills
+        assert "iblai-add-organization-page.md" in skills
 
     def test_generates_opencode_skills(self, generated_dir):
         skills_dir = generated_dir / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 9
+        assert len(skill_dirs) == 10
         assert "iblai-startapp-base" in skill_dirs
         assert "iblai-add-profile-page" in skill_dirs
+        assert "iblai-add-organization-page" in skill_dirs
         skill_md = skills_dir / "iblai-startapp-base" / "SKILL.md"
         assert skill_md.exists()
         content = skill_md.read_text()
