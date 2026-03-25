@@ -103,6 +103,10 @@ class BaseAppGenerator(BaseGenerator):
         # (app) — authenticated, wrapped by AppShell
         self._write("app/(app)/layout.tsx", self._render("app/(app)/layout.tsx.j2"))
         self._write("app/(app)/page.tsx", self._render("app/(app)/page.tsx.j2"))
+        self._write(
+            "app/(app)/profile/page.tsx",
+            self._render("app/(app)/profile/page.tsx.j2"),
+        )
 
         # --- Components ---
         self._write(

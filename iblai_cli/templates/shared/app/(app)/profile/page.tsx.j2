@@ -1,0 +1,59 @@
+"use client";
+{% raw %}
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Profile } from "@iblai/iblai-js/web-containers";
+import { config } from "@/lib/config";
+
+export default function ProfilePage() {
+  const router = useRouter();
+
+  const username = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) return JSON.parse(raw).user_nicename ?? "";
+    } catch { /* ignore */ }
+    return "";
+  }, []);
+
+  const tenantKey = useMemo(() => {
+    if (typeof window === "undefined") return config.mainTenantKey();
+    const stored =
+      localStorage.getItem("current_tenant") ??
+      localStorage.getItem("tenant");
+    if (stored && stored !== "[object Object]") {
+      try {
+        const p = JSON.parse(stored);
+        if (typeof p === "string") return p;
+        if (p?.key) return p.key;
+      } catch {
+        return stored;
+      }
+    }
+    return config.mainTenantKey();
+  }, []);
+
+  return (
+    <div
+      style={{
+        height: "100vh",
+        width: "100vw",
+        overflow: "auto",
+      }}
+    >
+      <Profile
+        tenant={tenantKey}
+        username={username}
+        onClose={() => router.push("/")}
+        customization={{
+          showUsernameField: true,
+          showPlatformName: true,
+          useGravatarPicFallback: true,
+        }}
+        targetTab="basic"
+      />
+    </div>
+  );
+}
+{% endraw %}
