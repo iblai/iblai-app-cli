@@ -7,8 +7,8 @@
  * tenant switching, and logout. Uses the SDK's UserProfileDropdown component.
  *
  * Usage:
- *   import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";
- *   <IblaiProfileDropdown />
+ *   import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
+ *   <ProfileDropdown />
  *
  * Prerequisites:
  *   - <IblaiProviders> must wrap this component's ancestor tree
@@ -20,12 +20,12 @@ import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
 import config from "@/lib/iblai/config";
 import { handleLogout, redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 
-interface IblaiProfileDropdownProps {
+interface ProfileDropdownProps {
   /** Additional CSS class for the dropdown trigger. */
   className?: string;
 }
 
-export function IblaiProfileDropdown({ className }: IblaiProfileDropdownProps) {
+export function ProfileDropdown({ className }: ProfileDropdownProps) {
   const username = useMemo(() => {
     if (typeof window === "undefined") return "";
     try {

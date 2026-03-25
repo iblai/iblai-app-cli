@@ -44,7 +44,7 @@ The base app includes:
 - **Redux store**: `coreApiSlice` + `mentorReducer` for IBL API access
 - **Pre-built components** (ready to import):
   - `@/components/iblai/chat-widget` — `<ChatWidget mentorId="..." />`
-  - `@/components/iblai/profile-dropdown` — `<IblaiProfileDropdown />`
+  - `@/components/iblai/profile-dropdown` — `<ProfileDropdown />`
   - `@/components/iblai/notification-bell` — `<IblaiNotificationBell />`
 - **shadcn/ui support**: `components.json` configured, use `npx shadcn@latest add @shadcn-space/hero-01`
 - **MCP server**: `.mcp.json` for AI-assisted development
@@ -53,6 +53,6 @@ The base app includes:
 
 ```tsx
 import { ChatWidget } from "@/components/iblai/chat-widget";
-import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";
+import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
 import { IblaiNotificationBell } from "@/components/iblai/notification-bell";
 ```

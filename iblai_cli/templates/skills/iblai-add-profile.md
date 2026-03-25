@@ -31,13 +31,13 @@ Create `components/iblai/profile-dropdown.tsx` that:
 ### 4. Place in your navbar
 
 ```tsx
-import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";
+import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
 
 function Navbar() {
   return (
     <nav>
       {/* ... other nav items ... */}
-      <IblaiProfileDropdown />
+      <ProfileDropdown />
     </nav>
   );
 }

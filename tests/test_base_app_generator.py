@@ -58,7 +58,7 @@ class TestBaseAppGenerator:
         assert "email" in content
         assert "userData" in content
         assert "ChatWidget" in content
-        assert "IblaiProfileDropdown" in content
+        assert "ProfileDropdown" in content
 
     def test_no_chat_components(self, generated_dir):
         assert not (generated_dir / "components" / "chat").exists()
@@ -84,14 +84,12 @@ class TestBaseAppGenerator:
     def test_providers_structure(self, generated_dir):
         providers = (generated_dir / "providers" / "index.tsx").read_text()
         assert "AuthProvider" in providers
-        assert "TenantProvider" in providers
-        # TenantProvider has timeout + onAuthFailure safety mechanisms
-        assert "skipTenant" in providers
-        assert "onAuthFailure" in providers
-        assert "saveUserTokens" in providers
+        # TenantProvider removed — replaced by direct tenants fetch
+        assert "<TenantProvider" not in providers
         # MentorProvider not included
         assert "<MentorProvider" not in providers
-        assert "<MentorProvider" not in providers
+        # Tenants fetched directly from LMS API
+        assert "api/ibl/users/manage/platform" in providers
 
     def test_env_example_no_agent_id(self, generated_dir):
         env = (generated_dir / ".env.example").read_text()
@@ -121,7 +119,9 @@ class TestBaseAppGenerator:
     def test_generates_profile_dropdown(self, generated_dir):
         path = generated_dir / "components" / "iblai" / "profile-dropdown.tsx"
         assert path.exists()
-        assert "UserProfileDropdown" in path.read_text()
+        content = path.read_text()
+        assert "UserProfileDropdown" in content
+        assert "ProfileDropdown" in content  # renamed from IblaiProfileDropdown
 
     def test_generates_notification_bell(self, generated_dir):
         path = generated_dir / "components" / "iblai" / "notification-bell.tsx"
@@ -146,16 +146,18 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 8
+        assert len(skills) == 9
         assert "iblai-startapp-base.md" in skills
         assert "iblai-customize-chat.md" in skills
+        assert "iblai-add-profile-page.md" in skills
 
     def test_generates_opencode_skills(self, generated_dir):
         skills_dir = generated_dir / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 8
+        assert len(skill_dirs) == 9
         assert "iblai-startapp-base" in skill_dirs
+        assert "iblai-add-profile-page" in skill_dirs
         skill_md = skills_dir / "iblai-startapp-base" / "SKILL.md"
         assert skill_md.exists()
         content = skill_md.read_text()
@@ -176,7 +178,7 @@ class TestBaseAppGenerator:
         assert deps["next"] == "15.5.14"
         assert deps["react"] == "19.1.0"
         assert deps["react-dom"] == "19.1.0"
-        assert deps["@reduxjs/toolkit"] == "2.7.0"
+        assert deps["@reduxjs/toolkit"] == "2.11.2"
         assert deps["react-redux"] == "9.2.0"
 
     def test_generates_playwright_config(self, generated_dir):

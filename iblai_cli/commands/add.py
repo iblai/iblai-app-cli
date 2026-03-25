@@ -176,8 +176,8 @@ def profile():
             + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
             + "\n\n"
             "[bold]Usage:[/bold]\n\n"
-            '  [dim]import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";[/dim]\n'
-            "  [dim]<IblaiProfileDropdown />[/dim]",
+            '  [dim]import { ProfileDropdown } from "@/components/iblai/profile-dropdown";[/dim]\n'
+            "  [dim]<ProfileDropdown />[/dim]",
             border_style="green",
             title="iblai add profile",
         )

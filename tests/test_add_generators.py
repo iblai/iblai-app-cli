@@ -220,6 +220,9 @@ class TestAddProfileGenerator:
     def test_profile_uses_sdk_component(self, profile_content):
         assert "UserProfileDropdown" in profile_content
 
+    def test_profile_exports_profile_dropdown(self, profile_content):
+        assert "ProfileDropdown" in profile_content
+
     def test_profile_has_required_props(self, profile_content):
         assert "onTenantUpdate" in profile_content
         assert "onLogout" in profile_content
