@@ -81,6 +81,7 @@ class BaseAppGenerator(BaseGenerator):
         # --- Project config (from shared + base) ---
         self._write("package.json", self._render("package.json.j2"))
         self._write("tsconfig.json", self._render("tsconfig.json.j2"))
+        self._copy_static("declarations.d.ts", "declarations.d.ts")
         self._write("next.config.mjs", self._render("next.config.mjs.j2"))
         self._write("tailwind.config.ts", self._render("tailwind.config.ts.j2"))
         self._write("postcss.config.mjs", self._render("postcss.config.mjs.j2"))

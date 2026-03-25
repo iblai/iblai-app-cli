@@ -105,7 +105,8 @@ export function ChatWidget({
       }
     }
     return config.mainTenantKey();
-  }, [tenantKey, tokensReady]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantKey]);
 
   const resolvedWidth = typeof width === "number" ? `${width}px` : width;
   const resolvedHeight = typeof height === "number" ? `${height}px` : height;
