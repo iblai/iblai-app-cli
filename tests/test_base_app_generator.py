@@ -84,12 +84,16 @@ class TestBaseAppGenerator:
     def test_providers_structure(self, generated_dir):
         providers = (generated_dir / "providers" / "index.tsx").read_text()
         assert "AuthProvider" in providers
-        # TenantProvider removed — replaced by direct tenants fetch
-        assert "<TenantProvider" not in providers
+        assert "TenantProvider" in providers
+        # TenantProvider handles tenant fetching and exposes TenantContext
+        assert "handleTenantSwitch" in providers
+        assert "saveCurrentTenant" in providers
+        assert "saveUserTenants" in providers
+        assert "getCurrentTenant" in providers
         # MentorProvider not included
         assert "<MentorProvider" not in providers
-        # Tenants fetched directly from LMS API
-        assert "api/ibl/users/manage/platform" in providers
+        # initializeDataLayer called with 5 args (data-layer v1.2+ signature)
+        assert "config.lmsUrl()," in providers
 
     def test_env_example_no_agent_id(self, generated_dir):
         env = (generated_dir / ".env.example").read_text()

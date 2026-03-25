@@ -1,17 +1,17 @@
 "use client";
 {% raw %}
 /**
- * Application providers — AuthProvider only.
+ * Application providers — AuthProvider + TenantProvider.
  *
- * Before rendering children, fetches the user's tenant list from the LMS API
- * and stores it in localStorage so the ChatWidget's ibl-data includes the
- * correct tenants value the MentorAI iframe needs for chat session access.
+ * TenantProvider handles tenant fetching, validation, metadata loading,
+ * and exposes TenantContext (useTenantContext) that SDK components like
+ * the Account page's OrganizationTab depend on.
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
-import { AuthProvider } from "@iblai/iblai-js/web-utils";
+import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
 import { config } from "@/lib/config";
 
 // ---------------------------------------------------------------------------
@@ -80,6 +80,18 @@ const LOADING = (
   </div>
 );
 
+function getCurrentTenant(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = localStorage.getItem("current_tenant");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return typeof parsed === "string" ? parsed : parsed?.key ?? "";
+    }
+  } catch { /* ignore */ }
+  return localStorage.getItem("tenant") ?? "";
+}
+
 // ---------------------------------------------------------------------------
 // Provider component
 // ---------------------------------------------------------------------------
@@ -112,58 +124,6 @@ export function Providers({ children }: { children: ReactNode }) {
     return true;
   });
 
-  // tenantsReady gates rendering children so the ChatWidget always receives
-  // a populated tenants list in its ibl-data URL parameter.
-  const [tenantsReady, setTenantsReady] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Fetch the tenant list from the LMS API if not already in localStorage.
-    // The ChatWidget's ibl-data must include tenants so the MentorAI iframe
-    // can create an authenticated chat session.
-    const existingTenants = localStorage.getItem("tenants");
-    const needsTenants =
-      !existingTenants ||
-      existingTenants === "[]" ||
-      existingTenants === "null";
-
-    if (!needsTenants) {
-      setTenantsReady(true);
-      return;
-    }
-
-    const edxToken = localStorage.getItem("edx_jwt_token");
-    if (!edxToken) {
-      // No token yet (pre-auth) — render anyway and let AuthProvider redirect.
-      setTenantsReady(true);
-      return;
-    }
-
-    // Safety timeout — don't block forever if the fetch hangs.
-    const safety = setTimeout(() => {
-      console.warn("[IBL] Tenant fetch timed out after 15s");
-      setTenantsReady(true);
-    }, 15_000);
-
-    fetch(`${config.lmsUrl()}/api/ibl/users/manage/platform/`, {
-      headers: { Authorization: `JWT ${edxToken}` },
-    })
-      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
-      .then((data) => {
-        localStorage.setItem("tenants", JSON.stringify(data));
-      })
-      .catch((err) => {
-        console.warn("[IBL] Failed to fetch tenants:", err);
-      })
-      .finally(() => {
-        clearTimeout(safety);
-        setTenantsReady(true);
-      });
-
-    return () => clearTimeout(safety);
-  }, []);
-
   const username = useMemo(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -172,6 +132,36 @@ export function Providers({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
     return "";
   }, [isInitialized]);
+
+  const currentTenant = useMemo(() => getCurrentTenant(), [isInitialized]);
+
+  const handleTenantSwitch = useCallback(
+    async (tenant: string, saveRedirect: boolean, useCustomDomain?: boolean) => {
+      localStorage.setItem("current_tenant", JSON.stringify({ key: tenant }));
+      localStorage.setItem("tenant", tenant);
+      if (saveRedirect && typeof window !== "undefined") {
+        localStorage.setItem("redirect-to", window.location.pathname);
+      }
+      // Reload so the app re-initializes with the new tenant
+      window.location.reload();
+    },
+    [],
+  );
+
+  const saveCurrentTenant = useCallback(
+    (tenant: { key: string; is_admin: boolean; org: string; platform_name: string }) => {
+      localStorage.setItem("current_tenant", JSON.stringify(tenant));
+      localStorage.setItem("tenant", tenant.key);
+    },
+    [],
+  );
+
+  const saveUserTenants = useCallback(
+    (tenants: { key: string; is_admin: boolean; org: string; platform_name: string }[]) => {
+      localStorage.setItem("tenants", JSON.stringify(tenants));
+    },
+    [],
+  );
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
@@ -195,7 +185,19 @@ export function Providers({ children }: { children: ReactNode }) {
         </div>
       }
     >
-      {tenantsReady ? children : LOADING}
+      <TenantProvider
+        skip={isSsoRoute}
+        currentTenant={currentTenant}
+        requestedTenant={currentTenant}
+        handleTenantSwitch={handleTenantSwitch}
+        saveCurrentTenant={saveCurrentTenant}
+        saveUserTenants={saveUserTenants}
+        redirectToAuthSpa={redirectToAuthSpa}
+        username={username}
+        fallback={LOADING}
+      >
+        {children}
+      </TenantProvider>
     </AuthProvider>
   );
 }
