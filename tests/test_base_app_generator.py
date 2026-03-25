@@ -203,12 +203,16 @@ class TestBaseAppGenerator:
     def test_generates_playwright_config(self, generated_dir):
         config = generated_dir / "e2e" / "playwright.config.ts"
         assert config.exists()
-        assert "createPlaywrightConfig" in config.read_text()
+        content = config.read_text()
+        assert "defineConfig" in content
+        assert "setup-chromium" in content
 
     def test_generates_auth_setup(self, generated_dir):
         auth = generated_dir / "e2e" / "auth.setup.ts"
         assert auth.exists()
-        assert "createAuthSetup" in auth.read_text()
+        content = auth.read_text()
+        assert "authenticate" in content
+        assert "axd_token" in content
 
     def test_generates_e2e_journeys(self, generated_dir):
         auth_j = generated_dir / "e2e" / "journeys" / "auth.journey.spec.ts"

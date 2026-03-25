@@ -80,7 +80,6 @@ class TestNpmWrapper:
 PLATFORM_DIRS = [
     "cli-linux-x64",
     "cli-linux-arm64",
-    "cli-darwin-x64",
     "cli-darwin-arm64",
     "cli-win32-x64",
 ]
@@ -88,7 +87,6 @@ PLATFORM_DIRS = [
 EXPECTED_OS_CPU = {
     "cli-linux-x64": (["linux"], ["x64"]),
     "cli-linux-arm64": (["linux"], ["arm64"]),
-    "cli-darwin-x64": (["darwin"], ["x64"]),
     "cli-darwin-arm64": (["darwin"], ["arm64"]),
     "cli-win32-x64": (["win32"], ["x64"]),
 }
@@ -184,7 +182,6 @@ class TestGitHubWorkflows:
         expected = {
             "linux-x64",
             "linux-arm64",
-            "darwin-x64",
             "darwin-arm64",
             "win32-x64",
         }
