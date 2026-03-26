@@ -6,7 +6,7 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="com.{{ app_name | replace('-', '_') }}.app"
+    Name="com.{{ app_name | replace('-', '.') | replace('_', '.') }}.app"
     Publisher="CN={{ app_name }}"
     Version="0.1.0.0"
     ProcessorArchitecture="x64" />
