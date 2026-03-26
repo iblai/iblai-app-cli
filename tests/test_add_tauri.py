@@ -182,7 +182,7 @@ class TestAddTauriGenerator:
         content = script.read_text()
         assert "New-SelfSignedCertificate" in content
         assert "test-app-dev" in content
-        assert "TrustedPeople" in content
+        assert '"Root"' in content
 
     def test_generates_build_msix_script(self, generated_dir):
         script = generated_dir / "src-tauri" / "build-msix.ps1"

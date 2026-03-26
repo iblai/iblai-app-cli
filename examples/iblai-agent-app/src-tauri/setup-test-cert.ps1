@@ -43,15 +43,15 @@ Write-Host "  Subject:    $($cert.Subject)" -ForegroundColor Gray
 Write-Host "  Thumbprint: $($cert.Thumbprint)" -ForegroundColor Cyan
 Write-Host "  Expires:    $($cert.NotAfter)" -ForegroundColor Gray
 
-# Install to Trusted People store (required for sideloading with Developer Mode)
-Write-Host "`nInstalling certificate to Trusted People store..." -ForegroundColor Yellow
+# Install to Trusted Root Certification Authorities (required for MSIX signature validation)
+Write-Host "`nInstalling certificate to Trusted Root store..." -ForegroundColor Yellow
 
-$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPeople", "CurrentUser")
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
 
-Write-Host "Certificate installed to Trusted People store." -ForegroundColor Green
+Write-Host "Certificate installed to Trusted Root store." -ForegroundColor Green
 
 # Summary
 Write-Host ""
@@ -65,4 +65,4 @@ Write-Host "  3. Double-click the .msix file in msix-output/ to install" -Foregr
 Write-Host ""
 Write-Host "To remove this certificate later:" -ForegroundColor DarkYellow
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
-Write-Host "  Get-ChildItem Cert:\CurrentUser\TrustedPeople | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
+Write-Host "  Get-ChildItem Cert:\CurrentUser\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray

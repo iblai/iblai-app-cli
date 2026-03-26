@@ -71,6 +71,16 @@ iblai_cli/
     └── opencode-skills/      # 13 OpenCode skill directories (SKILL.md + screenshots)
 ```
 
+### Python Naming Convention
+
+The package directory is `iblai_cli/` (underscores), not `iblai-cli/` (hyphens). This is a hard Python requirement — `import iblai_cli` works, but `import iblai-cli` is a syntax error (Python interprets `-` as minus). The convention is:
+
+- **Package directory** (importable): underscores → `iblai_cli/`
+- **Distribution name** (pip/PyPI): hyphens → `iblai-app-cli`
+- **CLI command**: hyphens → `iblai`
+
+Do not rename `iblai_cli/` to `iblai-cli/`.
+
 ### Generator Hierarchy
 
 ```
