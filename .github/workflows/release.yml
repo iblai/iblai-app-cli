@@ -29,6 +29,7 @@ jobs:
           cp artifacts/iblai-linux-arm64/iblai    release/iblai-linux-arm64
           cp artifacts/iblai-darwin-arm64/iblai   release/iblai-darwin-arm64
           cp artifacts/iblai-win32-x64/iblai.exe  release/iblai-win32-x64.exe
+          cp artifacts/iblai-win32-arm64/iblai.exe release/iblai-win32-arm64.exe
           chmod +x release/iblai-linux-x64 release/iblai-linux-arm64 release/iblai-darwin-arm64
 
       - name: Extract version from tag
@@ -45,6 +46,7 @@ jobs:
             release/iblai-linux-arm64
             release/iblai-darwin-arm64
             release/iblai-win32-x64.exe
+            release/iblai-win32-arm64.exe
 
   pypi:
     needs: build

@@ -61,6 +61,14 @@ jobs:
           run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Download win32-arm64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: iblai-win32-arm64
+          path: npm/cli-win32-arm64/bin/
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       # Mark binaries as executable
       - name: Set binary permissions
         run: |
@@ -79,6 +87,8 @@ jobs:
           ls -la npm/cli-darwin-arm64/bin/
           echo "=== win32-x64 ==="
           ls -la npm/cli-win32-x64/bin/
+          echo "=== win32-arm64 ==="
+          ls -la npm/cli-win32-arm64/bin/
 
       # Publish platform packages first, then the main package
       - name: Publish @iblai/cli-linux-x64
@@ -102,6 +112,12 @@ jobs:
       - name: Publish @iblai/cli-win32-x64
         run: npm publish --access public
         working-directory: npm/cli-win32-x64
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @iblai/cli-win32-arm64
+        run: npm publish --access public
+        working-directory: npm/cli-win32-arm64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

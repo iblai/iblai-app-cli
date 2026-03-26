@@ -82,6 +82,7 @@ PLATFORM_DIRS = [
     "cli-linux-arm64",
     "cli-darwin-arm64",
     "cli-win32-x64",
+    "cli-win32-arm64",
 ]
 
 EXPECTED_OS_CPU = {
@@ -89,6 +90,7 @@ EXPECTED_OS_CPU = {
     "cli-linux-arm64": (["linux"], ["arm64"]),
     "cli-darwin-arm64": (["darwin"], ["arm64"]),
     "cli-win32-x64": (["win32"], ["x64"]),
+    "cli-win32-arm64": (["win32"], ["arm64"]),
 }
 
 
@@ -184,6 +186,7 @@ class TestGitHubWorkflows:
             "linux-arm64",
             "darwin-arm64",
             "win32-x64",
+            "win32-arm64",
         }
         assert targets == expected
 

@@ -11,6 +11,7 @@ const PLATFORMS = {
   "linux-arm64": { pkg: "@iblai/cli-linux-arm64", bin: "bin/iblai" },
   "darwin-arm64": { pkg: "@iblai/cli-darwin-arm64", bin: "bin/iblai" },
   "win32-x64": { pkg: "@iblai/cli-win32-x64", bin: "bin/iblai.exe" },
+  "win32-arm64": { pkg: "@iblai/cli-win32-arm64", bin: "bin/iblai.exe" },
 };
 
 function getBinaryPath() {

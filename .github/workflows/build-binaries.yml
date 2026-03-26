@@ -27,6 +27,9 @@ jobs:
           - os: windows-latest
             target: win32-x64
             artifact: iblai.exe
+          - os: windows-11-arm
+            target: win32-arm64
+            artifact: iblai.exe
 
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.target }}

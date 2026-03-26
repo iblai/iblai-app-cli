@@ -40,4 +40,5 @@ npm/cli-linux-arm64/bin/iblai
 npm/cli-darwin-x64/bin/iblai
 npm/cli-darwin-arm64/bin/iblai
 npm/cli-win32-x64/bin/iblai.exe
+npm/cli-win32-arm64/bin/iblai.exe
 
