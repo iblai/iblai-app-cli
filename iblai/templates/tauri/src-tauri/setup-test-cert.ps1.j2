@@ -2,19 +2,35 @@
 # Creates a self-signed certificate for local MSIX testing/sideloading.
 # Run this ONCE before your first test build.
 #
+# MUST be run as Administrator — the certificate is installed to
+# LocalMachine\Root which the AppX deployment service requires.
+#
 # The cert Subject (CN={{ app_name }}-dev) must match the Publisher in AppxManifest.xml.
 #
-# Prerequisites: Enable Developer Mode
-#   Settings > Update & Security > For developers > Developer Mode: ON
-#
-# Usage:
+# Usage (run as Administrator):
 #   powershell -ExecutionPolicy Bypass -File src-tauri\setup-test-cert.ps1
+#
+# Or from the project root:
+#   Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File src-tauri\setup-test-cert.ps1'
 
 $ErrorActionPreference = "Stop"
 
+# --- Require Administrator ---
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Host "This script requires Administrator privileges." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "The certificate must be installed to LocalMachine\Root for" -ForegroundColor Gray
+    Write-Host "Add-AppxPackage to trust it (the AppX service runs as SYSTEM)." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Run as Administrator:" -ForegroundColor Yellow
+    Write-Host "  Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"'" -ForegroundColor White
+    exit 1
+}
+
 $Subject = "CN={{ app_name }}-dev"
 
-# Check if cert already exists
+# --- Check if cert already exists ---
 $existing = Get-ChildItem -Path "Cert:\CurrentUser\My" | Where-Object { $_.Subject -eq $Subject }
 if ($existing) {
     Write-Host "Test certificate already exists:" -ForegroundColor Green
@@ -26,7 +42,7 @@ if ($existing) {
     exit 0
 }
 
-# Create self-signed certificate
+# --- Create self-signed certificate ---
 Write-Host "Creating self-signed certificate ($Subject)..." -ForegroundColor Yellow
 
 $cert = New-SelfSignedCertificate `
@@ -43,68 +59,44 @@ Write-Host "  Subject:    $($cert.Subject)" -ForegroundColor Gray
 Write-Host "  Thumbprint: $($cert.Thumbprint)" -ForegroundColor Cyan
 Write-Host "  Expires:    $($cert.NotAfter)" -ForegroundColor Gray
 
-# Install certificate to trust stores
+# --- Install to trust stores ---
 Write-Host "`nInstalling certificate to trust stores..." -ForegroundColor Yellow
 
-# CurrentUser\Root — for user-level signature validation (Get-AuthenticodeSignature)
+# CurrentUser\Root — user-level signature validation
 $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
 Write-Host "  Installed to CurrentUser\Root (signature validation)" -ForegroundColor Gray
 
-# CurrentUser\TrustedPeople — for sideloading trust with Developer Mode
+# CurrentUser\TrustedPeople — sideloading trust with Developer Mode
 $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPeople", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
 Write-Host "  Installed to CurrentUser\TrustedPeople (sideloading)" -ForegroundColor Gray
 
-# LocalMachine\Root — required by the AppX deployment service (Add-AppxPackage).
-# The AppX service runs as SYSTEM and checks the machine-level root store,
-# not CurrentUser\Root. Without this, Add-AppxPackage fails with 0x800B0109
-# (CERT_E_UNTRUSTED_ROOT) even though Get-AuthenticodeSignature shows Valid.
-# Requires administrator privileges.
-$localMachineOk = $false
-try {
-    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
-    $store.Open("ReadWrite")
-    $store.Add($cert)
-    $store.Close()
-    $localMachineOk = $true
-    Write-Host "  Installed to LocalMachine\Root (MSIX installation)" -ForegroundColor Gray
-} catch {
-    Write-Host "  WARNING: Could not install to LocalMachine\Root (requires admin)" -ForegroundColor Red
-    Write-Host "  Add-AppxPackage will fail with 0x800B0109 without this." -ForegroundColor Red
-    Write-Host "  Re-run as Administrator:" -ForegroundColor Yellow
-    Write-Host "    Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"'" -ForegroundColor White
-}
+# LocalMachine\Root — required by AppX deployment service (Add-AppxPackage)
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
+Write-Host "  Installed to LocalMachine\Root (MSIX installation)" -ForegroundColor Gray
 
-if ($localMachineOk) {
-    Write-Host "Certificate installed to all trust stores." -ForegroundColor Green
-} else {
-    Write-Host "Certificate installed to user stores only (machine store requires admin)." -ForegroundColor Yellow
-}
+Write-Host "Certificate installed to all trust stores." -ForegroundColor Green
 
-# Summary
+# --- Summary ---
 Write-Host ""
 Write-Host "--- Setup Complete ---" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Enable Developer Mode: Settings > Update & Security > For developers" -ForegroundColor White
-if (-not $localMachineOk) {
-    Write-Host "  2. Re-run this script as Administrator (required for MSIX install)" -ForegroundColor Red
-    Write-Host "     Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"'" -ForegroundColor White
-    Write-Host "  3. Build and sign the MSIX:" -ForegroundColor White
-} else {
-    Write-Host "  2. Build and sign the MSIX:" -ForegroundColor White
-}
+Write-Host "  2. Build and sign the MSIX:" -ForegroundColor White
 Write-Host "     .\build-msix.ps1 -CertThumbprint `"$($cert.Thumbprint)`"" -ForegroundColor White
-Write-Host "  $(if ($localMachineOk) { '3' } else { '4' }). Double-click the .msix file in msix-output/ to install" -ForegroundColor White
+Write-Host "  3. Double-click the .msix file in msix-output/ to install" -ForegroundColor White
 Write-Host ""
 Write-Host "To remove this certificate later:" -ForegroundColor DarkYellow
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\CurrentUser\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\CurrentUser\TrustedPeople | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
-Write-Host "  # If installed as admin:" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\LocalMachine\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
