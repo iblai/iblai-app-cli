@@ -280,13 +280,13 @@ def patch_store_for_chat(root: Path, store_dir: Path) -> Optional[str]:
 # Tauri-specific patching
 # ---------------------------------------------------------------------------
 
-MARKER_TAURI_EXPORT = "TAURI_ENV_PLATFORM"
+MARKER_TAURI_EXPORT = 'output: "export"'
 
 TAURI_EXPORT_CONFIG = """\
-  // Tauri: static export when building for desktop/mobile
-  output: process.env.TAURI_ENV_PLATFORM ? "export" : undefined,
+  // Tauri: static export to ./out for desktop/mobile builds
+  output: "export",
   images: {
-    unoptimized: !!process.env.TAURI_ENV_PLATFORM,
+    unoptimized: true,
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },"""
 

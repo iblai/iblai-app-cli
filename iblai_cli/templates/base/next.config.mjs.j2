@@ -37,10 +37,10 @@ function dedup(packageName) {
 const nextConfig = {
   reactStrictMode: true,
 {% if tauri %}
-  // Tauri: static export when building for desktop/mobile
-  output: process.env.TAURI_ENV_PLATFORM ? "export" : undefined,
+  // Tauri: static export to ./out for desktop/mobile builds
+  output: "export",
   images: {
-    unoptimized: !!process.env.TAURI_ENV_PLATFORM,
+    unoptimized: true,
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
 {% else %}

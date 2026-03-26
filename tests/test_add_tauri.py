@@ -151,10 +151,10 @@ class TestAddTauriGenerator:
         assert '@tauri-apps/api/core"] = false' not in content
         assert '@tauri-apps/api/event"] = false' not in content
 
-    def test_patches_next_config_adds_conditional_export(self, generated_dir):
+    def test_patches_next_config_adds_static_export(self, generated_dir):
         content = (generated_dir / "next.config.mjs").read_text()
-        assert "TAURI_ENV_PLATFORM" in content
-        assert "output:" in content
+        assert 'output: "export"' in content
+        assert "unoptimized: true" in content
 
     def test_patches_package_json_adds_tauri_api(self, generated_dir):
         data = json.loads((generated_dir / "package.json").read_text())
@@ -260,7 +260,7 @@ class TestNextConfigTauriPatching:
         assert result is not None
         content = config.read_text()
         assert '@tauri-apps/api/core"] = false' not in content
-        assert "TAURI_ENV_PLATFORM" in content
+        assert 'output: "export"' in content
 
     def test_idempotent_patching(self, tmp_path):
         from iblai_cli.next_config_patcher import patch_next_config_for_tauri
@@ -269,7 +269,7 @@ class TestNextConfigTauriPatching:
         config.write_text(
             "const nextConfig = {\n"
             "  reactStrictMode: true,\n"
-            '  output: process.env.TAURI_ENV_PLATFORM ? "export" : undefined,\n'
+            '  output: "export",\n'
             "};\n"
             "export default nextConfig;\n"
         )
