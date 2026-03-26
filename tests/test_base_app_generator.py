@@ -150,7 +150,7 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 12
+        assert len(skills) == 13
         assert "iblai-setup.md" in skills
         assert "iblai-customize-chat.md" in skills
         assert "iblai-add-profile-page.md" in skills
@@ -167,7 +167,7 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 12
+        assert len(skill_dirs) == 13
         assert "iblai-setup" in skill_dirs
         assert "iblai-add-analytics-page" in skill_dirs
         assert "iblai-add-notifications-page" in skill_dirs

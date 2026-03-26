@@ -298,7 +298,7 @@ class TestAddMcpGenerator:
         skills_dir = project.root / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 12
+        assert len(skills) == 13
 
     def test_mcp_claude_skill_filenames(self, generated):
         project, _ = generated
@@ -314,6 +314,7 @@ class TestAddMcpGenerator:
             "iblai-add-profile.md",
             "iblai-add-profile-page.md",
             "iblai-add-test.md",
+            "iblai-build-windows-msix.md",
             "iblai-customize-chat.md",
             "iblai-setup.md",
         }
@@ -325,7 +326,7 @@ class TestAddMcpGenerator:
         skills_dir = project.root / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 12
+        assert len(skill_dirs) == 13
 
     def test_mcp_opencode_skills_have_frontmatter(self, generated):
         project, _ = generated
