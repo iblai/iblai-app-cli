@@ -9,6 +9,7 @@ build/
 
 # Virtual environments
 .venv/
+.venv-build/
 venv/
 ENV/
 
@@ -39,3 +40,4 @@ npm/cli-linux-arm64/bin/iblai
 npm/cli-darwin-x64/bin/iblai
 npm/cli-darwin-arm64/bin/iblai
 npm/cli-win32-x64/bin/iblai.exe
+
