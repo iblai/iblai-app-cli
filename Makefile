@@ -1,4 +1,4 @@
-.PHONY: install test lint format binary clean help
+.PHONY: install test lint format binary example clean help
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -27,6 +27,13 @@ format: ## Auto-format code with black
 
 binary: ## Build standalone binary for the current platform
 	./scripts/build-binary.sh
+
+# ---------------------------------------------------------------------------
+# Example app
+# ---------------------------------------------------------------------------
+
+example: ## Regenerate the example app at examples/iblai-agent-app
+	./scripts/refresh-example.sh
 
 # ---------------------------------------------------------------------------
 # Cleanup

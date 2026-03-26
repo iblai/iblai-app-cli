@@ -34,6 +34,14 @@ node_modules/
 # PyInstaller
 *.spec
 
+# Example app build artifacts
+examples/*/node_modules/
+examples/*/.next/
+examples/*/out/
+examples/*/src-tauri/target/
+examples/*/src-tauri/msix-output/
+examples/*/src-tauri/gen/
+
 # npm platform binaries (populated by CI, not committed)
 npm/cli-linux-x64/bin/iblai
 npm/cli-linux-arm64/bin/iblai

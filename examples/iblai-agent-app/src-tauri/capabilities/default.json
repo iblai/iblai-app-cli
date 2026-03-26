@@ -1,0 +1,28 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for iblai-agent-app",
+  "windows": ["main"],
+  "local": true,
+  "remote": {
+    "urls": [
+      "https://*.iblai.app/*",
+      "https://*.iblai.org/*",
+      "http://127.0.0.1:*/*",
+      "http://localhost:*/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit",
+    "core:window:default",
+    "core:window:allow-close",
+    "core:window:allow-set-size",
+    "core:window:allow-set-title",
+    "core:webview:default",
+    "opener:default"
+  ]
+}
