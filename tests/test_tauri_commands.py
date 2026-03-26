@@ -41,6 +41,7 @@ class TestTauriCommandGroup:
         assert result.exit_code == 0
         assert "--desktop" in result.output
         assert "--ios" in result.output
+        assert "--windows-msix" in result.output
         assert "--all" in result.output
 
 

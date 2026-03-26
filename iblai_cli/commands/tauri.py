@@ -228,12 +228,18 @@ def init():
     help="Generate desktop build workflow (macOS + Linux + Windows)",
 )
 @click.option("--ios", "gen_ios", is_flag=True, help="Generate iOS build workflow")
+@click.option(
+    "--windows-msix",
+    "gen_msix",
+    is_flag=True,
+    help="Generate Windows MSIX build workflow (x64 + arm64 + bundle)",
+)
 @click.option("--all", "gen_all", is_flag=True, help="Generate all platform workflows")
-def ci_workflow(desktop, gen_ios, gen_all):
+def ci_workflow(desktop, gen_ios, gen_msix, gen_all):
     """Generate GitHub Actions workflow files for Tauri builds."""
     from iblai_cli.generators.add_tauri import AddTauriGenerator
 
-    if not desktop and not gen_ios and not gen_all:
+    if not desktop and not gen_ios and not gen_msix and not gen_all:
         desktop = True
 
     root = Path.cwd()
@@ -242,6 +248,7 @@ def ci_workflow(desktop, gen_ios, gen_all):
     created = gen.generate_ci_workflows(
         desktop=desktop or gen_all,
         ios=gen_ios or gen_all,
+        windows_msix=gen_msix or gen_all,
     )
 
     if created:

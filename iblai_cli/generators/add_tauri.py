@@ -77,6 +77,8 @@ class AddTauriGenerator:
             "tauri/src-tauri/src/main.rs.j2": "src-tauri/src/main.rs",
             "tauri/src-tauri/src/lib.rs.j2": "src-tauri/src/lib.rs",
             "tauri/src-tauri/capabilities/default.json.j2": "src-tauri/capabilities/default.json",
+            "tauri/src-tauri/AppxManifest.xml.j2": "src-tauri/AppxManifest.xml",
+            "tauri/src-tauri/build-msix.ps1.j2": "src-tauri/build-msix.ps1",
         }
 
         for template_name, output_path in template_map.items():
@@ -123,6 +125,8 @@ class AddTauriGenerator:
             "tauri:dev": "tauri dev",
             "tauri:build": "tauri build",
             "tauri:build:debug": "next build && tauri build --debug",
+            "tauri:build:msix": "pwsh src-tauri/build-msix.ps1",
+            "tauri:build:msix:arm64": "pwsh src-tauri/build-msix.ps1 -Architecture arm64",
         }
         for key, val in tauri_scripts.items():
             if key not in scripts:
@@ -138,7 +142,10 @@ class AddTauriGenerator:
         return modified
 
     def generate_ci_workflows(
-        self, desktop: bool = True, ios: bool = False
+        self,
+        desktop: bool = True,
+        ios: bool = False,
+        windows_msix: bool = False,
     ) -> List[str]:
         """Generate GitHub Actions workflow files for Tauri builds."""
         created = []
@@ -161,5 +168,13 @@ class AddTauriGenerator:
             out = workflows_dir / "tauri-build-ios.yml"
             out.write_text(content, encoding="utf-8")
             created.append(".github/workflows/tauri-build-ios.yml")
+
+        if windows_msix:
+            content = self._generator.render_template(
+                "tauri/workflows/tauri-build-windows-msix.yml.j2", **context
+            )
+            out = workflows_dir / "tauri-build-windows-msix.yml"
+            out.write_text(content, encoding="utf-8")
+            created.append(".github/workflows/tauri-build-windows-msix.yml")
 
         return created

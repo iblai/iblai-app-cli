@@ -106,6 +106,29 @@ class TestAddTauriGenerator:
         assert "https://*.iblai.app/*" in urls
         assert "https://*.iblai.org/*" in urls
 
+    def test_generates_appx_manifest(self, generated_dir):
+        manifest = generated_dir / "src-tauri" / "AppxManifest.xml"
+        assert manifest.exists()
+        content = manifest.read_text()
+        assert "test-app" in content
+        assert "internetClient" in content
+        assert "ProcessorArchitecture" in content
+
+    def test_generates_build_msix_script(self, generated_dir):
+        script = generated_dir / "src-tauri" / "build-msix.ps1"
+        assert script.exists()
+        content = script.read_text()
+        assert "makeappx" in content.lower() or "MakeAppx" in content
+        assert "test-app" in content
+        assert "-Architecture" in content
+
+    def test_patches_package_json_adds_msix_scripts(self, generated_dir):
+        data = json.loads((generated_dir / "package.json").read_text())
+        assert "tauri:build:msix" in data["scripts"]
+        assert "tauri:build:msix:arm64" in data["scripts"]
+        assert "build-msix.ps1" in data["scripts"]["tauri:build:msix"]
+        assert "arm64" in data["scripts"]["tauri:build:msix:arm64"]
+
     def test_patches_next_config_removes_tauri_stubs(self, generated_dir):
         content = (generated_dir / "next.config.mjs").read_text()
         assert '@tauri-apps/api/core"] = false' not in content
@@ -176,12 +199,26 @@ class TestTauriCIWorkflows:
         assert "cargo tauri ios build" in content
         assert "aarch64-apple-ios" in content
 
+    def test_generates_windows_msix_workflow(self, project_dir):
+        from iblai_cli.generators.add_tauri import AddTauriGenerator
+
+        gen = AddTauriGenerator(project_root=str(project_dir))
+        created = gen.generate_ci_workflows(desktop=False, ios=False, windows_msix=True)
+        assert ".github/workflows/tauri-build-windows-msix.yml" in created
+        wf = project_dir / ".github" / "workflows" / "tauri-build-windows-msix.yml"
+        assert wf.exists()
+        content = wf.read_text()
+        assert "windows-latest" in content
+        assert "windows-11-arm" in content
+        assert "msixbundle" in content
+        assert "build-msix.ps1" in content
+
     def test_generates_all_workflows(self, project_dir):
         from iblai_cli.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(project_dir))
-        created = gen.generate_ci_workflows(desktop=True, ios=True)
-        assert len(created) == 2
+        created = gen.generate_ci_workflows(desktop=True, ios=True, windows_msix=True)
+        assert len(created) == 3
 
 
 class TestNextConfigTauriPatching:

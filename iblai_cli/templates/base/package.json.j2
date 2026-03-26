@@ -13,7 +13,9 @@
     "test:e2e:headed": "cross-env HEADED=true playwright test --config e2e/playwright.config.ts"{% if tauri %},
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "tauri:build:debug": "next build && tauri build --debug"{% endif %}
+    "tauri:build:debug": "next build && tauri build --debug",
+    "tauri:build:msix": "pwsh src-tauri/build-msix.ps1",
+    "tauri:build:msix:arm64": "pwsh src-tauri/build-msix.ps1 -Architecture arm64"{% endif %}
 
   },
   "dependencies": {
