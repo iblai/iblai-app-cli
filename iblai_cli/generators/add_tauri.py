@@ -120,9 +120,9 @@ class AddTauriGenerator:
         # Add scripts
         scripts = data.setdefault("scripts", {})
         tauri_scripts = {
-            "tauri:dev": "cargo tauri dev",
-            "tauri:build": "cargo tauri build",
-            "tauri:build:debug": "next build && cargo tauri build --debug",
+            "tauri:dev": "tauri dev",
+            "tauri:build": "tauri build",
+            "tauri:build:debug": "next build && tauri build --debug",
         }
         for key, val in tauri_scripts.items():
             if key not in scripts:

@@ -128,7 +128,7 @@ class TestAddTauriGenerator:
         data = json.loads((generated_dir / "package.json").read_text())
         assert "tauri:dev" in data["scripts"]
         assert "tauri:build" in data["scripts"]
-        assert data["scripts"]["tauri:dev"] == "cargo tauri dev"
+        assert data["scripts"]["tauri:dev"] == "tauri dev"
 
     def test_idempotent_package_json_patching(self, generated_dir):
         """Running generate twice doesn't duplicate entries."""

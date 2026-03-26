@@ -1,14 +1,17 @@
-"""iblai tauri — Tauri v2 build and development commands.
+"""iblai tauri -- Tauri v2 build and development commands.
 
-Wraps cargo tauri with prerequisite checking, auto-installation
-of tauri-cli, and platform-specific guidance.
+Thin wrapper around @tauri-apps/cli (installed via npm/pnpm/bun).
+All arguments except ``init`` and ``ci-workflow`` are passed directly
+through to the ``tauri`` binary resolved from node_modules.
+
+Requires the Rust toolchain (rustc + cargo) for compilation.
 """
 
-import platform
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import List, Tuple
 
 import click
 from rich.console import Console
@@ -18,31 +21,17 @@ console = Console()
 
 
 # ---------------------------------------------------------------------------
-# Prerequisite helpers
+# Helpers
 # ---------------------------------------------------------------------------
 
 
 def _has_rust() -> bool:
-    """Check if rustc and cargo are available."""
+    """Return True if rustc and cargo are in PATH."""
     return shutil.which("rustc") is not None and shutil.which("cargo") is not None
 
 
-def _has_tauri_cli() -> bool:
-    """Check if cargo-tauri is installed."""
-    try:
-        result = subprocess.run(
-            ["cargo", "tauri", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        return result.returncode == 0
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        return False
-
-
 def _require_rust():
-    """Exit with a helpful message if Rust is not installed."""
+    """Exit with a helpful message when the Rust toolchain is missing."""
     if _has_rust():
         return
     console.print(
@@ -60,129 +49,135 @@ def _require_rust():
     sys.exit(1)
 
 
-def _ensure_tauri_cli():
-    """Install tauri-cli if not present. Requires Rust to be installed."""
-    if _has_tauri_cli():
-        return
+def _detect_exec_prefix() -> List[str]:
+    """Detect the package-manager exec prefix for running ``tauri``.
 
-    console.print("[yellow]Installing tauri-cli...[/yellow]")
+    Resolution order (based on lockfile presence):
+      pnpm-lock.yaml  ->  pnpm exec tauri
+      bun.lock / bun.lockb  ->  bunx tauri
+      (fallback)  ->  npx tauri
+    """
+    cwd = Path.cwd()
+    if (cwd / "pnpm-lock.yaml").exists():
+        return ["pnpm", "exec"]
+    if (cwd / "bun.lock").exists() or (cwd / "bun.lockb").exists():
+        return ["bunx"]
+    return ["npx"]
 
-    # Try cargo-binstall first (pre-compiled, ~10x faster than compiling)
-    binstall_ok = False
-    if shutil.which("cargo-binstall"):
-        try:
-            subprocess.run(
-                ["cargo", "binstall", "tauri-cli", "--no-confirm"],
-                check=True,
-                timeout=120,
-            )
-            binstall_ok = True
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-            pass
 
-    if not binstall_ok:
-        # Try installing cargo-binstall first, then tauri-cli
-        try:
-            console.print("[dim]Trying cargo-binstall for faster install...[/dim]")
-            subprocess.run(
-                ["cargo", "install", "cargo-binstall", "--locked"],
-                check=True,
-                capture_output=True,
-                timeout=300,
-            )
-            subprocess.run(
-                ["cargo", "binstall", "tauri-cli", "--no-confirm"],
-                check=True,
-                timeout=120,
-            )
-            binstall_ok = True
-        except (
-            subprocess.CalledProcessError,
-            subprocess.TimeoutExpired,
-            FileNotFoundError,
-        ):
-            pass
+def _tauri_cmd(*args: str) -> List[str]:
+    """Build the full command to run tauri with the detected package manager."""
+    return [*_detect_exec_prefix(), "tauri", *args]
 
-    if not binstall_ok:
-        # Fallback: compile from source (slow but always works)
-        console.print(
-            "[dim]Compiling tauri-cli from source (this may take a few minutes)...[/dim]"
+
+def _require_tauri_cli():
+    """Verify @tauri-apps/cli is installed and runnable. Exit if not."""
+    cmd = _tauri_cmd("--version")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if result.returncode == 0:
+            return
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    pm = _detect_exec_prefix()[0]  # pnpm / bunx / npx
+    install_hint = {
+        "pnpm": "pnpm install",
+        "bunx": "bun install",
+        "npx": "npm install",
+    }.get(pm, "npm install")
+
+    console.print(
+        Panel(
+            "[bold red]@tauri-apps/cli not found[/bold red]\n\n"
+            "The Tauri CLI npm package is not installed.\n\n"
+            f"[bold]Install it:[/bold]\n"
+            f"  {install_hint}\n\n"
+            "If this is a new project, run [cyan]iblai tauri init[/cyan] first,\n"
+            "then install dependencies.",
+            title="Missing Dependency",
+            border_style="red",
         )
-        try:
-            subprocess.run(
-                ["cargo", "install", "tauri-cli", "--locked"],
-                check=True,
-                timeout=600,
-            )
-        except subprocess.CalledProcessError:
-            console.print("[red]Failed to install tauri-cli. Try manually:[/red]")
-            console.print("  cargo install tauri-cli --locked")
-            sys.exit(1)
-
-    console.print("[green]tauri-cli installed successfully[/green]")
+    )
+    sys.exit(1)
 
 
-def _require_src_tauri():
-    """Exit if src-tauri/ doesn't exist."""
-    if not Path("src-tauri").exists():
-        console.print(
-            "[red]No src-tauri/ directory found.[/red]\n"
-            "Run [cyan]iblai tauri init[/cyan] or [cyan]iblai add tauri[/cyan] first."
-        )
-        sys.exit(1)
-
-
-def _require_macos(feature: str):
-    """Exit if not running on macOS."""
-    if platform.system() != "Darwin":
-        console.print(
-            Panel(
-                f"[bold red]{feature} requires macOS with Xcode[/bold red]\n\n"
-                "Apple only allows building iOS apps on macOS.\n\n"
-                "[bold]Options:[/bold]\n"
-                "  1. Run this command on a Mac\n"
-                "  2. Use CI: [cyan]iblai tauri ci-workflow --ios[/cyan]\n"
-                "     Generates a GitHub Actions workflow that builds on macos-latest",
-                title="Platform Requirement",
-                border_style="red",
-            )
-        )
-        sys.exit(1)
-
-
-def _require_xcode():
-    """Exit if xcodebuild is not available."""
-    if not shutil.which("xcodebuild"):
-        console.print(
-            "[red]Xcode not found.[/red]\n"
-            "Install Xcode from the Mac App Store, then run:\n"
-            "  xcode-select --install"
-        )
-        sys.exit(1)
-
-
-def _require_android_sdk():
-    """Exit if Android SDK is not available."""
-    import os
-
-    if not os.environ.get("ANDROID_HOME") and not os.environ.get("ANDROID_SDK_ROOT"):
-        console.print(
-            "[red]Android SDK not found.[/red]\n"
-            "Set ANDROID_HOME or install Android Studio.\n"
-            "See: [cyan]https://developer.android.com/studio[/cyan]"
-        )
-        sys.exit(1)
+def _passthrough(args: Tuple[str, ...]):
+    """Check prerequisites and forward args to the tauri CLI."""
+    _require_rust()
+    _require_tauri_cli()
+    cmd = _tauri_cmd(*args)
+    result = subprocess.run(cmd)
+    sys.exit(result.returncode)
 
 
 # ---------------------------------------------------------------------------
 # CLI command group
 # ---------------------------------------------------------------------------
 
+_HELP = """\
+Tauri v2 build and development commands.
 
-@click.group()
-def tauri():
-    """Tauri v2 desktop/mobile build and development commands."""
-    pass
+Thin wrapper around @tauri-apps/cli (installed via npm/pnpm/bun).
+All arguments are passed directly to tauri unless the subcommand
+is handled by iblai (init, ci-workflow).
+
+Requires: Rust toolchain (rustc + cargo).  Install from https://rustup.rs
+
+Package manager detection (by lockfile):
+  pnpm-lock.yaml  ->  pnpm exec tauri ...
+  bun.lock         ->  bunx tauri ...
+  (fallback)       ->  npx tauri ...
+
+iblai-managed commands:
+  iblai tauri init          Add Tauri to current project
+  iblai tauri ci-workflow   Generate GitHub Actions workflows
+
+All other arguments are forwarded to tauri:
+  iblai tauri dev
+  iblai tauri build [--debug]
+  iblai tauri icon <path>
+  iblai tauri ios init|dev|build
+  iblai tauri android init|dev|build
+"""
+
+
+class TauriGroup(click.Group):
+    """Custom Click group that passes unrecognised subcommands to tauri."""
+
+    def parse_args(self, ctx, args):
+        # If the first arg matches a known command (or is --help/-h),
+        # let Click handle it.  Otherwise, stash everything for passthrough.
+        if args and args[0] not in self.commands and args[0] not in ("--help", "-h"):
+            ctx.ensure_object(dict)
+            ctx.obj["passthrough_args"] = tuple(args)
+            args = []
+        return super().parse_args(ctx, args)
+
+    def invoke(self, ctx):
+        ctx.ensure_object(dict)
+        pt = ctx.obj.get("passthrough_args")
+        if pt:
+            _passthrough(pt)
+        else:
+            return super().invoke(ctx)
+
+    def get_help(self, ctx):
+        return _HELP
+
+
+@click.group(cls=TauriGroup, invoke_without_command=True)
+@click.pass_context
+def tauri(ctx):
+    """Tauri v2 build and development commands."""
+    ctx.ensure_object(dict)
+    if ctx.invoked_subcommand is None and not ctx.obj.get("passthrough_args"):
+        click.echo(ctx.get_help())
+
+
+# ---------------------------------------------------------------------------
+# iblai-managed subcommands
+# ---------------------------------------------------------------------------
 
 
 @tauri.command()
@@ -213,177 +208,17 @@ def init():
             + "\n\n"
             "[bold]Next steps:[/bold]\n"
             "  1. Install dependencies: pnpm install\n"
-            "  2. Generate icons: cargo tauri icon path/to/icon.png\n"
+            "  2. Generate icons: iblai tauri icon path/to/icon.png\n"
             "  3. Start development: iblai tauri dev\n"
-            "  4. Build for distribution: iblai tauri build",
+            "  4. Build for distribution: iblai tauri build\n\n"
+            "[bold]CI/CD:[/bold]\n"
+            "  iblai tauri ci-workflow --desktop\n"
+            "  iblai tauri ci-workflow --ios\n"
+            "  iblai tauri ci-workflow --all",
             title="Success",
             border_style="green",
         )
     )
-
-
-@tauri.command()
-def dev():
-    """Start Tauri development mode (Next.js dev server + native shell)."""
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    console.print("[cyan]Starting Tauri development mode...[/cyan]")
-    subprocess.run(["cargo", "tauri", "dev"], check=False)
-
-
-@tauri.command()
-@click.option(
-    "--debug", is_flag=True, help="Build in debug mode (faster, larger binary)"
-)
-def build(debug):
-    """Build Tauri app for the current platform."""
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    cmd = ["cargo", "tauri", "build"]
-    if debug:
-        cmd.append("--debug")
-
-    console.print(
-        f"[cyan]Building Tauri app ({'debug' if debug else 'release'})...[/cyan]"
-    )
-    subprocess.run(cmd, check=False)
-
-
-@tauri.command()
-@click.argument("image_path", type=click.Path(exists=True))
-def icon(image_path):
-    """Generate all icon sizes from a source image."""
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    console.print(f"[cyan]Generating icons from {image_path}...[/cyan]")
-    subprocess.run(["cargo", "tauri", "icon", image_path], check=False)
-
-
-# ---------------------------------------------------------------------------
-# iOS subcommands
-# ---------------------------------------------------------------------------
-
-
-@tauri.group()
-def ios():
-    """iOS build and development commands (macOS only)."""
-    pass
-
-
-@ios.command("init")
-def ios_init():
-    """Initialize iOS project (generates Xcode project)."""
-    _require_macos("iOS builds")
-    _require_xcode()
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    console.print("[cyan]Initializing iOS project...[/cyan]")
-    subprocess.run(["cargo", "tauri", "ios", "init"], check=False)
-
-
-@ios.command("dev")
-@click.option("--device", is_flag=True, help="Run on a connected physical device")
-def ios_dev(device):
-    """Run in iOS Simulator (or physical device with --device)."""
-    _require_macos("iOS development")
-    _require_xcode()
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    cmd = ["cargo", "tauri", "ios", "dev"]
-    if device:
-        cmd.append("--device")
-
-    console.print("[cyan]Starting iOS development mode...[/cyan]")
-    subprocess.run(cmd, check=False)
-
-
-@ios.command("build")
-@click.option(
-    "--export-method",
-    type=click.Choice(["app-store-connect", "ad-hoc", "development"]),
-    help="Export method for the IPA",
-)
-def ios_build(export_method):
-    """Build iOS app (.ipa)."""
-    _require_macos("iOS builds")
-    _require_xcode()
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    cmd = ["cargo", "tauri", "ios", "build"]
-    if export_method:
-        cmd.extend(["--export-method", export_method])
-
-    console.print("[cyan]Building iOS app...[/cyan]")
-    subprocess.run(cmd, check=False)
-
-
-# ---------------------------------------------------------------------------
-# Android subcommands
-# ---------------------------------------------------------------------------
-
-
-@tauri.group()
-def android():
-    """Android build and development commands."""
-    pass
-
-
-@android.command("init")
-def android_init():
-    """Initialize Android project."""
-    _require_android_sdk()
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    console.print("[cyan]Initializing Android project...[/cyan]")
-    subprocess.run(["cargo", "tauri", "android", "init"], check=False)
-
-
-@android.command("dev")
-def android_dev():
-    """Run on Android emulator or connected device."""
-    _require_android_sdk()
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    console.print("[cyan]Starting Android development mode...[/cyan]")
-    subprocess.run(["cargo", "tauri", "android", "dev"], check=False)
-
-
-@android.command("build")
-@click.option("--debug", is_flag=True, help="Build in debug mode")
-def android_build(debug):
-    """Build Android app (.apk / .aab)."""
-    _require_android_sdk()
-    _require_rust()
-    _ensure_tauri_cli()
-    _require_src_tauri()
-
-    cmd = ["cargo", "tauri", "android", "build"]
-    if debug:
-        cmd.append("--debug")
-
-    console.print("[cyan]Building Android app...[/cyan]")
-    subprocess.run(cmd, check=False)
-
-
-# ---------------------------------------------------------------------------
-# CI workflow generation
-# ---------------------------------------------------------------------------
 
 
 @tauri.command("ci-workflow")
@@ -399,7 +234,6 @@ def ci_workflow(desktop, gen_ios, gen_all):
     from iblai_cli.generators.add_tauri import AddTauriGenerator
 
     if not desktop and not gen_ios and not gen_all:
-        # Default to desktop
         desktop = True
 
     root = Path.cwd()
