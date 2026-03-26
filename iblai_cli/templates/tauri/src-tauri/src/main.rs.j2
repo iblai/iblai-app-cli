@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    {{ app_name | replace('-', '_') | replace(' ', '_') }}_lib::run()
+    {{ app_name | replace('-', '_') | replace(' ', '_') }}::run()
 }
