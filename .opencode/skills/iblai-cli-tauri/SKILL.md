@@ -1,1 +1,1 @@
-../../../skills/iblai-cli-tauri.md
+../../../skills/commands/iblai-cli-tauri.md

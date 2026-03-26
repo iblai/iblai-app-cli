@@ -1,1 +1,1 @@
-../../../skills/iblai-setup.md
+../../../skills/setup/iblai-setup.md

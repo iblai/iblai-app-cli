@@ -162,11 +162,12 @@ class BaseAppGenerator(BaseGenerator):
         self._write("public/README.md", self._render("public/README.md.j2"))
 
         # --- Skills ---
-        # Single source in templates/skills/, symlinked to tool-specific dirs:
-        #   skills/<name>.md                      (actual files)
-        #   .claude/skills/<name>.md              (symlink for Claude Code)
-        #   .opencode/skills/<name>/SKILL.md      (symlink for OpenCode)
-        #   .cursor/rules/<name>.md               (symlink for Cursor)
+        # Categorized source in templates/skills/{category}/<name>.md
+        # Copied preserving subdirectory structure, symlinked flat to tools:
+        #   skills/{category}/<name>.md                (actual files)
+        #   .claude/skills/<name>.md                   (symlink for Claude Code)
+        #   .opencode/skills/<name>/SKILL.md           (symlink for OpenCode)
+        #   .cursor/rules/<name>.md                    (symlink for Cursor)
         import os
         import shutil
 
@@ -180,36 +181,40 @@ class BaseAppGenerator(BaseGenerator):
             for d in (skills_dest, claude_dest, opencode_dest, cursor_dest):
                 d.mkdir(parents=True, exist_ok=True)
 
-            for skill_file in sorted(skills_src.iterdir()):
-                if skill_file.is_file() and skill_file.suffix == ".md":
-                    # Copy actual file to skills/
-                    shutil.copy2(skill_file, skills_dest / skill_file.name)
+            for skill_file in sorted(skills_src.rglob("*.md")):
+                # README.md goes to skills/ root only — no symlinks
+                if skill_file.name == "README.md":
+                    shutil.copy2(skill_file, skills_dest / "README.md")
+                    continue
 
-                    # README.md goes to skills/ only — no symlinks
-                    if skill_file.name == "README.md":
-                        continue
+                # Relative path within skills/ (e.g., "components/iblai-add-auth.md")
+                rel_path = skill_file.relative_to(skills_src)
+                skill_name = skill_file.stem
 
-                    skill_name = skill_file.stem
+                # Copy actual file preserving subdirectory structure
+                dest_file = skills_dest / rel_path
+                dest_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(skill_file, dest_file)
 
-                    # Symlink for Claude Code
-                    os.symlink(
-                        f"../../skills/{skill_file.name}",
-                        str(claude_dest / skill_file.name),
-                    )
+                # Symlink for Claude Code (flat)
+                os.symlink(
+                    f"../../skills/{rel_path}",
+                    str(claude_dest / skill_file.name),
+                )
 
-                    # Symlink for OpenCode (directory per skill)
-                    oc_dir = opencode_dest / skill_name
-                    oc_dir.mkdir(parents=True, exist_ok=True)
-                    os.symlink(
-                        f"../../../skills/{skill_file.name}",
-                        str(oc_dir / "SKILL.md"),
-                    )
+                # Symlink for OpenCode (directory per skill, flat)
+                oc_dir = opencode_dest / skill_name
+                oc_dir.mkdir(parents=True, exist_ok=True)
+                os.symlink(
+                    f"../../../skills/{rel_path}",
+                    str(oc_dir / "SKILL.md"),
+                )
 
-                    # Symlink for Cursor
-                    os.symlink(
-                        f"../../skills/{skill_file.name}",
-                        str(cursor_dest / skill_file.name),
-                    )
+                # Symlink for Cursor (flat)
+                os.symlink(
+                    f"../../skills/{rel_path}",
+                    str(cursor_dest / skill_file.name),
+                )
 
         # --- Screenshots (docs/screenshots/) — shared by all skills ---
         screenshots_src = self.template_dir / "screenshots"

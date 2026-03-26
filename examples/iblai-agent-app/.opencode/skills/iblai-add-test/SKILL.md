@@ -1,1 +1,1 @@
-../../../skills/iblai-add-test.md
+../../../skills/testing/iblai-add-test.md

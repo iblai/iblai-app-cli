@@ -1,1 +1,1 @@
-../../skills/iblai-add-profile-page.md
+../../skills/pages/iblai-add-profile-page.md

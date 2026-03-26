@@ -1,1 +1,1 @@
-../../../skills/iblai-cli-startapp.md
+../../../skills/commands/iblai-cli-startapp.md

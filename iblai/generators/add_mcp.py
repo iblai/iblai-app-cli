@@ -48,7 +48,7 @@ class AddMcpGenerator:
         self._write(mcp_path, json.dumps(MCP_CONFIG, indent=2) + "\n")
         created.append(".mcp.json")
 
-        # 2. Skills — single source, symlinked to Claude/OpenCode/Cursor
+        # 2. Skills — categorized source, symlinked flat to Claude/OpenCode/Cursor
         if self.skills_source_dir.is_dir():
             skills_dest = self.project.root / "skills"
             claude_dest = self.project.root / ".claude" / "skills"
@@ -58,43 +58,39 @@ class AddMcpGenerator:
             for d in (skills_dest, claude_dest, opencode_dest, cursor_dest):
                 d.mkdir(parents=True, exist_ok=True)
 
-            for skill_file in sorted(self.skills_source_dir.iterdir()):
-                if skill_file.is_file() and skill_file.suffix == ".md":
-                    # Copy actual file to skills/
-                    shutil.copy2(skill_file, skills_dest / skill_file.name)
-                    created.append(f"skills/{skill_file.name}")
+            for skill_file in sorted(self.skills_source_dir.rglob("*.md")):
+                # README.md goes to skills/ root only — no symlinks
+                if skill_file.name == "README.md":
+                    shutil.copy2(skill_file, skills_dest / "README.md")
+                    created.append("skills/README.md")
+                    continue
 
-                    # README.md goes to skills/ only — no symlinks
-                    if skill_file.name == "README.md":
-                        continue
+                # Relative path within skills/ (e.g., "components/iblai-add-auth.md")
+                rel_path = skill_file.relative_to(self.skills_source_dir)
+                skill_name = skill_file.stem
 
-                    skill_name = skill_file.stem
+                # Copy actual file preserving subdirectory structure
+                dest_file = skills_dest / rel_path
+                dest_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(skill_file, dest_file)
+                created.append(f"skills/{rel_path}")
 
-                    # Symlink for Claude Code
-                    claude_link = claude_dest / skill_file.name
-                    if not claude_link.exists():
-                        os.symlink(
-                            f"../../skills/{skill_file.name}",
-                            str(claude_link),
-                        )
+                # Symlink for Claude Code (flat)
+                claude_link = claude_dest / skill_file.name
+                if not claude_link.exists():
+                    os.symlink(f"../../skills/{rel_path}", str(claude_link))
 
-                    # Symlink for OpenCode (directory per skill)
-                    oc_dir = opencode_dest / skill_name
-                    oc_dir.mkdir(parents=True, exist_ok=True)
-                    oc_link = oc_dir / "SKILL.md"
-                    if not oc_link.exists():
-                        os.symlink(
-                            f"../../../skills/{skill_file.name}",
-                            str(oc_link),
-                        )
+                # Symlink for OpenCode (directory per skill, flat)
+                oc_dir = opencode_dest / skill_name
+                oc_dir.mkdir(parents=True, exist_ok=True)
+                oc_link = oc_dir / "SKILL.md"
+                if not oc_link.exists():
+                    os.symlink(f"../../../skills/{rel_path}", str(oc_link))
 
-                    # Symlink for Cursor
-                    cursor_link = cursor_dest / skill_file.name
-                    if not cursor_link.exists():
-                        os.symlink(
-                            f"../../skills/{skill_file.name}",
-                            str(cursor_link),
-                        )
+                # Symlink for Cursor (flat)
+                cursor_link = cursor_dest / skill_file.name
+                if not cursor_link.exists():
+                    os.symlink(f"../../skills/{rel_path}", str(cursor_link))
 
         # 3. Screenshots (docs/screenshots/)
         if self.screenshots_source_dir.is_dir():

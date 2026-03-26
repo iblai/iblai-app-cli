@@ -1,1 +1,1 @@
-../../skills/iblai-cli-publish.md
+../../skills/builds/iblai-cli-publish.md

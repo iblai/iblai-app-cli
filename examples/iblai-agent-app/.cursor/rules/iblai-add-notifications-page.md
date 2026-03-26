@@ -1,1 +1,1 @@
-../../skills/iblai-add-notifications-page.md
+../../skills/pages/iblai-add-notifications-page.md

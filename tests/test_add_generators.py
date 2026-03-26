@@ -331,23 +331,23 @@ class TestAddMcpGenerator:
     def test_mcp_skills_are_symlinked(self, generated):
         """Skills in .claude/, .opencode/, .cursor/ are symlinks to skills/."""
         project, _ = generated
-        # Central store exists
+        # Central store exists with categorized subdirs
         skills_dir = project.root / "skills"
         assert skills_dir.is_dir()
-        assert (skills_dir / "iblai-add-auth.md").exists()
+        assert (skills_dir / "components" / "iblai-add-auth.md").exists()
         assert (skills_dir / "README.md").exists()
 
-        # Claude symlink
+        # Claude symlink (flat)
         claude_link = project.root / ".claude" / "skills" / "iblai-add-auth.md"
         assert claude_link.exists()
         assert claude_link.is_symlink()
 
-        # OpenCode symlink
+        # OpenCode symlink (flat)
         oc_link = project.root / ".opencode" / "skills" / "iblai-add-auth" / "SKILL.md"
         assert oc_link.exists()
         assert oc_link.is_symlink()
 
-        # Cursor symlink
+        # Cursor symlink (flat)
         cursor_link = project.root / ".cursor" / "rules" / "iblai-add-auth.md"
         assert cursor_link.exists()
         assert cursor_link.is_symlink()

@@ -181,17 +181,25 @@ class TestBaseAppGenerator:
         assert skill_md.is_symlink()
 
     def test_generates_skills_directory(self, generated_dir):
-        """Central skills/ directory with actual .md files."""
+        """Central skills/ directory with categorized subdirectories."""
         skills_dir = generated_dir / "skills"
         assert skills_dir.is_dir()
         assert (skills_dir / "README.md").exists()
-        assert (skills_dir / "iblai-setup.md").exists()
-        skills = sorted(
-            f.name
-            for f in skills_dir.iterdir()
-            if f.suffix == ".md" and f.name != "README.md"
-        )
-        assert len(skills) == 13
+        # Check categorized subdirectories
+        assert (skills_dir / "setup").is_dir()
+        assert (skills_dir / "components").is_dir()
+        assert (skills_dir / "pages").is_dir()
+        assert (skills_dir / "builds").is_dir()
+        assert (skills_dir / "testing").is_dir()
+        # Check specific files
+        assert (skills_dir / "setup" / "iblai-setup.md").exists()
+        assert (skills_dir / "components" / "iblai-add-auth.md").exists()
+        assert (skills_dir / "builds" / "iblai-build-windows-msix.md").exists()
+        assert (skills_dir / "testing" / "iblai-add-test.md").exists()
+        # Total count
+        all_skills = sorted(skills_dir.rglob("*.md"))
+        skill_files = [f for f in all_skills if f.name != "README.md"]
+        assert len(skill_files) == 13
 
     def test_generates_cursor_rules(self, generated_dir):
         """Cursor .cursor/rules/ directory with symlinks."""

@@ -1,1 +1,1 @@
-../../skills/iblai-build-windows-msix.md
+../../skills/builds/iblai-build-windows-msix.md

@@ -1,1 +1,1 @@
-../../skills/iblai-add-component.md
+../../skills/components/iblai-add-component.md

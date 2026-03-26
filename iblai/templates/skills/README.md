@@ -3,37 +3,59 @@
 AI assistant skills for Claude Code, OpenCode, and Cursor.
 Invoke them with `/` in your AI assistant.
 
-## Available Skills
+## Categories
+
+### Setup
 
 | Skill | Description |
 |-------|-------------|
 | `/iblai-setup` | What's set up, env config, localStorage keys, MCP tools |
-| `/iblai-add-auth` | Add SSO authentication to an existing project |
+
+### Components
+
+| Skill | Description |
+|-------|-------------|
+| `/iblai-add-auth` | Add SSO authentication |
 | `/iblai-add-chat` | Add real-time AI chat widget |
 | `/iblai-add-profile` | Add profile dropdown to navbar |
+| `/iblai-add-notifications` | Add notification bell |
+| `/iblai-add-component` | Generic guide for any SDK component |
+| `/iblai-customize-chat` | ChatWidget props and customization |
+
+### Pages
+
+| Skill | Description |
+|-------|-------------|
 | `/iblai-add-profile-page` | Full profile settings page (7 tabs) |
 | `/iblai-add-account-page` | Organization/account settings page |
 | `/iblai-add-analytics-page` | Analytics dashboard page |
-| `/iblai-add-notifications` | Add notification bell to navbar |
 | `/iblai-add-notifications-page` | Full notification center page |
-| `/iblai-add-component` | Generic guide for any SDK component |
-| `/iblai-add-test` | Playwright E2E test patterns |
+
+### Builds
+
+| Skill | Description |
+|-------|-------------|
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
-| `/iblai-customize-chat` | ChatWidget props and customization |
 
-## Screenshots
+### Testing
 
-Referenced screenshots are in `docs/screenshots/`.
+| Skill | Description |
+|-------|-------------|
+| `/iblai-add-test` | Playwright E2E test patterns |
 
 ## Tool Integration
 
-Skills are stored here in `skills/` and symlinked to tool-specific directories:
+Skills are symlinked to tool-specific directories:
 
 - **Claude Code**: `.claude/skills/<name>.md`
 - **OpenCode**: `.opencode/skills/<name>/SKILL.md`
 - **Cursor**: `.cursor/rules/<name>.md`
 
-All symlinks point back to this directory. Edit the files here — changes are reflected everywhere.
+All symlinks point back to this `skills/` directory. Edit the files here — changes are reflected everywhere.
+
+## Screenshots
+
+Referenced screenshots are in `docs/screenshots/`.
 
 ## Windows Note
 

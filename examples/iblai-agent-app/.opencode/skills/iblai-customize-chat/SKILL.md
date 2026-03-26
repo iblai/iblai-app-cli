@@ -1,1 +1,1 @@
-../../../skills/iblai-customize-chat.md
+../../../skills/components/iblai-customize-chat.md
