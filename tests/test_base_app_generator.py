@@ -175,13 +175,31 @@ class TestBaseAppGenerator:
         assert "iblai-add-profile-page" in skill_dirs
         assert "iblai-add-account-page" in skill_dirs
         assert "iblai-add-test" in skill_dirs
-        assert "iblai-startapp-base" not in skill_dirs
-        assert "iblai-startapp-agent" not in skill_dirs
+        # OpenCode SKILL.md is a symlink to skills/<name>.md
         skill_md = skills_dir / "iblai-setup" / "SKILL.md"
         assert skill_md.exists()
-        content = skill_md.read_text()
-        assert content.startswith("---")
-        assert "name: iblai-setup" in content
+        assert skill_md.is_symlink()
+
+    def test_generates_skills_directory(self, generated_dir):
+        """Central skills/ directory with actual .md files."""
+        skills_dir = generated_dir / "skills"
+        assert skills_dir.is_dir()
+        assert (skills_dir / "README.md").exists()
+        assert (skills_dir / "iblai-setup.md").exists()
+        skills = sorted(
+            f.name
+            for f in skills_dir.iterdir()
+            if f.suffix == ".md" and f.name != "README.md"
+        )
+        assert len(skills) == 13
+
+    def test_generates_cursor_rules(self, generated_dir):
+        """Cursor .cursor/rules/ directory with symlinks."""
+        rules_dir = generated_dir / ".cursor" / "rules"
+        assert rules_dir.is_dir()
+        link = rules_dir / "iblai-setup.md"
+        assert link.exists()
+        assert link.is_symlink()
 
     def test_generates_mcp_json(self, generated_dir):
         assert (generated_dir / ".mcp.json").exists()

@@ -161,33 +161,55 @@ class BaseAppGenerator(BaseGenerator):
         self._write("public/env.js", self._render("public/env.js.j2"))
         self._write("public/README.md", self._render("public/README.md.j2"))
 
-        # --- Claude skills (.claude/skills/) — copy .md files only ---
+        # --- Skills ---
+        # Single source in templates/skills/, symlinked to tool-specific dirs:
+        #   skills/<name>.md                      (actual files)
+        #   .claude/skills/<name>.md              (symlink for Claude Code)
+        #   .opencode/skills/<name>/SKILL.md      (symlink for OpenCode)
+        #   .cursor/rules/<name>.md               (symlink for Cursor)
+        import os
         import shutil
 
         skills_src = self.template_dir / "skills"
         if skills_src.is_dir():
+            skills_dest = self.output_dir / "skills"
+            claude_dest = self.output_dir / ".claude" / "skills"
+            opencode_dest = self.output_dir / ".opencode" / "skills"
+            cursor_dest = self.output_dir / ".cursor" / "rules"
+
+            for d in (skills_dest, claude_dest, opencode_dest, cursor_dest):
+                d.mkdir(parents=True, exist_ok=True)
+
             for skill_file in sorted(skills_src.iterdir()):
                 if skill_file.is_file() and skill_file.suffix == ".md":
-                    dest = self.output_dir / ".claude" / "skills" / skill_file.name
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(skill_file, dest)
+                    # Copy actual file to skills/
+                    shutil.copy2(skill_file, skills_dest / skill_file.name)
 
-        # --- OpenCode skills (.opencode/skills/<name>/) — copy .md files only ---
-        opencode_src = self.template_dir / "opencode-skills"
-        if opencode_src.is_dir():
-            for skill_dir in sorted(opencode_src.iterdir()):
-                if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
-                    for skill_file in sorted(skill_dir.iterdir()):
-                        if skill_file.is_file() and skill_file.suffix == ".md":
-                            dest = (
-                                self.output_dir
-                                / ".opencode"
-                                / "skills"
-                                / skill_dir.name
-                                / skill_file.name
-                            )
-                            dest.parent.mkdir(parents=True, exist_ok=True)
-                            shutil.copy2(skill_file, dest)
+                    # README.md goes to skills/ only — no symlinks
+                    if skill_file.name == "README.md":
+                        continue
+
+                    skill_name = skill_file.stem
+
+                    # Symlink for Claude Code
+                    os.symlink(
+                        f"../../skills/{skill_file.name}",
+                        str(claude_dest / skill_file.name),
+                    )
+
+                    # Symlink for OpenCode (directory per skill)
+                    oc_dir = opencode_dest / skill_name
+                    oc_dir.mkdir(parents=True, exist_ok=True)
+                    os.symlink(
+                        f"../../../skills/{skill_file.name}",
+                        str(oc_dir / "SKILL.md"),
+                    )
+
+                    # Symlink for Cursor
+                    os.symlink(
+                        f"../../skills/{skill_file.name}",
+                        str(cursor_dest / skill_file.name),
+                    )
 
         # --- Screenshots (docs/screenshots/) — shared by all skills ---
         screenshots_src = self.template_dir / "screenshots"

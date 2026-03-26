@@ -1,6 +1,7 @@
-"""Generator for adding MCP config and Claude skills to an existing project."""
+"""Generator for adding MCP config and skills to an existing project."""
 
 import json
+import os
 from pathlib import Path
 import shutil
 from typing import List
@@ -24,13 +25,13 @@ MCP_DEPS = ["@iblai/mcp"]
 
 
 class AddMcpGenerator:
-    """Generates .mcp.json, Claude skills, and OpenCode skills for an existing project."""
+    """Generates .mcp.json and skills (Claude, OpenCode, Cursor) for an existing project."""
 
     def __init__(self, project: ProjectInfo):
         self.project = project
         self.skills_source_dir = Path(__file__).parent.parent / "templates" / "skills"
-        self.opencode_skills_source_dir = (
-            Path(__file__).parent.parent / "templates" / "opencode-skills"
+        self.screenshots_source_dir = (
+            Path(__file__).parent.parent / "templates" / "screenshots"
         )
 
     def _write(self, path: Path, content: str) -> None:
@@ -39,7 +40,7 @@ class AddMcpGenerator:
             f.write(content)
 
     def generate(self) -> List[str]:
-        """Generate MCP config and Claude skills. Returns list of created file paths."""
+        """Generate MCP config and skills. Returns list of created file paths."""
         created: List[str] = []
 
         # 1. .mcp.json
@@ -47,29 +48,61 @@ class AddMcpGenerator:
         self._write(mcp_path, json.dumps(MCP_CONFIG, indent=2) + "\n")
         created.append(".mcp.json")
 
-        # 2. Claude skills (.claude/skills/) — copy all files (md + images)
-        skills_dest = self.project.root / ".claude" / "skills"
+        # 2. Skills — single source, symlinked to Claude/OpenCode/Cursor
         if self.skills_source_dir.is_dir():
-            for skill_file in sorted(self.skills_source_dir.iterdir()):
-                if skill_file.is_file():
-                    dest = skills_dest / skill_file.name
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(skill_file, dest)
-                    if skill_file.suffix == ".md":
-                        created.append(str(dest.relative_to(self.project.root)))
+            skills_dest = self.project.root / "skills"
+            claude_dest = self.project.root / ".claude" / "skills"
+            opencode_dest = self.project.root / ".opencode" / "skills"
+            cursor_dest = self.project.root / ".cursor" / "rules"
 
-        # 3. OpenCode skills (.opencode/skills/<name>/) — copy all files
-        opencode_dest = self.project.root / ".opencode" / "skills"
-        if self.opencode_skills_source_dir.is_dir():
-            for skill_dir in sorted(self.opencode_skills_source_dir.iterdir()):
-                if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
-                    for skill_file in sorted(skill_dir.iterdir()):
-                        if skill_file.is_file():
-                            dest = opencode_dest / skill_dir.name / skill_file.name
-                            dest.parent.mkdir(parents=True, exist_ok=True)
-                            shutil.copy2(skill_file, dest)
-                            if skill_file.name == "SKILL.md":
-                                created.append(str(dest.relative_to(self.project.root)))
+            for d in (skills_dest, claude_dest, opencode_dest, cursor_dest):
+                d.mkdir(parents=True, exist_ok=True)
+
+            for skill_file in sorted(self.skills_source_dir.iterdir()):
+                if skill_file.is_file() and skill_file.suffix == ".md":
+                    # Copy actual file to skills/
+                    shutil.copy2(skill_file, skills_dest / skill_file.name)
+                    created.append(f"skills/{skill_file.name}")
+
+                    # README.md goes to skills/ only — no symlinks
+                    if skill_file.name == "README.md":
+                        continue
+
+                    skill_name = skill_file.stem
+
+                    # Symlink for Claude Code
+                    claude_link = claude_dest / skill_file.name
+                    if not claude_link.exists():
+                        os.symlink(
+                            f"../../skills/{skill_file.name}",
+                            str(claude_link),
+                        )
+
+                    # Symlink for OpenCode (directory per skill)
+                    oc_dir = opencode_dest / skill_name
+                    oc_dir.mkdir(parents=True, exist_ok=True)
+                    oc_link = oc_dir / "SKILL.md"
+                    if not oc_link.exists():
+                        os.symlink(
+                            f"../../../skills/{skill_file.name}",
+                            str(oc_link),
+                        )
+
+                    # Symlink for Cursor
+                    cursor_link = cursor_dest / skill_file.name
+                    if not cursor_link.exists():
+                        os.symlink(
+                            f"../../skills/{skill_file.name}",
+                            str(cursor_link),
+                        )
+
+        # 3. Screenshots (docs/screenshots/)
+        if self.screenshots_source_dir.is_dir():
+            screenshots_dest = self.project.root / "docs" / "screenshots"
+            screenshots_dest.mkdir(parents=True, exist_ok=True)
+            for img in sorted(self.screenshots_source_dir.iterdir()):
+                if img.is_file():
+                    shutil.copy2(img, screenshots_dest / img.name)
 
         # 4. Install @iblai/mcp as dev dependency
         install_dev_packages(self.project.root, MCP_DEPS)

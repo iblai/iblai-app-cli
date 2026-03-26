@@ -328,14 +328,29 @@ class TestAddMcpGenerator:
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
         assert len(skill_dirs) == 13
 
-    def test_mcp_opencode_skills_have_frontmatter(self, generated):
+    def test_mcp_skills_are_symlinked(self, generated):
+        """Skills in .claude/, .opencode/, .cursor/ are symlinks to skills/."""
         project, _ = generated
-        skill_md = project.root / ".opencode" / "skills" / "iblai-add-auth" / "SKILL.md"
-        assert skill_md.exists()
-        content = skill_md.read_text()
-        assert content.startswith("---")
-        assert "name: iblai-add-auth" in content
-        assert "description:" in content
+        # Central store exists
+        skills_dir = project.root / "skills"
+        assert skills_dir.is_dir()
+        assert (skills_dir / "iblai-add-auth.md").exists()
+        assert (skills_dir / "README.md").exists()
+
+        # Claude symlink
+        claude_link = project.root / ".claude" / "skills" / "iblai-add-auth.md"
+        assert claude_link.exists()
+        assert claude_link.is_symlink()
+
+        # OpenCode symlink
+        oc_link = project.root / ".opencode" / "skills" / "iblai-add-auth" / "SKILL.md"
+        assert oc_link.exists()
+        assert oc_link.is_symlink()
+
+        # Cursor symlink
+        cursor_link = project.root / ".cursor" / "rules" / "iblai-add-auth.md"
+        assert cursor_link.exists()
+        assert cursor_link.is_symlink()
 
 
 # ---------------------------------------------------------------------------
