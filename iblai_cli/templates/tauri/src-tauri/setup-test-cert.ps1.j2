@@ -1,0 +1,77 @@
+# setup-test-cert.ps1
+# Creates a self-signed code-signing certificate for MSIX development,
+# imports it as trusted, and outputs the thumbprint for build-msix.ps1.
+#
+# Run once per machine. Requires Administrator for LocalMachine trust.
+#
+# Usage:
+#   powershell -ExecutionPolicy Bypass -File src-tauri\setup-test-cert.ps1
+
+$ErrorActionPreference = "Stop"
+
+$Subject = "CN={{ app_name }}-dev"
+$FriendlyName = "{{ app_name }} Development Certificate"
+
+# --- Check for existing certificate ---
+$existing = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq $Subject }
+if ($existing) {
+    Write-Host "Certificate already exists:" -ForegroundColor Yellow
+    Write-Host "  Subject:    $($existing.Subject)"
+    Write-Host "  Thumbprint: $($existing.Thumbprint)"
+    Write-Host ""
+    Write-Host "To rebuild MSIX with this certificate:" -ForegroundColor Cyan
+    Write-Host "  .\build-msix.ps1 -CertThumbprint `"$($existing.Thumbprint)`""
+    exit 0
+}
+
+# --- Create self-signed certificate ---
+Write-Host "Creating self-signed certificate: $Subject" -ForegroundColor Yellow
+
+$cert = New-SelfSignedCertificate -Type Custom `
+    -Subject $Subject `
+    -KeyUsage DigitalSignature `
+    -FriendlyName $FriendlyName `
+    -CertStoreLocation "Cert:\CurrentUser\My" `
+    -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+
+Write-Host "Certificate created in CurrentUser\My" -ForegroundColor Green
+Write-Host "  Thumbprint: $($cert.Thumbprint)"
+
+# --- Trust the certificate ---
+Write-Host ""
+Write-Host "Importing certificate as trusted..." -ForegroundColor Yellow
+
+$certPath = Join-Path $PSScriptRoot "dev-cert.cer"
+try {
+    Export-Certificate -Cert $cert -FilePath $certPath | Out-Null
+
+    # Try LocalMachine first (requires admin), fall back to CurrentUser
+    try {
+        Import-Certificate -FilePath $certPath `
+            -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
+        Write-Host "Imported to LocalMachine\TrustedPeople (all users)" -ForegroundColor Green
+    } catch {
+        Write-Host "Admin required for LocalMachine trust, using CurrentUser instead..." -ForegroundColor DarkYellow
+        Import-Certificate -FilePath $certPath `
+            -CertStoreLocation Cert:\CurrentUser\TrustedPeople | Out-Null
+        Write-Host "Imported to CurrentUser\TrustedPeople (current user only)" -ForegroundColor Green
+    }
+} finally {
+    if (Test-Path $certPath) { Remove-Item $certPath -Force }
+}
+
+# --- Summary ---
+Write-Host ""
+Write-Host "--- Certificate Ready ---" -ForegroundColor Cyan
+Write-Host "Subject:    $Subject"
+Write-Host "Thumbprint: $($cert.Thumbprint)"
+Write-Host ""
+Write-Host "Build and sign MSIX:" -ForegroundColor Yellow
+Write-Host "  pnpm tauri:build"
+Write-Host "  .\src-tauri\build-msix.ps1 -SkipTauriBuild -CertThumbprint `"$($cert.Thumbprint)`""
+Write-Host ""
+Write-Host "Or build + sign in one step:" -ForegroundColor Yellow
+Write-Host "  .\src-tauri\build-msix.ps1 -CertThumbprint `"$($cert.Thumbprint)`""
+Write-Host ""
+Write-Host "Install the signed MSIX:" -ForegroundColor Yellow
+Write-Host "  Add-AppxPackage -Path src-tauri\msix-output\*.msix"

@@ -15,7 +15,8 @@
     "tauri:build": "tauri build",
     "tauri:build:debug": "next build && tauri build --debug",
     "tauri:build:msix": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1",
-    "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64"{% endif %}
+    "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64",
+    "tauri:setup:cert": "powershell -ExecutionPolicy Bypass -File src-tauri/setup-test-cert.ps1"{% endif %}
 
   },
   "dependencies": {

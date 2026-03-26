@@ -173,6 +173,7 @@ class AddTauriGenerator:
             "tauri/src-tauri/capabilities/default.json.j2": "src-tauri/capabilities/default.json",
             "tauri/src-tauri/AppxManifest.xml.j2": "src-tauri/AppxManifest.xml",
             "tauri/src-tauri/build-msix.ps1.j2": "src-tauri/build-msix.ps1",
+            "tauri/src-tauri/setup-test-cert.ps1.j2": "src-tauri/setup-test-cert.ps1",
         }
 
         for template_name, output_path in template_map.items():
@@ -269,6 +270,7 @@ class AddTauriGenerator:
             "tauri:build:debug": "next build && tauri build --debug",
             "tauri:build:msix": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1",
             "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64",
+            "tauri:setup:cert": "powershell -ExecutionPolicy Bypass -File src-tauri/setup-test-cert.ps1",
         }
         for key, val in tauri_scripts.items():
             if key not in scripts:

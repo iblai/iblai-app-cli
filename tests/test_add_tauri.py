@@ -174,6 +174,15 @@ class TestAddTauriGenerator:
         assert "test-app" in content
         assert "internetClient" in content
         assert "ProcessorArchitecture" in content
+        assert 'Publisher="CN=test-app-dev"' in content
+
+    def test_generates_setup_test_cert_script(self, generated_dir):
+        script = generated_dir / "src-tauri" / "setup-test-cert.ps1"
+        assert script.exists()
+        content = script.read_text()
+        assert "New-SelfSignedCertificate" in content
+        assert "test-app-dev" in content
+        assert "TrustedPeople" in content
 
     def test_generates_build_msix_script(self, generated_dir):
         script = generated_dir / "src-tauri" / "build-msix.ps1"
@@ -189,6 +198,8 @@ class TestAddTauriGenerator:
         assert "tauri:build:msix:arm64" in data["scripts"]
         assert "build-msix.ps1" in data["scripts"]["tauri:build:msix"]
         assert "arm64" in data["scripts"]["tauri:build:msix:arm64"]
+        assert "tauri:setup:cert" in data["scripts"]
+        assert "setup-test-cert.ps1" in data["scripts"]["tauri:setup:cert"]
 
     def test_patches_next_config_removes_tauri_stubs(self, generated_dir):
         content = (generated_dir / "next.config.mjs").read_text()
