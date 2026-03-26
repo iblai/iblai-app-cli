@@ -1,8 +1,11 @@
 # setup-test-cert.ps1
-# Creates a self-signed code-signing certificate for MSIX development,
-# imports it as trusted, and outputs the thumbprint for build-msix.ps1.
+# Creates a self-signed certificate for local MSIX testing/sideloading.
+# Run this ONCE before your first test build.
 #
-# Run once per machine. Requires Administrator for LocalMachine trust.
+# The cert Subject (CN={{ app_name }}-dev) must match the Publisher in AppxManifest.xml.
+#
+# Prerequisites: Enable Developer Mode
+#   Settings > Update & Security > For developers > Developer Mode: ON
 #
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File src-tauri\setup-test-cert.ps1
@@ -10,71 +13,56 @@
 $ErrorActionPreference = "Stop"
 
 $Subject = "CN={{ app_name }}-dev"
-$FriendlyName = "{{ app_name }} Development Certificate"
 
-# --- Check for existing certificate ---
-$existing = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq $Subject }
+# Check if cert already exists
+$existing = Get-ChildItem -Path "Cert:\CurrentUser\My" | Where-Object { $_.Subject -eq $Subject }
 if ($existing) {
-    Write-Host "Certificate already exists:" -ForegroundColor Yellow
-    Write-Host "  Subject:    $($existing.Subject)"
-    Write-Host "  Thumbprint: $($existing.Thumbprint)"
+    Write-Host "Test certificate already exists:" -ForegroundColor Green
+    Write-Host "  Subject:    $($existing.Subject)" -ForegroundColor Gray
+    Write-Host "  Thumbprint: $($existing.Thumbprint)" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "To rebuild MSIX with this certificate:" -ForegroundColor Cyan
-    Write-Host "  .\build-msix.ps1 -CertThumbprint `"$($existing.Thumbprint)`""
+    Write-Host "Use this thumbprint with build-msix.ps1:" -ForegroundColor Yellow
+    Write-Host "  .\build-msix.ps1 -CertThumbprint `"$($existing.Thumbprint)`"" -ForegroundColor White
     exit 0
 }
 
-# --- Create self-signed certificate ---
-Write-Host "Creating self-signed certificate: $Subject" -ForegroundColor Yellow
+# Create self-signed certificate
+Write-Host "Creating self-signed certificate ($Subject)..." -ForegroundColor Yellow
 
-$cert = New-SelfSignedCertificate -Type Custom `
+$cert = New-SelfSignedCertificate `
+    -Type Custom `
     -Subject $Subject `
     -KeyUsage DigitalSignature `
-    -FriendlyName $FriendlyName `
+    -FriendlyName "{{ app_name }} MSIX Test" `
     -CertStoreLocation "Cert:\CurrentUser\My" `
-    -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+    -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3") `
+    -NotAfter (Get-Date).AddYears(2)
 
-Write-Host "Certificate created in CurrentUser\My" -ForegroundColor Green
-Write-Host "  Thumbprint: $($cert.Thumbprint)"
+Write-Host "Certificate created." -ForegroundColor Green
+Write-Host "  Subject:    $($cert.Subject)" -ForegroundColor Gray
+Write-Host "  Thumbprint: $($cert.Thumbprint)" -ForegroundColor Cyan
+Write-Host "  Expires:    $($cert.NotAfter)" -ForegroundColor Gray
 
-# --- Trust the certificate ---
-Write-Host ""
-Write-Host "Importing certificate as trusted..." -ForegroundColor Yellow
+# Install to Trusted People store (required for sideloading with Developer Mode)
+Write-Host "`nInstalling certificate to Trusted People store..." -ForegroundColor Yellow
 
-$certPath = Join-Path $PSScriptRoot "dev-cert.cer"
-try {
-    Export-Certificate -Cert $cert -FilePath $certPath | Out-Null
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPeople", "CurrentUser")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
 
-    # Try LocalMachine first (requires admin), fall back to CurrentUser.
-    # Must use Root (Trusted Root CAs), not TrustedPeople — MSIX signature
-    # validation walks the certificate chain to the root and requires it
-    # in the Trusted Root Certification Authorities store.
-    try {
-        Import-Certificate -FilePath $certPath `
-            -CertStoreLocation Cert:\LocalMachine\Root | Out-Null
-        Write-Host "Imported to LocalMachine\Root (all users)" -ForegroundColor Green
-    } catch {
-        Write-Host "Admin required for LocalMachine trust, using CurrentUser instead..." -ForegroundColor DarkYellow
-        Import-Certificate -FilePath $certPath `
-            -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
-        Write-Host "Imported to CurrentUser\Root (current user only)" -ForegroundColor Green
-    }
-} finally {
-    if (Test-Path $certPath) { Remove-Item $certPath -Force }
-}
+Write-Host "Certificate installed to Trusted People store." -ForegroundColor Green
 
-# --- Summary ---
+# Summary
 Write-Host ""
-Write-Host "--- Certificate Ready ---" -ForegroundColor Cyan
-Write-Host "Subject:    $Subject"
-Write-Host "Thumbprint: $($cert.Thumbprint)"
+Write-Host "--- Setup Complete ---" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Build and sign MSIX:" -ForegroundColor Yellow
-Write-Host "  pnpm tauri:build"
-Write-Host "  .\src-tauri\build-msix.ps1 -SkipTauriBuild -CertThumbprint `"$($cert.Thumbprint)`""
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "  1. Enable Developer Mode: Settings > Update & Security > For developers" -ForegroundColor White
+Write-Host "  2. Build and sign the MSIX:" -ForegroundColor White
+Write-Host "     .\build-msix.ps1 -CertThumbprint `"$($cert.Thumbprint)`"" -ForegroundColor White
+Write-Host "  3. Double-click the .msix file in msix-output/ to install" -ForegroundColor White
 Write-Host ""
-Write-Host "Or build + sign in one step:" -ForegroundColor Yellow
-Write-Host "  .\src-tauri\build-msix.ps1 -CertThumbprint `"$($cert.Thumbprint)`""
-Write-Host ""
-Write-Host "Install the signed MSIX:" -ForegroundColor Yellow
-Write-Host "  Add-AppxPackage -Path src-tauri\msix-output\*.msix"
+Write-Host "To remove this certificate later:" -ForegroundColor DarkYellow
+Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
+Write-Host "  Get-ChildItem Cert:\CurrentUser\TrustedPeople | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
