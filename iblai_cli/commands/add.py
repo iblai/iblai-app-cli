@@ -258,3 +258,41 @@ def mcp():
             title="iblai add mcp",
         )
     )
+
+
+@add.command()
+def tauri():
+    """Wrap your Next.js app as a Tauri v2 desktop application."""
+    from pathlib import Path
+
+    from iblai_cli.generators.add_tauri import AddTauriGenerator
+
+    project = _require_nextjs()
+    root = Path(".")
+
+    if (root / "src-tauri").exists():
+        console.print("[yellow]src-tauri/ already exists. Skipping.[/yellow]")
+        return
+
+    gen = AddTauriGenerator(project_root=str(root))
+    created = gen.generate()
+
+    console.print()
+    console.print(
+        Panel(
+            "[bold green]Tauri v2 desktop shell added[/bold green]\n\n"
+            + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
+            + "\n\n"
+            "[bold]Next steps:[/bold]\n"
+            "  1. Install dependencies: pnpm install\n"
+            "  2. Generate icons: iblai tauri icon path/to/icon.png\n"
+            "  3. Start development: iblai tauri dev\n"
+            "  4. Build for distribution: iblai tauri build\n\n"
+            "[bold]CI/CD:[/bold]\n"
+            "  iblai tauri ci-workflow --desktop   Generate desktop build workflow\n"
+            "  iblai tauri ci-workflow --ios        Generate iOS build workflow\n"
+            "  iblai tauri ci-workflow --all        Generate all platform workflows",
+            border_style="green",
+            title="iblai add tauri",
+        )
+    )

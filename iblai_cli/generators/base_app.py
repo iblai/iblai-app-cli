@@ -54,6 +54,7 @@ class BaseAppGenerator(BaseGenerator):
         return {
             "app_name": self.app_name,
             "platform_key": self.platform_key,
+            "tauri": self.tauri,
         }
 
     def _render(self, template_path: str) -> str:
@@ -87,8 +88,9 @@ class BaseAppGenerator(BaseGenerator):
         self._write("postcss.config.mjs", self._render("postcss.config.mjs.j2"))
         self._write(".env.example", self._render(".env.example.j2"))
         self._write(".gitignore", self._render(".gitignore.j2"))
-        self._write(".eslintrc.json", self._render(".eslintrc.json.j2"))
+        self._write("eslint.config.mjs", self._render("eslint.config.mjs.j2"))
         self._write(".mcp.json", self._render(".mcp.json.j2"))
+        self._write("CLAUDE.md", self._render("CLAUDE.md.j2"))
         self._write("components.json", self._render("components.json.j2"))
 
         # --- Root layout + globals (from shared) ---

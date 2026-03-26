@@ -274,3 +274,72 @@ def patch_store_for_chat(root: Path, store_dir: Path) -> Optional[str]:
             return str(store_path.relative_to(root))
 
     return None
+
+
+# ---------------------------------------------------------------------------
+# Tauri-specific patching
+# ---------------------------------------------------------------------------
+
+MARKER_TAURI_EXPORT = 'output: "export"'
+
+TAURI_EXPORT_CONFIG = """\
+  // Tauri: static export to ./out for desktop/mobile builds
+  output: "export",
+  images: {
+    unoptimized: true,
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
+  },"""
+
+
+def patch_next_config_for_tauri(root: Path) -> Optional[str]:
+    """
+    Patch next.config for Tauri: remove @tauri-apps/api stubs and add
+    conditional output: "export" for Tauri builds.
+
+    Returns the relative path of the patched file, or None if nothing changed.
+    """
+    config_path = find_next_config(root)
+    if config_path is None:
+        return None
+
+    content = config_path.read_text(encoding="utf-8")
+    original = content
+
+    # 1. Remove @tauri-apps/api stubs (they were only for web-only apps)
+    #    These lines set the alias to `false` to suppress import errors.
+    #    With Tauri installed, the real package is available.
+    stub_patterns = [
+        r"\s*//.*Stub.*@tauri-apps.*\n",
+        r"\s*//.*IBL\.ai:.*Stub.*@tauri-apps.*\n",
+        r"\s*//.*@tauri-apps/api is installed.*\n",
+        r"\s*config\.resolve\.alias\[.*@tauri-apps/api/core.*\]\s*=\s*false;\n",
+        r"\s*config\.resolve\.alias\[.*@tauri-apps/api/event.*\]\s*=\s*false;\n",
+    ]
+    for pat in stub_patterns:
+        content = re.sub(pat, "", content)
+
+    # 2. Add conditional export config for Tauri builds
+    if MARKER_TAURI_EXPORT not in content:
+        # Insert after "reactStrictMode: true," or at the start of the config object
+        strict_match = re.search(r"(reactStrictMode:\s*true,)", content)
+        if strict_match:
+            content = content.replace(
+                strict_match.group(0),
+                strict_match.group(0) + "\n" + TAURI_EXPORT_CONFIG,
+                1,
+            )
+        else:
+            # Find the opening of the config object: "const nextConfig = {"
+            obj_match = re.search(r"(const\s+\w+\s*(?::\s*\w+)?\s*=\s*\{)", content)
+            if obj_match:
+                content = content.replace(
+                    obj_match.group(0),
+                    obj_match.group(0) + "\n" + TAURI_EXPORT_CONFIG,
+                    1,
+                )
+
+    if content != original:
+        config_path.write_text(content, encoding="utf-8")
+        return str(config_path.relative_to(root))
+
+    return None

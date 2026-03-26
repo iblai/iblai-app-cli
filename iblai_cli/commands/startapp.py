@@ -100,6 +100,12 @@ console = Console()
     type=str,
     envvar="DEV_STAGE",
 )
+@click.option(
+    "--tauri",
+    is_flag=True,
+    default=False,
+    help="Include Tauri v2 desktop shell (generates src-tauri/)",
+)
 @click.pass_context
 def startapp(
     ctx: click.Context,
@@ -117,6 +123,7 @@ def startapp(
     prompt: Optional[str],
     env_file: Optional[str],
     stage: Optional[str],
+    tauri: bool = False,
 ) -> None:
     """
     Create a new IBL.ai application from a template.
@@ -246,7 +253,8 @@ def startapp(
         agent = answers["agent"]
 
     # Prompt for app name if not provided via flag or env
-    if not app_name:
+    interactive = not app_name
+    if interactive:
         questions = [
             inquirer.Text(
                 "app_name",
@@ -262,6 +270,22 @@ def startapp(
             console.print("[red]Operation cancelled[/red]")
             return
         app_name = answers["app_name"]
+
+    # Ask about Tauri integration (interactive mode only, when --tauri was not passed)
+    if interactive and not tauri:
+        questions = [
+            inquirer.Confirm(
+                "tauri",
+                message=(
+                    "Include Tauri desktop/mobile support?"
+                    " (generates src-tauri/, enables native builds)"
+                ),
+                default=False,
+            ),
+        ]
+        answers = inquirer.prompt(questions)
+        if answers:
+            tauri = answers["tauri"]
 
     # Determine output directory
     output_path = Path(output) / app_name
@@ -292,12 +316,23 @@ def startapp(
                     ai_model=ai_model,
                     ai_temperature=ai_temperature,
                     ai_max_tokens=ai_max_tokens,
+                    tauri=tauri,
                 )
                 generator.generate()
 
                 if prompt and generator.ai_helper:
                     progress.update(task, description="Enhancing with AI...")
                     generator.enhance_with_prompt()
+
+                if tauri:
+                    progress.update(task, description="Adding Tauri desktop shell...")
+                    from iblai_cli.generators.add_tauri import AddTauriGenerator
+
+                    tauri_gen = AddTauriGenerator(
+                        project_root=str(output_path),
+                        app_name=app_name,
+                    )
+                    tauri_gen.generate()
 
                 progress.update(task, completed=True)
 
@@ -313,14 +348,28 @@ def startapp(
                     + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
                     + (f"[cyan]AI Model:[/cyan] {ai_model}\n" if ai_model else "")
                     + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
+                    + (f"[cyan]Tauri:[/cyan] enabled\n" if tauri else "")
                     + f"[cyan]Location:[/cyan] {output_path}\n\n"
                     "[bold]Next steps:[/bold]\n"
                     f"  1. cd {output_path}\n"
                     "  2. pnpm install\n"
                     "  3. cp .env.example .env.local\n"
                     "  4. Update .env.local with your configuration\n"
-                    "  5. pnpm dev\n\n"
-                    "[bold]AI-assisted development:[/bold]\n"
+                    + (
+                        "  5. iblai tauri dev  (desktop + web dev server)\n\n"
+                        if tauri
+                        else "  5. pnpm dev\n\n"
+                    )
+                    + (
+                        "[bold]Tauri desktop app:[/bold]\n"
+                        "  iblai tauri dev              Start desktop dev mode\n"
+                        "  iblai tauri build            Build for distribution\n"
+                        "  iblai tauri icon icon.png    Generate all icon sizes\n"
+                        "  iblai tauri ci-workflow      Generate CI build workflows\n\n"
+                        if tauri
+                        else ""
+                    )
+                    + "[bold]AI-assisted development:[/bold]\n"
                     "  A .mcp.json is included for Claude Code / Cursor integration.\n"
                     "  The MCP server provides component docs, hook info, and API patterns.\n\n"
                     "[bold]Add UI blocks (shadcnspace):[/bold]\n"

@@ -150,7 +150,7 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 12
+        assert len(skills) == 13
         assert "iblai-setup.md" in skills
         assert "iblai-customize-chat.md" in skills
         assert "iblai-add-profile-page.md" in skills
@@ -167,7 +167,7 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 12
+        assert len(skill_dirs) == 13
         assert "iblai-setup" in skill_dirs
         assert "iblai-add-analytics-page" in skill_dirs
         assert "iblai-add-notifications-page" in skill_dirs
@@ -185,6 +185,15 @@ class TestBaseAppGenerator:
 
     def test_generates_mcp_json(self, generated_dir):
         assert (generated_dir / ".mcp.json").exists()
+
+    def test_generates_claude_md(self, generated_dir):
+        claude_md = generated_dir / "CLAUDE.md"
+        assert claude_md.exists()
+        content = claude_md.read_text()
+        assert "MCP Server" in content
+        assert "pnpm dev" in content
+        assert "initializeDataLayer" in content
+        assert "DO NOT INITIALIZE GIT" in content
 
     def test_generates_button_and_sonner(self, generated_dir):
         assert (generated_dir / "components" / "ui" / "button.tsx").exists()
@@ -227,6 +236,76 @@ class TestBaseAppGenerator:
         assert "test:e2e" in pkg["scripts"]
         assert "test:e2e:ui" in pkg["scripts"]
         assert "@playwright/test" in pkg["devDependencies"]
+
+
+class TestTauriNextConfig:
+    """Tests for tauri flag effect on next.config.mjs."""
+
+    def test_tauri_flag_produces_static_export(self, tmp_path):
+        """When tauri=True, next.config.mjs has output:'export' and no stubs."""
+        from iblai_cli.generators.base_app import BaseAppGenerator
+
+        gen = BaseAppGenerator(
+            app_name="test",
+            platform_key="test",
+            output_dir=str(tmp_path / "app"),
+            tauri=True,
+        )
+        gen.generate()
+        config = (tmp_path / "app" / "next.config.mjs").read_text()
+        assert 'output: "export"' in config
+        assert "@tauri-apps/api/core'] = false" not in config
+        assert "@tauri-apps/api/event'] = false" not in config
+
+    def test_no_tauri_flag_keeps_stubs(self, tmp_path):
+        """When tauri=False, next.config.mjs has @tauri-apps stubs and no export."""
+        from iblai_cli.generators.base_app import BaseAppGenerator
+
+        gen = BaseAppGenerator(
+            app_name="test",
+            platform_key="test",
+            output_dir=str(tmp_path / "app"),
+            tauri=False,
+        )
+        gen.generate()
+        config = (tmp_path / "app" / "next.config.mjs").read_text()
+        assert 'output: "export"' not in config
+        assert "@tauri-apps/api/core'] = false" in config
+        assert "@tauri-apps/api/event'] = false" in config
+
+    def test_tauri_flag_adds_tauri_deps_to_package_json(self, tmp_path):
+        """When tauri=True, package.json includes Tauri deps and scripts."""
+        import json
+        from iblai_cli.generators.base_app import BaseAppGenerator
+
+        gen = BaseAppGenerator(
+            app_name="test",
+            platform_key="test",
+            output_dir=str(tmp_path / "app"),
+            tauri=True,
+        )
+        gen.generate()
+        pkg = json.loads((tmp_path / "app" / "package.json").read_text())
+        assert "@tauri-apps/api" in pkg["dependencies"]
+        assert "@tauri-apps/cli" in pkg["devDependencies"]
+        assert "tauri:dev" in pkg["scripts"]
+
+    def test_no_tauri_flag_excludes_tauri_deps(self, tmp_path):
+        """When tauri=False, package.json has no Tauri deps."""
+        import json
+        from iblai_cli.generators.base_app import BaseAppGenerator
+
+        gen = BaseAppGenerator(
+            app_name="test",
+            platform_key="test",
+            output_dir=str(tmp_path / "app"),
+            tauri=False,
+        )
+        gen.generate()
+        pkg = json.loads((tmp_path / "app" / "package.json").read_text())
+        assert "@tauri-apps/api" not in pkg.get("dependencies", {})
+        assert "@tauri-apps/cli" not in pkg.get("devDependencies", {})
+        assert "tauri:dev" not in pkg.get("scripts", {})
 
 
 class TestBaseAppCLI:

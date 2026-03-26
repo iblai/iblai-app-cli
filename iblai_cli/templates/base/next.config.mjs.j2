@@ -36,6 +36,14 @@ function dedup(packageName) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+{% if tauri %}
+  // Tauri: static export to ./out for desktop/mobile builds
+  output: "export",
+  images: {
+    unoptimized: true,
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
+  },
+{% else %}
   images: {
     remotePatterns: [
       {
@@ -44,7 +52,12 @@ const nextConfig = {
       },
     ],
   },
+{% endif %}
   webpack: (config) => {
+    // Ensure resolve.alias exists (may be undefined in some Next.js versions)
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+
     // Deduplicate packages that the SDK may pull in with different versions.
     // If both the app and the SDK bundle their own copy of @reduxjs/toolkit
     // or react-redux, RTK Query hooks inside SDK components (e.g. Profile)
@@ -59,10 +72,14 @@ const nextConfig = {
     const reactReduxDir = dedup('react-redux');
     if (reactReduxDir) config.resolve.alias['react-redux'] = reactReduxDir;
 
+
+{% if not tauri %}
+
     // Stub out @tauri-apps/api imports — the SDK references them for
     // desktop (Tauri) builds, but they are not needed in web-only apps.
     config.resolve.alias['@tauri-apps/api/core'] = false;
     config.resolve.alias['@tauri-apps/api/event'] = false;
+{% endif %}
 
     return config;
   },
