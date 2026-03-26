@@ -45,16 +45,19 @@ $certPath = Join-Path $PSScriptRoot "dev-cert.cer"
 try {
     Export-Certificate -Cert $cert -FilePath $certPath | Out-Null
 
-    # Try LocalMachine first (requires admin), fall back to CurrentUser
+    # Try LocalMachine first (requires admin), fall back to CurrentUser.
+    # Must use Root (Trusted Root CAs), not TrustedPeople — MSIX signature
+    # validation walks the certificate chain to the root and requires it
+    # in the Trusted Root Certification Authorities store.
     try {
         Import-Certificate -FilePath $certPath `
-            -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
-        Write-Host "Imported to LocalMachine\TrustedPeople (all users)" -ForegroundColor Green
+            -CertStoreLocation Cert:\LocalMachine\Root | Out-Null
+        Write-Host "Imported to LocalMachine\Root (all users)" -ForegroundColor Green
     } catch {
         Write-Host "Admin required for LocalMachine trust, using CurrentUser instead..." -ForegroundColor DarkYellow
         Import-Certificate -FilePath $certPath `
-            -CertStoreLocation Cert:\CurrentUser\TrustedPeople | Out-Null
-        Write-Host "Imported to CurrentUser\TrustedPeople (current user only)" -ForegroundColor Green
+            -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
+        Write-Host "Imported to CurrentUser\Root (current user only)" -ForegroundColor Green
     }
 } finally {
     if (Test-Path $certPath) { Remove-Item $certPath -Force }
