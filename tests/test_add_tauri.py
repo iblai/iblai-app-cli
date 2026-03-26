@@ -180,7 +180,7 @@ class TestAddTauriGenerator:
         assert script.exists()
         content = script.read_text()
         assert "makeappx" in content.lower() or "MakeAppx" in content
-        assert "test-app" in content
+        assert "test_app" in content  # Cargo crate name uses underscores
         assert "-Architecture" in content
 
     def test_patches_package_json_adds_msix_scripts(self, generated_dir):

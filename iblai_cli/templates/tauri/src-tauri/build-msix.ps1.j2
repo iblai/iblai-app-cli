@@ -26,7 +26,7 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path "$ScriptDir\.."
 $TauriDir = $ScriptDir
-$AppName = "{{ app_name }}"
+$AppName = "{{ app_name | replace('-', '_') | replace(' ', '_') }}"
 
 # Map Architecture to Rust target triple
 $RustTargetMap = @{
