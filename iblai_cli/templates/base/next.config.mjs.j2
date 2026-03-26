@@ -54,6 +54,10 @@ const nextConfig = {
   },
 {% endif %}
   webpack: (config) => {
+    // Ensure resolve.alias exists (may be undefined in some Next.js versions)
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+
     // Deduplicate packages that the SDK may pull in with different versions.
     // If both the app and the SDK bundle their own copy of @reduxjs/toolkit
     // or react-redux, RTK Query hooks inside SDK components (e.g. Profile)
