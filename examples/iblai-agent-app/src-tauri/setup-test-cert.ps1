@@ -43,15 +43,24 @@ Write-Host "  Subject:    $($cert.Subject)" -ForegroundColor Gray
 Write-Host "  Thumbprint: $($cert.Thumbprint)" -ForegroundColor Cyan
 Write-Host "  Expires:    $($cert.NotAfter)" -ForegroundColor Gray
 
-# Install to Trusted Root Certification Authorities (required for MSIX signature validation)
-Write-Host "`nInstalling certificate to Trusted Root store..." -ForegroundColor Yellow
+# Install to both Root and TrustedPeople stores
+Write-Host "`nInstalling certificate to trust stores..." -ForegroundColor Yellow
 
+# Trusted Root Certification Authorities — required for MSIX signature chain validation
 $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
+Write-Host "  Installed to CurrentUser\Root (signature validation)" -ForegroundColor Gray
 
-Write-Host "Certificate installed to Trusted Root store." -ForegroundColor Green
+# Trusted People — required for sideloading trust with Developer Mode
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPeople", "CurrentUser")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
+Write-Host "  Installed to CurrentUser\TrustedPeople (sideloading)" -ForegroundColor Gray
+
+Write-Host "Certificate installed to both trust stores." -ForegroundColor Green
 
 # Summary
 Write-Host ""
@@ -66,3 +75,4 @@ Write-Host ""
 Write-Host "To remove this certificate later:" -ForegroundColor DarkYellow
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\CurrentUser\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
+Write-Host "  Get-ChildItem Cert:\CurrentUser\TrustedPeople | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
