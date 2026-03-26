@@ -67,9 +67,26 @@ iblai/
     ├── shared/               # Shared templates (layout, SSO, components, e2e, CLAUDE.md)
     ├── add/                  # iblai add templates (auth, chat, profile, notifications)
     ├── tauri/                # Tauri templates (src-tauri/, CI workflows, MSIX scripts)
-    ├── skills/               # 13 Claude skill .md files + screenshots
-    └── opencode-skills/      # 13 OpenCode skill directories (SKILL.md + screenshots)
+    ├── skills/               # 13 skill .md files (single source, symlinked to Claude/OpenCode/Cursor)
+    └── screenshots/          # 4 .png files referenced by skills
 ```
+
+### Skills Directory
+
+Skills are stored centrally in `skills/` and symlinked to tool-specific directories:
+
+```
+skills/                          # Actual files (edit here)
+├── README.md
+├── iblai-add-auth.md
+└── ...
+
+.claude/skills/<name>.md         -> ../../skills/<name>.md
+.opencode/skills/<name>/SKILL.md -> ../../../skills/<name>.md
+.cursor/rules/<name>.md          -> ../../skills/<name>.md
+```
+
+This structure applies to both the CLI repo itself (6 dev skills) and generated apps (13 integration skills). Screenshots are in `docs/screenshots/`.
 
 ### Python Naming Convention
 
@@ -169,7 +186,7 @@ docs: add per-platform build dependency guides
 
 ## Skills
 
-Available in `.claude/skills/` (invoke with `/` in Claude Code):
+Available in `skills/` (symlinked to `.claude/skills/`, `.opencode/skills/`, `.cursor/rules/`):
 
 | Skill | Description |
 |-------|-------------|

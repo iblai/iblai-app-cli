@@ -134,11 +134,25 @@ iblai-managed commands:
   iblai tauri ci-workflow   Generate GitHub Actions workflows
 
 All other arguments are forwarded to tauri:
-  iblai tauri dev
-  iblai tauri build [--debug]
-  iblai tauri icon <path>
-  iblai tauri ios init|dev|build
-  iblai tauri android init|dev|build
+  iblai tauri dev                    Start desktop dev mode
+  iblai tauri build [--debug]        Build desktop app for distribution
+  iblai tauri icon <path>            Generate all icon sizes from source image
+
+iOS (macOS with Xcode required):
+  iblai tauri ios init               Initialize iOS project (run once after pnpm install)
+  iblai tauri ios dev                Run in iOS Simulator
+  iblai tauri ios dev --device       Run on connected physical device
+  iblai tauri ios build              Build iOS app (.ipa)
+
+Android (requires Android SDK):
+  iblai tauri android init           Initialize Android project
+  iblai tauri android dev            Run on emulator or connected device
+  iblai tauri android build          Build Android app (.apk / .aab)
+
+Windows MSIX:
+  pnpm tauri:build:msix              Build MSIX package (x64)
+  pnpm tauri:build:msix:arm64        Build MSIX package (arm64)
+  pnpm tauri:setup:cert              Create dev certificate for signing (requires admin)
 """
 
 

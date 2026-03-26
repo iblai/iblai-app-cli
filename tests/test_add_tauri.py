@@ -205,6 +205,13 @@ class TestAddTauriGenerator:
         assert "tauri:setup:cert" in data["scripts"]
         assert "setup-test-cert.ps1" in data["scripts"]["tauri:setup:cert"]
 
+    def test_patches_package_json_adds_ios_scripts(self, generated_dir):
+        data = json.loads((generated_dir / "package.json").read_text())
+        assert "tauri:dev:ios" in data["scripts"]
+        assert "tauri:build:ios" in data["scripts"]
+        assert data["scripts"]["tauri:dev:ios"] == "tauri ios dev"
+        assert data["scripts"]["tauri:build:ios"] == "tauri ios build"
+
     def test_patches_next_config_removes_tauri_stubs(self, generated_dir):
         content = (generated_dir / "next.config.mjs").read_text()
         assert '@tauri-apps/api/core"] = false' not in content

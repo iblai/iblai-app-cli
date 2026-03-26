@@ -366,6 +366,13 @@ def startapp(
                         "  iblai tauri build            Build for distribution\n"
                         "  iblai tauri icon icon.png    Generate all icon sizes\n"
                         "  iblai tauri ci-workflow      Generate CI build workflows\n\n"
+                        "[bold]iOS (macOS with Xcode required):[/bold]\n"
+                        "  iblai tauri ios init         Initialize iOS project (run once)\n"
+                        "  pnpm tauri:dev:ios           Run in iOS Simulator\n"
+                        "  pnpm tauri:build:ios         Build iOS app (.ipa)\n\n"
+                        "[bold]Android:[/bold]\n"
+                        "  iblai tauri android init     Initialize Android project\n"
+                        "  iblai tauri android dev      Run on emulator/device\n\n"
                         if tauri
                         else ""
                     )
