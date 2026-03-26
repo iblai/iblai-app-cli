@@ -5,8 +5,8 @@ from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.package_manager import install_packages
-from iblai_cli.project_detector import ProjectInfo
+from iblai.package_manager import install_packages
+from iblai.project_detector import ProjectInfo
 
 # The only dependency: the <mentor-ai> Web Component.
 CHAT_DEPS = ["@iblai/iblai-web-mentor"]

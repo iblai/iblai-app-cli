@@ -6,7 +6,7 @@ import click
 from rich.console import Console
 from rich.panel import Panel
 
-from iblai_cli.project_detector import detect_project
+from iblai.project_detector import detect_project
 
 console = Console()
 
@@ -74,7 +74,7 @@ def auth(platform: Optional[str]):
     if not platform:
         platform = click.prompt("Platform key (tenant identifier)")
 
-    from iblai_cli.generators.add_auth import AddAuthGenerator
+    from iblai.generators.add_auth import AddAuthGenerator
 
     gen = AddAuthGenerator(project, platform_key=platform)
     created = gen.generate()
@@ -119,7 +119,7 @@ def chat():
         )
         raise SystemExit(1)
 
-    from iblai_cli.generators.add_chat import AddChatGenerator
+    from iblai.generators.add_chat import AddChatGenerator
 
     gen = AddChatGenerator(project)
     created = gen.generate()
@@ -163,7 +163,7 @@ def profile():
         )
         raise SystemExit(1)
 
-    from iblai_cli.generators.add_profile import AddProfileGenerator
+    from iblai.generators.add_profile import AddProfileGenerator
 
     gen = AddProfileGenerator(project)
     created = gen.generate()
@@ -201,7 +201,7 @@ def notifications():
         )
         raise SystemExit(1)
 
-    from iblai_cli.generators.add_notifications import AddNotificationsGenerator
+    from iblai.generators.add_notifications import AddNotificationsGenerator
 
     gen = AddNotificationsGenerator(project)
     created = gen.generate()
@@ -232,7 +232,7 @@ def mcp():
     """Add MCP server config and Claude skills for AI-assisted development."""
     project = _require_nextjs()
 
-    from iblai_cli.generators.add_mcp import AddMcpGenerator
+    from iblai.generators.add_mcp import AddMcpGenerator
 
     gen = AddMcpGenerator(project)
     created = gen.generate()
@@ -265,7 +265,7 @@ def tauri():
     """Wrap your Next.js app as a Tauri v2 desktop application."""
     from pathlib import Path
 
-    from iblai_cli.generators.add_tauri import AddTauriGenerator
+    from iblai.generators.add_tauri import AddTauriGenerator
 
     project = _require_nextjs()
     root = Path(".")

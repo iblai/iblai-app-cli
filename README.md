@@ -449,14 +449,14 @@ uv run pytest tests/ -v
 With coverage:
 
 ```bash
-uv run pytest tests/ --cov=iblai_cli --cov-report=term-missing
+uv run pytest tests/ --cov=iblai --cov-report=term-missing
 ```
 
 ### Project structure
 
 ```
 iblai-app-cli/
-├── iblai_cli/
+├── iblai/
 │   ├── cli.py                    # Click CLI entry point
 │   ├── config.py                 # .env file loading with stage overrides
 │   ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)

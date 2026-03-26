@@ -22,8 +22,8 @@ echo "==> Generating example agent app with Tauri..."
 cd "$ROOT_DIR"
 
 python3 -c "
-from iblai_cli.generators.agent import AgentAppGenerator
-from iblai_cli.generators.add_tauri import AddTauriGenerator
+from iblai.generators.agent import AgentAppGenerator
+from iblai.generators.add_tauri import AddTauriGenerator
 
 gen = AgentAppGenerator(
     app_name='iblai-agent-app',

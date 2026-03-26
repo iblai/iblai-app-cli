@@ -1,10 +1,10 @@
-"""Tests for iblai_cli.project_detector -- Next.js project detection."""
+"""Tests for iblai.project_detector -- Next.js project detection."""
 
 import json
 
 import pytest
 
-from iblai_cli.project_detector import ProjectInfo, detect_project
+from iblai.project_detector import ProjectInfo, detect_project
 
 
 def _write_pkg(tmp_path, deps=None, dev_deps=None):

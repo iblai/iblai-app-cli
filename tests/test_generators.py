@@ -3,7 +3,7 @@
 import os
 import pytest
 from pathlib import Path
-from iblai_cli.generators.agent import AgentAppGenerator
+from iblai.generators.agent import AgentAppGenerator
 
 
 class TestBaseGenerator:
@@ -234,7 +234,7 @@ class TestAgentRouteGroups:
 
     @pytest.fixture
     def generated_dir(self, tmp_path):
-        from iblai_cli.generators.agent import AgentAppGenerator
+        from iblai.generators.agent import AgentAppGenerator
 
         output = tmp_path / "route-group-app"
         gen = AgentAppGenerator(
@@ -298,7 +298,7 @@ class TestComponentsJsonGeneration:
     @pytest.fixture
     def generated_dir(self, tmp_path):
         """Generate a full agent app and return the output directory."""
-        from iblai_cli.generators.agent import AgentAppGenerator
+        from iblai.generators.agent import AgentAppGenerator
 
         output = tmp_path / "test-app"
         gen = AgentAppGenerator(

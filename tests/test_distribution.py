@@ -22,24 +22,24 @@ class TestMeipassTemplateResolution:
 
     def test_template_dir_uses_meipass_when_frozen(self, tmp_path):
         fake_meipass = str(tmp_path / "meipass")
-        (tmp_path / "meipass" / "iblai_cli" / "templates").mkdir(parents=True)
+        (tmp_path / "meipass" / "iblai" / "templates").mkdir(parents=True)
         with patch.object(sys, "_MEIPASS", fake_meipass, create=True):
-            from iblai_cli.generators.agent import AgentAppGenerator
+            from iblai.generators.agent import AgentAppGenerator
 
             gen = AgentAppGenerator(
                 app_name="t", platform_key="p", output_dir=str(tmp_path / "out")
             )
-            assert gen.template_dir == Path(fake_meipass) / "iblai_cli" / "templates"
+            assert gen.template_dir == Path(fake_meipass) / "iblai" / "templates"
 
     def test_template_dir_uses_source_when_not_frozen(self, tmp_path):
         # Ensure _MEIPASS is absent
         with patch.object(sys, "_MEIPASS", None, create=True):
-            from iblai_cli.generators.agent import AgentAppGenerator
+            from iblai.generators.agent import AgentAppGenerator
 
             gen = AgentAppGenerator(
                 app_name="t", platform_key="p", output_dir=str(tmp_path / "out")
             )
-            expected = Path(__file__).parent.parent / "iblai_cli" / "templates"
+            expected = Path(__file__).parent.parent / "iblai" / "templates"
             assert gen.template_dir == expected
 
 
@@ -199,9 +199,9 @@ class TestGitHubWorkflows:
         sh = (REPO_ROOT / "scripts" / "build-binary.sh").read_text()
         ps1 = (REPO_ROOT / "scripts" / "build-binary.ps1").read_text()
         assert "--add-data" in sh
-        assert "iblai_cli/templates" in sh
+        assert "iblai/templates" in sh
         assert "--add-data" in ps1
-        assert "iblai_cli/templates" in ps1
+        assert "iblai/templates" in ps1
 
     def test_publish_npm_downloads_all_artifacts(self):
         text = (REPO_ROOT / ".github" / "workflows" / "publish-npm.yml").read_text()

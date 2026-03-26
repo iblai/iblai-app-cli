@@ -10,8 +10,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from iblai_cli.config import load_config
-from iblai_cli.generators.agent import AgentAppGenerator
+from iblai.config import load_config
+from iblai.generators.agent import AgentAppGenerator
 
 console = Console()
 
@@ -326,7 +326,7 @@ def startapp(
 
                 if tauri:
                     progress.update(task, description="Adding Tauri desktop shell...")
-                    from iblai_cli.generators.add_tauri import AddTauriGenerator
+                    from iblai.generators.add_tauri import AddTauriGenerator
 
                     tauri_gen = AddTauriGenerator(
                         project_root=str(output_path),

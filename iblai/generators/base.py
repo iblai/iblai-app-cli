@@ -51,7 +51,7 @@ class BaseGenerator:
         self.output_dir = Path(output_dir)
         # Support both source and PyInstaller frozen binary paths
         if getattr(sys, "_MEIPASS", None):
-            self.template_dir = Path(sys._MEIPASS) / "iblai_cli" / "templates"
+            self.template_dir = Path(sys._MEIPASS) / "iblai" / "templates"
         else:
             self.template_dir = Path(__file__).parent.parent / "templates"
         self.use_ai = use_ai
@@ -67,7 +67,7 @@ class BaseGenerator:
         # Initialize AI helper if AI is enabled
         self.ai_helper = None
         if self.use_ai and self.ai_provider:
-            from iblai_cli.ai_helper import AIHelper
+            from iblai.ai_helper import AIHelper
 
             self.ai_helper = AIHelper(
                 provider=self.ai_provider,

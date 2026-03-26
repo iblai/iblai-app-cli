@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.generators.base import BaseGenerator
+from iblai.generators.base import BaseGenerator
 
 
 class BaseAppGenerator(BaseGenerator):

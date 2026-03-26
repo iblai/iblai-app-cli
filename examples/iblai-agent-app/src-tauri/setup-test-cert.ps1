@@ -2,19 +2,35 @@
 # Creates a self-signed certificate for local MSIX testing/sideloading.
 # Run this ONCE before your first test build.
 #
+# MUST be run as Administrator — the certificate is installed to
+# LocalMachine\Root which the AppX deployment service requires.
+#
 # The cert Subject (CN=iblai-agent-app-dev) must match the Publisher in AppxManifest.xml.
 #
-# Prerequisites: Enable Developer Mode
-#   Settings > Update & Security > For developers > Developer Mode: ON
-#
-# Usage:
+# Usage (run as Administrator):
 #   powershell -ExecutionPolicy Bypass -File src-tauri\setup-test-cert.ps1
+#
+# Or from the project root:
+#   Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File src-tauri\setup-test-cert.ps1'
 
 $ErrorActionPreference = "Stop"
 
+# --- Require Administrator ---
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Host "This script requires Administrator privileges." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "The certificate must be installed to LocalMachine\Root for" -ForegroundColor Gray
+    Write-Host "Add-AppxPackage to trust it (the AppX service runs as SYSTEM)." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Run as Administrator:" -ForegroundColor Yellow
+    Write-Host "  Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"'" -ForegroundColor White
+    exit 1
+}
+
 $Subject = "CN=iblai-agent-app-dev"
 
-# Check if cert already exists
+# --- Check if cert already exists ---
 $existing = Get-ChildItem -Path "Cert:\CurrentUser\My" | Where-Object { $_.Subject -eq $Subject }
 if ($existing) {
     Write-Host "Test certificate already exists:" -ForegroundColor Green
@@ -26,7 +42,7 @@ if ($existing) {
     exit 0
 }
 
-# Create self-signed certificate
+# --- Create self-signed certificate ---
 Write-Host "Creating self-signed certificate ($Subject)..." -ForegroundColor Yellow
 
 $cert = New-SelfSignedCertificate `
@@ -43,17 +59,33 @@ Write-Host "  Subject:    $($cert.Subject)" -ForegroundColor Gray
 Write-Host "  Thumbprint: $($cert.Thumbprint)" -ForegroundColor Cyan
 Write-Host "  Expires:    $($cert.NotAfter)" -ForegroundColor Gray
 
-# Install to Trusted People store (required for sideloading with Developer Mode)
-Write-Host "`nInstalling certificate to Trusted People store..." -ForegroundColor Yellow
+# --- Install to trust stores ---
+Write-Host "`nInstalling certificate to trust stores..." -ForegroundColor Yellow
 
+# CurrentUser\Root — user-level signature validation
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
+Write-Host "  Installed to CurrentUser\Root (signature validation)" -ForegroundColor Gray
+
+# CurrentUser\TrustedPeople — sideloading trust with Developer Mode
 $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPeople", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
+Write-Host "  Installed to CurrentUser\TrustedPeople (sideloading)" -ForegroundColor Gray
 
-Write-Host "Certificate installed to Trusted People store." -ForegroundColor Green
+# LocalMachine\Root — required by AppX deployment service (Add-AppxPackage)
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
+Write-Host "  Installed to LocalMachine\Root (MSIX installation)" -ForegroundColor Gray
 
-# Summary
+Write-Host "Certificate installed to all trust stores." -ForegroundColor Green
+
+# --- Summary ---
 Write-Host ""
 Write-Host "--- Setup Complete ---" -ForegroundColor Cyan
 Write-Host ""
@@ -65,4 +97,6 @@ Write-Host "  3. Double-click the .msix file in msix-output/ to install" -Foregr
 Write-Host ""
 Write-Host "To remove this certificate later:" -ForegroundColor DarkYellow
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
+Write-Host "  Get-ChildItem Cert:\CurrentUser\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\CurrentUser\TrustedPeople | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
+Write-Host "  Get-ChildItem Cert:\LocalMachine\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray

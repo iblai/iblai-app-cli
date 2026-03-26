@@ -1,8 +1,8 @@
-"""Tests for iblai_cli.ai_helper -- AIHelper constructor and parameter handling."""
+"""Tests for iblai.ai_helper -- AIHelper constructor and parameter handling."""
 
 import pytest
 
-from iblai_cli.ai_helper import AIHelper
+from iblai.ai_helper import AIHelper
 
 
 class TestAIHelperInit:

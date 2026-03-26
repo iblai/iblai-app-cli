@@ -40,7 +40,7 @@ iblai tauri dev
 ## Architecture
 
 ```
-iblai_cli/
+iblai/
 ├── cli.py                    # Click entry point — registers startapp, add, tauri
 ├── config.py                 # .env file loading with stage overrides
 ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
@@ -70,6 +70,17 @@ iblai_cli/
     ├── skills/               # 13 Claude skill .md files + screenshots
     └── opencode-skills/      # 13 OpenCode skill directories (SKILL.md + screenshots)
 ```
+
+### Python Naming Convention
+
+Python package directories cannot contain hyphens — `import iblai-cli` is a syntax error (Python interprets `-` as minus). The names used across the project:
+
+- **Package directory** (importable): `iblai/`
+- **Distribution name** (pip/PyPI): `iblai-app-cli`
+- **CLI command**: `iblai`
+- **npm package**: `@iblai/cli`
+
+Do not rename `iblai/` to `iblai-cli/`.
 
 ### Generator Hierarchy
 

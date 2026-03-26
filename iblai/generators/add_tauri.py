@@ -9,8 +9,8 @@ from typing import List
 
 from rich.console import Console
 
-from iblai_cli.generators.base import BaseGenerator
-from iblai_cli.next_config_patcher import (
+from iblai.generators.base import BaseGenerator
+from iblai.next_config_patcher import (
     find_next_config,
     patch_next_config_for_tauri,
 )

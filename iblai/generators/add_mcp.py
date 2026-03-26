@@ -5,8 +5,8 @@ from pathlib import Path
 import shutil
 from typing import List
 
-from iblai_cli.package_manager import install_dev_packages
-from iblai_cli.project_detector import ProjectInfo
+from iblai.package_manager import install_dev_packages
+from iblai.project_detector import ProjectInfo
 
 
 # .mcp.json content

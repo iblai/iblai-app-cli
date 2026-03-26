@@ -1,11 +1,11 @@
-"""Tests for iblai_cli.config -- .env file loading with stage overrides."""
+"""Tests for iblai.config -- .env file loading with stage overrides."""
 
 import os
 from pathlib import Path
 
 import pytest
 
-from iblai_cli.config import load_config
+from iblai.config import load_config
 
 
 @pytest.fixture(autouse=True)
