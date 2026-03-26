@@ -3,6 +3,10 @@ name = "{{ app_name | replace('-', '_') | replace(' ', '_') }}"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "{{ app_name }}"
+path = "src/main.rs"
+
 [lib]
 crate-type = ["staticlib", "cdylib", "lib"]
 

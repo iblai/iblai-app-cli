@@ -29,7 +29,7 @@
   <Applications>
     <Application
       Id="{{ app_name | replace('-', '') | replace('_', '') }}"
-      Executable="{{ app_name | replace('-', '_') | replace(' ', '_') }}.exe"
+      Executable="{{ app_name }}.exe"
       EntryPoint="Windows.FullTrustApplication">
 
       <uap:VisualElements
