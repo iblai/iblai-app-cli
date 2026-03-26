@@ -187,10 +187,18 @@ class TestGitHubWorkflows:
         }
         assert targets == expected
 
-    def test_build_binaries_includes_template_data(self):
+    def test_build_binaries_uses_scripts(self):
         text = (REPO_ROOT / ".github" / "workflows" / "build-binaries.yml").read_text()
-        assert "--add-data" in text
-        assert "iblai_cli/templates" in text
+        assert "scripts/build-binary.sh" in text
+        assert "scripts/build-binary.ps1" in text
+
+    def test_build_scripts_include_template_data(self):
+        sh = (REPO_ROOT / "scripts" / "build-binary.sh").read_text()
+        ps1 = (REPO_ROOT / "scripts" / "build-binary.ps1").read_text()
+        assert "--add-data" in sh
+        assert "iblai_cli/templates" in sh
+        assert "--add-data" in ps1
+        assert "iblai_cli/templates" in ps1
 
     def test_publish_npm_downloads_all_artifacts(self):
         text = (REPO_ROOT / ".github" / "workflows" / "publish-npm.yml").read_text()

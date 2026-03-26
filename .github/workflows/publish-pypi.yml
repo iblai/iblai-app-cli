@@ -1,9 +1,8 @@
 name: Publish to PyPI
 
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
