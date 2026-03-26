@@ -109,6 +109,50 @@ class TestAddTauriGenerator:
         assert "pub fn run()" in content
         assert "tauri::Builder" in content
 
+    def test_generates_icon_files(self, generated_dir):
+        icons_dir = generated_dir / "src-tauri" / "icons"
+        assert icons_dir.is_dir()
+        for name in [
+            "icon.ico",
+            "icon.icns",
+            "icon.png",
+            "32x32.png",
+            "128x128.png",
+            "128x128@2x.png",
+        ]:
+            icon = icons_dir / name
+            assert icon.exists(), f"Missing icon: {name}"
+            assert icon.stat().st_size > 0, f"Empty icon: {name}"
+
+    def test_generates_msix_icon_files(self, generated_dir):
+        icons_dir = generated_dir / "src-tauri" / "icons"
+        for name in [
+            "StoreLogo.png",
+            "Square44x44Logo.png",
+            "Square71x71Logo.png",
+            "Square150x150Logo.png",
+            "Square310x310Logo.png",
+            "Wide310x150Logo.png",
+        ]:
+            icon = icons_dir / name
+            assert icon.exists(), f"Missing MSIX icon: {name}"
+
+    def test_icon_png_is_valid(self, generated_dir):
+        """Placeholder PNGs start with the correct PNG signature."""
+        png = (generated_dir / "src-tauri" / "icons" / "32x32.png").read_bytes()
+        assert png[:8] == b"\x89PNG\r\n\x1a\n"
+
+    def test_icon_ico_is_valid(self, generated_dir):
+        """Placeholder ICO starts with the correct ICO signature."""
+        ico = (generated_dir / "src-tauri" / "icons" / "icon.ico").read_bytes()
+        # ICO header: reserved=0, type=1 (icon)
+        assert ico[:4] == b"\x00\x00\x01\x00"
+
+    def test_icon_icns_is_valid(self, generated_dir):
+        """Placeholder ICNS starts with the correct magic bytes."""
+        icns = (generated_dir / "src-tauri" / "icons" / "icon.icns").read_bytes()
+        assert icns[:4] == b"icns"
+
     def test_generates_capabilities_default_json(self, generated_dir):
         cap = generated_dir / "src-tauri" / "capabilities" / "default.json"
         assert cap.exists()

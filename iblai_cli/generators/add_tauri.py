@@ -2,6 +2,8 @@
 
 import json
 import re
+import struct
+import zlib
 from pathlib import Path
 from typing import List
 
@@ -14,6 +16,98 @@ from iblai_cli.next_config_patcher import (
 )
 
 console = Console()
+
+
+# ---------------------------------------------------------------------------
+# Pure-Python minimal icon generation (no PIL / Pillow dependency)
+# ---------------------------------------------------------------------------
+
+
+def _create_png(
+    width: int, height: int, r: int = 59, g: int = 130, b: int = 246
+) -> bytes:
+    """Create a minimal valid PNG image (solid color, no transparency).
+
+    Default color is a blue (#3B82F6) matching Tailwind's blue-500.
+    """
+
+    def _chunk(chunk_type: bytes, data: bytes) -> bytes:
+        """Build a PNG chunk: length + type + data + CRC32."""
+        return (
+            struct.pack(">I", len(data))
+            + chunk_type
+            + data
+            + struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
+        )
+
+    # IHDR: width, height, bit depth 8, color type 2 (RGB), compression 0,
+    # filter 0, interlace 0
+    ihdr_data = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+
+    # IDAT: raw image data — each row starts with filter byte 0 (None),
+    # followed by RGB pixels
+    raw_rows = b""
+    for _ in range(height):
+        raw_rows += b"\x00" + bytes([r, g, b]) * width
+    idat_data = zlib.compress(raw_rows)
+
+    return (
+        b"\x89PNG\r\n\x1a\n"  # PNG signature
+        + _chunk(b"IHDR", ihdr_data)
+        + _chunk(b"IDAT", idat_data)
+        + _chunk(b"IEND", b"")
+    )
+
+
+def _create_ico(png_data: bytes) -> bytes:
+    """Create a minimal .ico file wrapping a single PNG image.
+
+    ICO format: 6-byte header + 16-byte directory entry + PNG payload.
+    Modern Windows (Vista+) supports PNG-compressed ICO entries.
+    """
+    # ICO header: reserved=0, type=1 (icon), count=1
+    header = struct.pack("<HHH", 0, 1, 1)
+
+    # Parse width/height from PNG IHDR (bytes 16-23)
+    width = struct.unpack(">I", png_data[16:20])[0]
+    height = struct.unpack(">I", png_data[20:24])[0]
+
+    # ICO directory entry: width, height (0 means 256), color count, reserved,
+    # planes, bit count, data size, data offset
+    w = width if width < 256 else 0
+    h = height if height < 256 else 0
+    entry = struct.pack(
+        "<BBBBHHII",
+        w,  # width (0 = 256)
+        h,  # height (0 = 256)
+        0,  # color count (0 for truecolor)
+        0,  # reserved
+        1,  # color planes
+        32,  # bits per pixel
+        len(png_data),  # data size
+        22,  # data offset (6 header + 16 entry)
+    )
+
+    return header + entry + png_data
+
+
+def _create_icns(png_data: bytes) -> bytes:
+    """Create a minimal .icns file wrapping a single PNG image.
+
+    ICNS format: 4-byte magic + 4-byte total size, then entries of
+    4-byte type + 4-byte size + payload.  We use 'ic07' (128x128 PNG).
+    """
+    icon_type = b"ic07"  # 128x128 PNG
+    entry_size = 8 + len(png_data)  # type(4) + size(4) + data
+    total_size = 8 + entry_size  # magic(4) + total_size(4) + entry
+
+    return (
+        b"icns"
+        + struct.pack(">I", total_size)
+        + icon_type
+        + struct.pack(">I", entry_size)
+        + png_data
+    )
 
 
 class AddTauriGenerator:
@@ -94,6 +188,54 @@ class AddTauriGenerator:
             "fn main() {\n    tauri_build::build()\n}\n", encoding="utf-8"
         )
         created.append("src-tauri/build.rs")
+
+        # Placeholder icons so Tauri builds don't fail before the user
+        # runs `pnpm exec tauri icon <source.png>` with their own artwork.
+        icon_files = self._generate_placeholder_icons()
+        created.extend(icon_files)
+
+        return created
+
+    # ------------------------------------------------------------------
+    # Placeholder icon generation (pure Python, no PIL dependency)
+    # ------------------------------------------------------------------
+
+    def _generate_placeholder_icons(self) -> List[str]:
+        """Create minimal valid icon files in src-tauri/icons/."""
+        icons_dir = self.root / "src-tauri" / "icons"
+        icons_dir.mkdir(parents=True, exist_ok=True)
+        created = []
+
+        png_32 = _create_png(32, 32)
+        png_128 = _create_png(128, 128)
+        png_256 = _create_png(256, 256)
+
+        # Tauri bundle icons (referenced in tauri.conf.json)
+        icon_map = {
+            "32x32.png": png_32,
+            "128x128.png": png_128,
+            "128x128@2x.png": png_256,
+            "icon.png": png_256,
+            # MSIX icons (referenced in AppxManifest.xml)
+            "StoreLogo.png": png_32,
+            "Square44x44Logo.png": _create_png(44, 44),
+            "Square71x71Logo.png": _create_png(71, 71),
+            "Square150x150Logo.png": _create_png(150, 150),
+            "Square310x310Logo.png": _create_png(310, 310),
+            "Wide310x150Logo.png": _create_png(310, 150),
+        }
+
+        for name, data in icon_map.items():
+            (icons_dir / name).write_bytes(data)
+            created.append(f"src-tauri/icons/{name}")
+
+        # .ico (Windows) — ICO container wrapping a 32x32 PNG
+        (icons_dir / "icon.ico").write_bytes(_create_ico(png_32))
+        created.append("src-tauri/icons/icon.ico")
+
+        # .icns (macOS) — ICNS container wrapping a 128x128 PNG
+        (icons_dir / "icon.icns").write_bytes(_create_icns(png_128))
+        created.append("src-tauri/icons/icon.icns")
 
         return created
 
