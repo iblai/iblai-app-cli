@@ -123,11 +123,24 @@ New-Item -ItemType Directory -Path $StagingDir | Out-Null
 # Copy executable
 Copy-Item $ExePath $StagingDir
 
-# Copy AppxManifest and patch ProcessorArchitecture for the target
+# Copy AppxManifest and patch for the target
 $ManifestSrc = Join-Path $TauriDir "AppxManifest.xml"
 $ManifestDest = Join-Path $StagingDir "AppxManifest.xml"
 $manifestContent = Get-Content $ManifestSrc -Raw
 $manifestContent = $manifestContent -replace 'ProcessorArchitecture="[^"]*"', "ProcessorArchitecture=`"$MsixArch`""
+
+# Auto-patch Publisher to match the signing certificate's subject.
+# This prevents SignerSign() failures from publisher/cert mismatch.
+if ($CertThumbprint) {
+    $signingCert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Thumbprint -eq $CertThumbprint }
+    if ($signingCert) {
+        $manifestContent = $manifestContent -replace 'Publisher="[^"]*"', "Publisher=`"$($signingCert.Subject)`""
+        Write-Host "Patched Publisher to match certificate: $($signingCert.Subject)" -ForegroundColor Gray
+    } else {
+        Write-Warning "Certificate with thumbprint $CertThumbprint not found in Cert:\CurrentUser\My"
+    }
+}
+
 Set-Content -Path $ManifestDest -Value $manifestContent
 
 Write-Host "Set ProcessorArchitecture=$MsixArch in AppxManifest.xml" -ForegroundColor Gray
@@ -190,11 +203,31 @@ Write-Host "MSIX package created: $MsixPath" -ForegroundColor Green
 # --- Step 4: Sign the package (optional) ---
 if ($CertThumbprint) {
     Write-Host "`n[4/4] Signing MSIX package..." -ForegroundColor Yellow
+
+    # Try with RFC 3161 timestamp first (recommended for distribution)
     & $SignTool sign /fd SHA256 /sha1 $CertThumbprint /td SHA256 /tr $TimestampUrl $MsixPath
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "signtool sign failed with exit code $LASTEXITCODE"
-        exit 1
+        Write-Host "Timestamp server unreachable, signing without timestamp..." -ForegroundColor DarkYellow
+        & $SignTool sign /fd SHA256 /sha1 $CertThumbprint $MsixPath
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "signtool sign failed (exit code $LASTEXITCODE)"
+            Write-Host ""
+            Write-Host "Diagnostics:" -ForegroundColor Yellow
+            Write-Host "  Thumbprint:  $CertThumbprint" -ForegroundColor Gray
+            $diagCert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Thumbprint -eq $CertThumbprint }
+            if ($diagCert) {
+                Write-Host "  Cert found:  $($diagCert.Subject)" -ForegroundColor Gray
+                Write-Host "  Expires:     $($diagCert.NotAfter)" -ForegroundColor Gray
+            } else {
+                Write-Host "  Cert NOT FOUND in Cert:\CurrentUser\My" -ForegroundColor Red
+                Write-Host "  Run: pnpm tauri:setup:cert" -ForegroundColor White
+            }
+            [xml]$diagManifest = Get-Content $ManifestDest
+            Write-Host "  Manifest Publisher: $($diagManifest.Package.Identity.Publisher)" -ForegroundColor Gray
+            exit 1
+        }
     }
 
     Write-Host "Package signed successfully." -ForegroundColor Green
