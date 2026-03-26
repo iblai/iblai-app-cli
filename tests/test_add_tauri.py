@@ -62,7 +62,7 @@ class TestAddTauriGenerator:
         data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
         identifier = data["identifier"]
         assert "_" not in identifier, f"Identifier '{identifier}' contains underscores"
-        assert identifier == "com.test.app.app"
+        assert identifier == "com.test.app.application"
 
     def test_appx_manifest_name_has_no_underscores(self, generated_dir):
         content = (generated_dir / "src-tauri" / "AppxManifest.xml").read_text()
@@ -73,7 +73,7 @@ class TestAddTauriGenerator:
         assert match, "No Name attribute found in AppxManifest.xml"
         name = match.group(1)
         assert "_" not in name, f"Name '{name}' contains underscores"
-        assert name == "com.test.app.app"
+        assert name == "com.test.app.application"
 
     def test_tauri_conf_has_dev_url(self, generated_dir):
         data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
