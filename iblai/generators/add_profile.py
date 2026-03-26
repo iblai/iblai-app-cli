@@ -1,14 +1,14 @@
-"""Generator for adding IBL.ai notification bell to an existing Next.js project."""
+"""Generator for adding IBL.ai profile dropdown to an existing Next.js project."""
 
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.project_detector import ProjectInfo
+from iblai.project_detector import ProjectInfo
 
 
-class AddNotificationsGenerator:
-    """Generates a notification bell component for an existing project."""
+class AddProfileGenerator:
+    """Generates a profile dropdown component for an existing project."""
 
     def __init__(self, project: ProjectInfo):
         self.project = project
@@ -28,11 +28,11 @@ class AddNotificationsGenerator:
         return self.env.get_template(template_path).render({})
 
     def generate(self) -> list[str]:
-        """Generate the notification bell. Returns list of created file paths."""
+        """Generate the profile dropdown. Returns list of created file paths."""
         created: list[str] = []
 
-        path = self.project.components_dir / "iblai" / "notification-bell.tsx"
-        self._write(path, self._render("add/notifications/notification-bell.tsx.j2"))
+        path = self.project.components_dir / "iblai" / "profile-dropdown.tsx"
+        self._write(path, self._render("add/profile/profile-dropdown.tsx.j2"))
         created.append(str(path.relative_to(self.project.root)))
 
         return created

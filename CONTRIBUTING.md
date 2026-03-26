@@ -20,26 +20,26 @@ pytest
 3. **Run tests with coverage:**
 
 ```bash
-pytest --cov=iblai_cli --cov-report=html
+pytest --cov=iblai --cov-report=html
 ```
 
 4. **Format code:**
 
 ```bash
-black iblai_cli tests
+black iblai tests
 ```
 
 5. **Type checking:**
 
 ```bash
-mypy iblai_cli
+mypy iblai
 ```
 
 ## Project Structure
 
 ```
 iblai-cli/
-├── iblai_cli/               # Source code
+├── iblai/               # Source code
 │   ├── cli.py               # Main CLI entry point
 │   ├── commands/            # CLI commands
 │   │   └── startapp.py      # startapp command
@@ -59,10 +59,10 @@ iblai-cli/
 
 To add a new app template (e.g., `dashboard`):
 
-1. **Create a generator class** in `iblai_cli/generators/dashboard.py`:
+1. **Create a generator class** in `iblai/generators/dashboard.py`:
 
 ```python
-from iblai_cli.generators.base import BaseGenerator
+from iblai.generators.base import BaseGenerator
 
 class DashboardAppGenerator(BaseGenerator):
     def generate(self) -> None:
@@ -71,7 +71,7 @@ class DashboardAppGenerator(BaseGenerator):
         # ... more generation methods
 ```
 
-2. **Create template files** in `iblai_cli/templates/dashboard/`:
+2. **Create template files** in `iblai/templates/dashboard/`:
 
 ```
 templates/dashboard/
@@ -82,7 +82,7 @@ templates/dashboard/
     └── dashboard.tsx.j2
 ```
 
-3. **Update the startapp command** in `iblai_cli/commands/startapp.py`:
+3. **Update the startapp command** in `iblai/commands/startapp.py`:
 
 ```python
 @click.argument("template", type=click.Choice(["agent", "dashboard"], case_sensitive=False))

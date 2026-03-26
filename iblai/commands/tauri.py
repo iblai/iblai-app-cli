@@ -183,7 +183,7 @@ def tauri(ctx):
 @tauri.command()
 def init():
     """Add Tauri v2 desktop shell to the current project."""
-    from iblai_cli.generators.add_tauri import AddTauriGenerator
+    from iblai.generators.add_tauri import AddTauriGenerator
 
     root = Path.cwd()
     pkg = root / "package.json"
@@ -237,7 +237,7 @@ def init():
 @click.option("--all", "gen_all", is_flag=True, help="Generate all platform workflows")
 def ci_workflow(desktop, gen_ios, gen_msix, gen_all):
     """Generate GitHub Actions workflow files for Tauri builds."""
-    from iblai_cli.generators.add_tauri import AddTauriGenerator
+    from iblai.generators.add_tauri import AddTauriGenerator
 
     if not desktop and not gen_ios and not gen_msix and not gen_all:
         desktop = True

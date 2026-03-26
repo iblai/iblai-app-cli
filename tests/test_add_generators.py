@@ -6,13 +6,13 @@ from unittest.mock import patch
 
 import pytest
 
-from iblai_cli.project_detector import ProjectInfo
+from iblai.project_detector import ProjectInfo
 
 
 @pytest.fixture(autouse=True)
 def mock_subprocess():
     """Mock subprocess.run so install_packages doesn't run real package managers."""
-    with patch("iblai_cli.package_manager.subprocess.run") as mock_run:
+    with patch("iblai.package_manager.subprocess.run") as mock_run:
         mock_run.return_value = None
         yield mock_run
 
@@ -83,7 +83,7 @@ class TestAddAuthGenerator:
 
     @pytest.fixture
     def generated(self, project):
-        from iblai_cli.generators.add_auth import AddAuthGenerator
+        from iblai.generators.add_auth import AddAuthGenerator
 
         gen = AddAuthGenerator(project, platform_key="acme")
         created = gen.generate()
@@ -165,7 +165,7 @@ class TestAddChatGenerator:
 
     @pytest.fixture
     def widget_content(self, project):
-        from iblai_cli.generators.add_chat import AddChatGenerator
+        from iblai.generators.add_chat import AddChatGenerator
 
         gen = AddChatGenerator(project)
         gen.generate()
@@ -173,7 +173,7 @@ class TestAddChatGenerator:
         return path.read_text()
 
     def test_chat_generates_widget(self, project):
-        from iblai_cli.generators.add_chat import AddChatGenerator
+        from iblai.generators.add_chat import AddChatGenerator
 
         created = AddChatGenerator(project).generate()
         assert (project.components_dir / "iblai" / "chat-widget.tsx").exists()
@@ -205,13 +205,13 @@ class TestAddProfileGenerator:
 
     @pytest.fixture
     def profile_content(self, project):
-        from iblai_cli.generators.add_profile import AddProfileGenerator
+        from iblai.generators.add_profile import AddProfileGenerator
 
         AddProfileGenerator(project).generate()
         return (project.components_dir / "iblai" / "profile-dropdown.tsx").read_text()
 
     def test_profile_generates_dropdown(self, project):
-        from iblai_cli.generators.add_profile import AddProfileGenerator
+        from iblai.generators.add_profile import AddProfileGenerator
 
         created = AddProfileGenerator(project).generate()
         assert len(created) == 1
@@ -241,14 +241,14 @@ class TestAddNotificationsGenerator:
         return _make_project(tmp_path)
 
     def test_notifications_generates_bell(self, project):
-        from iblai_cli.generators.add_notifications import AddNotificationsGenerator
+        from iblai.generators.add_notifications import AddNotificationsGenerator
 
         created = AddNotificationsGenerator(project).generate()
         assert len(created) == 1
         assert (project.components_dir / "iblai" / "notification-bell.tsx").exists()
 
     def test_notifications_uses_sdk_component(self, project):
-        from iblai_cli.generators.add_notifications import AddNotificationsGenerator
+        from iblai.generators.add_notifications import AddNotificationsGenerator
 
         AddNotificationsGenerator(project).generate()
         content = (
@@ -271,7 +271,7 @@ class TestAddMcpGenerator:
 
     @pytest.fixture
     def generated(self, project):
-        from iblai_cli.generators.add_mcp import AddMcpGenerator
+        from iblai.generators.add_mcp import AddMcpGenerator
 
         created = AddMcpGenerator(project).generate()
         return project, created
@@ -351,14 +351,14 @@ class TestAddGeneratorsSrcDir:
         return _make_project(tmp_path, src_dir="src")
 
     def test_auth_respects_src_dir(self, project):
-        from iblai_cli.generators.add_auth import AddAuthGenerator
+        from iblai.generators.add_auth import AddAuthGenerator
 
         created = AddAuthGenerator(project, platform_key="acme").generate()
         assert any("src/lib/iblai/config.ts" in f for f in created)
         assert (project.root / "src" / "lib" / "iblai" / "config.ts").exists()
 
     def test_chat_respects_src_dir(self, project):
-        from iblai_cli.generators.add_chat import AddChatGenerator
+        from iblai.generators.add_chat import AddChatGenerator
 
         AddChatGenerator(project).generate()
         assert (
@@ -366,7 +366,7 @@ class TestAddGeneratorsSrcDir:
         ).exists()
 
     def test_profile_respects_src_dir(self, project):
-        from iblai_cli.generators.add_profile import AddProfileGenerator
+        from iblai.generators.add_profile import AddProfileGenerator
 
         AddProfileGenerator(project).generate()
         assert (
@@ -388,7 +388,7 @@ class TestAddAuthAutoApply:
 
     @pytest.fixture
     def generated(self, project):
-        from iblai_cli.generators.add_auth import AddAuthGenerator
+        from iblai.generators.add_auth import AddAuthGenerator
 
         created = AddAuthGenerator(project, platform_key="acme").generate()
         return project, created
@@ -427,7 +427,7 @@ class TestAddChatAutoApply:
         return _make_project(tmp_path)
 
     def test_chat_installs_web_mentor(self, project, mock_subprocess):
-        from iblai_cli.generators.add_chat import AddChatGenerator
+        from iblai.generators.add_chat import AddChatGenerator
 
         AddChatGenerator(project).generate()
         mock_subprocess.assert_called()
@@ -436,7 +436,7 @@ class TestAddChatAutoApply:
 
     def test_chat_does_not_patch_store(self, project):
         """The web component wrapper does not need Redux store changes."""
-        from iblai_cli.generators.add_chat import AddChatGenerator
+        from iblai.generators.add_chat import AddChatGenerator
 
         store_before = (project.store_dir / "index.ts").read_text()
         AddChatGenerator(project).generate()
@@ -452,7 +452,7 @@ class TestAddMcpAutoApply:
         return _make_project(tmp_path)
 
     def test_mcp_installs_dev_dep(self, project, mock_subprocess):
-        from iblai_cli.generators.add_mcp import AddMcpGenerator
+        from iblai.generators.add_mcp import AddMcpGenerator
 
         AddMcpGenerator(project).generate()
         mock_subprocess.assert_called()
@@ -501,13 +501,13 @@ class TestAddToBaseTemplateApp:
 
     def test_has_iblai_auth_detects_lib_config(self, project):
         """_has_iblai_auth should return True when lib/config.ts exists."""
-        from iblai_cli.commands.add import _has_iblai_auth
+        from iblai.commands.add import _has_iblai_auth
 
         assert _has_iblai_auth(project) is True
 
     def test_has_iblai_auth_detects_lib_iblai_config(self, tmp_path):
         """_has_iblai_auth should return True when lib/iblai/config.ts exists."""
-        from iblai_cli.commands.add import _has_iblai_auth
+        from iblai.commands.add import _has_iblai_auth
 
         proj = _make_project(tmp_path)
         # _make_project doesn't create lib/iblai/config.ts, but it does create lib/config.ts
@@ -518,7 +518,7 @@ class TestAddToBaseTemplateApp:
 
     def test_has_iblai_auth_returns_false_when_no_auth(self, tmp_path):
         """_has_iblai_auth should return False when neither config exists."""
-        from iblai_cli.commands.add import _has_iblai_auth
+        from iblai.commands.add import _has_iblai_auth
 
         root = tmp_path / "empty"
         root.mkdir()
@@ -531,20 +531,20 @@ class TestAddToBaseTemplateApp:
 
     def test_chat_generates_on_base_template(self, project):
         """iblai add chat generators work when lib/config.ts exists."""
-        from iblai_cli.generators.add_chat import AddChatGenerator
+        from iblai.generators.add_chat import AddChatGenerator
 
         created = AddChatGenerator(project).generate()
         assert len(created) == 1
         assert (project.components_dir / "iblai" / "chat-widget.tsx").exists()
 
     def test_profile_generates_on_base_template(self, project):
-        from iblai_cli.generators.add_profile import AddProfileGenerator
+        from iblai.generators.add_profile import AddProfileGenerator
 
         created = AddProfileGenerator(project).generate()
         assert len(created) == 1
 
     def test_notifications_generates_on_base_template(self, project):
-        from iblai_cli.generators.add_notifications import AddNotificationsGenerator
+        from iblai.generators.add_notifications import AddNotificationsGenerator
 
         created = AddNotificationsGenerator(project).generate()
         assert len(created) == 1

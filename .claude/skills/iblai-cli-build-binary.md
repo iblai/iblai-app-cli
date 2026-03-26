@@ -28,31 +28,31 @@ Output: `dist/iblai` (or `dist/iblai.exe` on Windows).
 pyinstaller \
   --onefile \
   --name iblai \
-  --add-data "iblai_cli/templates:iblai_cli/templates" \  # : separator on Unix
-  --hidden-import=iblai_cli \
-  --hidden-import=iblai_cli.config \
-  --hidden-import=iblai_cli.commands \
-  --hidden-import=iblai_cli.commands.startapp \
-  --hidden-import=iblai_cli.commands.add \
-  --hidden-import=iblai_cli.commands.tauri \
-  --hidden-import=iblai_cli.generators \
-  --hidden-import=iblai_cli.generators.base \
-  --hidden-import=iblai_cli.generators.base_app \
-  --hidden-import=iblai_cli.generators.agent \
-  --hidden-import=iblai_cli.generators.add_auth \
-  --hidden-import=iblai_cli.generators.add_chat \
-  --hidden-import=iblai_cli.generators.add_profile \
-  --hidden-import=iblai_cli.generators.add_notifications \
-  --hidden-import=iblai_cli.generators.add_mcp \
-  --hidden-import=iblai_cli.generators.add_tauri \
-  --hidden-import=iblai_cli.ai_helper \
-  --hidden-import=iblai_cli.project_detector \
-  --hidden-import=iblai_cli.package_manager \
-  --hidden-import=iblai_cli.next_config_patcher \
+  --add-data "iblai/templates:iblai/templates" \  # : separator on Unix
+  --hidden-import=iblai \
+  --hidden-import=iblai.config \
+  --hidden-import=iblai.commands \
+  --hidden-import=iblai.commands.startapp \
+  --hidden-import=iblai.commands.add \
+  --hidden-import=iblai.commands.tauri \
+  --hidden-import=iblai.generators \
+  --hidden-import=iblai.generators.base \
+  --hidden-import=iblai.generators.base_app \
+  --hidden-import=iblai.generators.agent \
+  --hidden-import=iblai.generators.add_auth \
+  --hidden-import=iblai.generators.add_chat \
+  --hidden-import=iblai.generators.add_profile \
+  --hidden-import=iblai.generators.add_notifications \
+  --hidden-import=iblai.generators.add_mcp \
+  --hidden-import=iblai.generators.add_tauri \
+  --hidden-import=iblai.ai_helper \
+  --hidden-import=iblai.project_detector \
+  --hidden-import=iblai.package_manager \
+  --hidden-import=iblai.next_config_patcher \
   --copy-metadata readchar \
   --copy-metadata rich \
   --copy-metadata inquirer \
-  iblai_cli/cli.py
+  iblai/cli.py
 ```
 
 ### Key flags
@@ -69,7 +69,7 @@ pyinstaller \
 ```python
 if hasattr(sys, "_MEIPASS"):
     # PyInstaller frozen binary — templates are in the temp extraction dir
-    self.template_dir = Path(sys._MEIPASS) / "iblai_cli" / "templates"
+    self.template_dir = Path(sys._MEIPASS) / "iblai" / "templates"
 else:
     # Development mode — templates are in the source tree
     self.template_dir = Path(__file__).parent.parent / "templates"
@@ -101,8 +101,8 @@ else:
 
 When you create a new Python module that's imported by the CLI, you must add it to the `--hidden-import` list in **both** build scripts:
 
-1. `scripts/build-binary.sh` — add `--hidden-import=iblai_cli.new_module`
-2. `scripts/build-binary.ps1` — add `--hidden-import=iblai_cli.new_module`
+1. `scripts/build-binary.sh` — add `--hidden-import=iblai.new_module`
+2. `scripts/build-binary.ps1` — add `--hidden-import=iblai.new_module`
 
 If you forget, the binary will crash with `ModuleNotFoundError` at runtime.
 

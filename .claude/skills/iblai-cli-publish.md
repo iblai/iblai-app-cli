@@ -63,7 +63,7 @@ When bumping version, update these files:
 | File | Field |
 |------|-------|
 | `pyproject.toml` | `version = "0.2.0"` |
-| `iblai_cli/__init__.py` | `__version__ = "0.2.0"` |
+| `iblai/__init__.py` | `__version__ = "0.2.0"` |
 | `npm/cli/package.json` | `"version": "0.2.0"` |
 | `npm/cli-linux-x64/package.json` | `"version": "0.2.0"` |
 | `npm/cli-linux-arm64/package.json` | `"version": "0.2.0"` |

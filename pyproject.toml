@@ -45,8 +45,8 @@ dev = [
 ]
 
 [project.scripts]
-iblai = "iblai_cli.cli:cli"
-iblai-app-cli = "iblai_cli.cli:cli"
+iblai = "iblai.cli:cli"
+iblai-app-cli = "iblai.cli:cli"
 
 [project.urls]
 Homepage = "https://ibl.ai"
@@ -55,10 +55,10 @@ Repository = "https://github.com/iblai/iblai-app-cli"
 "Bug Tracker" = "https://github.com/iblai/iblai-app-cli/issues"
 
 [tool.setuptools.packages.find]
-include = ["iblai_cli*"]
+include = ["iblai*"]
 
 [tool.setuptools.package-data]
-iblai_cli = ["templates/**/*"]
+iblai = ["templates/**/*"]
 
 [tool.black]
 line-length = 100
@@ -75,4 +75,4 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=iblai_cli --cov-report=term-missing"
+addopts = "-v --cov=iblai --cov-report=term-missing"

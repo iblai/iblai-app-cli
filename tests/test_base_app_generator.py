@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from iblai_cli.generators.base_app import BaseAppGenerator
+from iblai.generators.base_app import BaseAppGenerator
 
 
 class TestBaseAppGenerator:
@@ -243,7 +243,7 @@ class TestTauriNextConfig:
 
     def test_tauri_flag_produces_static_export(self, tmp_path):
         """When tauri=True, next.config.mjs has output:'export' and no stubs."""
-        from iblai_cli.generators.base_app import BaseAppGenerator
+        from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
             app_name="test",
@@ -259,7 +259,7 @@ class TestTauriNextConfig:
 
     def test_no_tauri_flag_keeps_stubs(self, tmp_path):
         """When tauri=False, next.config.mjs has @tauri-apps stubs and no export."""
-        from iblai_cli.generators.base_app import BaseAppGenerator
+        from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
             app_name="test",
@@ -276,7 +276,7 @@ class TestTauriNextConfig:
     def test_tauri_flag_adds_tauri_deps_to_package_json(self, tmp_path):
         """When tauri=True, package.json includes Tauri deps and scripts."""
         import json
-        from iblai_cli.generators.base_app import BaseAppGenerator
+        from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
             app_name="test",
@@ -293,7 +293,7 @@ class TestTauriNextConfig:
     def test_no_tauri_flag_excludes_tauri_deps(self, tmp_path):
         """When tauri=False, package.json has no Tauri deps."""
         import json
-        from iblai_cli.generators.base_app import BaseAppGenerator
+        from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
             app_name="test",
@@ -318,7 +318,7 @@ class TestBaseAppCLI:
         return CliRunner()
 
     def test_agent_in_startapp_help(self, runner):
-        from iblai_cli.cli import cli
+        from iblai.cli import cli
 
         result = runner.invoke(cli, ["startapp", "--help"])
         assert result.exit_code == 0

@@ -38,7 +38,7 @@ class TestAddTauriGenerator:
     @pytest.fixture
     def generated_dir(self, project_dir):
         """Run AddTauriGenerator on the project."""
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(project_dir))
         gen.generate()
@@ -227,7 +227,7 @@ class TestAddTauriGenerator:
 
     def test_idempotent_package_json_patching(self, generated_dir):
         """Running generate twice doesn't duplicate entries."""
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(generated_dir))
         gen._patch_package_json()
@@ -246,7 +246,7 @@ class TestTauriCIWorkflows:
         return tmp_path
 
     def test_generates_desktop_workflow(self, project_dir):
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=True, ios=False)
@@ -260,7 +260,7 @@ class TestTauriCIWorkflows:
         assert "windows-latest" in content
 
     def test_generates_ios_workflow(self, project_dir):
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=False, ios=True)
@@ -272,7 +272,7 @@ class TestTauriCIWorkflows:
         assert "aarch64-apple-ios" in content
 
     def test_generates_windows_msix_workflow(self, project_dir):
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=False, ios=False, windows_msix=True)
@@ -286,7 +286,7 @@ class TestTauriCIWorkflows:
         assert "build-msix.ps1" in content
 
     def test_generates_all_workflows(self, project_dir):
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
 
         gen = AddTauriGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=True, ios=True, windows_msix=True)
@@ -297,7 +297,7 @@ class TestNextConfigTauriPatching:
     """Tests for patch_next_config_for_tauri()."""
 
     def test_removes_stubs_from_mjs(self, tmp_path):
-        from iblai_cli.next_config_patcher import patch_next_config_for_tauri
+        from iblai.next_config_patcher import patch_next_config_for_tauri
 
         config = tmp_path / "next.config.mjs"
         config.write_text(
@@ -318,7 +318,7 @@ class TestNextConfigTauriPatching:
         assert 'output: "export"' in content
 
     def test_idempotent_patching(self, tmp_path):
-        from iblai_cli.next_config_patcher import patch_next_config_for_tauri
+        from iblai.next_config_patcher import patch_next_config_for_tauri
 
         config = tmp_path / "next.config.mjs"
         config.write_text(
@@ -333,7 +333,7 @@ class TestNextConfigTauriPatching:
         assert result is None
 
     def test_returns_none_when_no_config(self, tmp_path):
-        from iblai_cli.next_config_patcher import patch_next_config_for_tauri
+        from iblai.next_config_patcher import patch_next_config_for_tauri
 
         result = patch_next_config_for_tauri(tmp_path)
         assert result is None

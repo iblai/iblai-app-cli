@@ -1,8 +1,8 @@
-"""Tests for iblai_cli.next_config_patcher -- next.config, globals.css, .env.local patching."""
+"""Tests for iblai.next_config_patcher -- next.config, globals.css, .env.local patching."""
 
 import pytest
 
-from iblai_cli.next_config_patcher import (
+from iblai.next_config_patcher import (
     find_next_config,
     patch_next_config,
     patch_globals_css,

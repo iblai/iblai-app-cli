@@ -5,13 +5,13 @@ from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.next_config_patcher import (
+from iblai.next_config_patcher import (
     patch_globals_css,
     patch_next_config,
     write_env_local,
 )
-from iblai_cli.package_manager import install_packages
-from iblai_cli.project_detector import ProjectInfo
+from iblai.package_manager import install_packages
+from iblai.project_detector import ProjectInfo
 
 # Dependencies required for auth integration.
 AUTH_DEPS = [

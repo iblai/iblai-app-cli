@@ -34,31 +34,31 @@ echo "==> Building binary with PyInstaller..."
 pyinstaller \
   --onefile \
   --name iblai \
-  --add-data "iblai_cli/templates:iblai_cli/templates" \
-  --hidden-import=iblai_cli \
-  --hidden-import=iblai_cli.config \
-  --hidden-import=iblai_cli.commands \
-  --hidden-import=iblai_cli.commands.startapp \
-  --hidden-import=iblai_cli.commands.add \
-  --hidden-import=iblai_cli.commands.tauri \
-  --hidden-import=iblai_cli.generators \
-  --hidden-import=iblai_cli.generators.base \
-  --hidden-import=iblai_cli.generators.base_app \
-  --hidden-import=iblai_cli.generators.agent \
-  --hidden-import=iblai_cli.generators.add_auth \
-  --hidden-import=iblai_cli.generators.add_chat \
-  --hidden-import=iblai_cli.generators.add_profile \
-  --hidden-import=iblai_cli.generators.add_notifications \
-  --hidden-import=iblai_cli.generators.add_mcp \
-  --hidden-import=iblai_cli.generators.add_tauri \
-  --hidden-import=iblai_cli.ai_helper \
-  --hidden-import=iblai_cli.project_detector \
-  --hidden-import=iblai_cli.package_manager \
-  --hidden-import=iblai_cli.next_config_patcher \
+  --add-data "iblai/templates:iblai/templates" \
+  --hidden-import=iblai \
+  --hidden-import=iblai.config \
+  --hidden-import=iblai.commands \
+  --hidden-import=iblai.commands.startapp \
+  --hidden-import=iblai.commands.add \
+  --hidden-import=iblai.commands.tauri \
+  --hidden-import=iblai.generators \
+  --hidden-import=iblai.generators.base \
+  --hidden-import=iblai.generators.base_app \
+  --hidden-import=iblai.generators.agent \
+  --hidden-import=iblai.generators.add_auth \
+  --hidden-import=iblai.generators.add_chat \
+  --hidden-import=iblai.generators.add_profile \
+  --hidden-import=iblai.generators.add_notifications \
+  --hidden-import=iblai.generators.add_mcp \
+  --hidden-import=iblai.generators.add_tauri \
+  --hidden-import=iblai.ai_helper \
+  --hidden-import=iblai.project_detector \
+  --hidden-import=iblai.package_manager \
+  --hidden-import=iblai.next_config_patcher \
   --copy-metadata readchar \
   --copy-metadata rich \
   --copy-metadata inquirer \
-  iblai_cli/cli.py
+  iblai/cli.py
 
 # ---- Verify ----
 echo "==> Verifying binary..."

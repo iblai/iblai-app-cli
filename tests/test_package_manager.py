@@ -1,10 +1,10 @@
-"""Tests for iblai_cli.package_manager -- package manager detection."""
+"""Tests for iblai.package_manager -- package manager detection."""
 
 import json
 
 import pytest
 
-from iblai_cli.package_manager import detect_package_manager, _already_installed
+from iblai.package_manager import detect_package_manager, _already_installed
 
 
 class TestDetectPackageManager:

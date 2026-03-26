@@ -4,7 +4,7 @@ import os
 
 import pytest
 from click.testing import CliRunner
-from iblai_cli.cli import cli
+from iblai.cli import cli
 
 # Keys that may leak from the host environment and affect test behavior
 _AI_ENV_KEYS = ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "IBLAI_AI_PROVIDER")

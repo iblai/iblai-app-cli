@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   npx shadcn@latest add @shadcn-space/dashboard-shell-01
   ```
 - `.env` file configuration support. The CLI now loads configuration from `.env` and `.env.{stage}` files in the current directory, with a clear priority chain: CLI flags > system env vars > `.env.{stage}` > `.env` > interactive prompts.
-- New `iblai_cli/config.py` module implementing the `.env` loading logic with `python-dotenv`.
+- New `iblai/config.py` module implementing the `.env` loading logic with `python-dotenv`.
 - Six new CLI options for `iblai startapp`:
   - `--app-name` (`IBLAI_APP_NAME`) -- set the app name non-interactively
   - `--env-file` -- path to a custom `.env` file

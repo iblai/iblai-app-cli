@@ -81,7 +81,7 @@ After generation, the command:
 ## Package Manager Detection (`package_manager.py`)
 
 ```python
-from iblai_cli.package_manager import detect_package_manager, install_packages
+from iblai.package_manager import detect_package_manager, install_packages
 
 pm = detect_package_manager(".")  # returns "pnpm", "yarn", "npm", or "bun"
 install_packages(".", ["@iblai/iblai-js", "@reduxjs/toolkit"])
@@ -94,7 +94,7 @@ Detection order: `pnpm-lock.yaml` → `yarn.lock` → `bun.lock`/`bun.lockb` →
 Regex-based patching for existing `next.config.mjs` (or `.ts`):
 
 ```python
-from iblai_cli.next_config_patcher import (
+from iblai.next_config_patcher import (
     find_next_config,          # locate next.config.{mjs,ts,js}
     patch_webpack_alias,       # add resolve.alias entries
     patch_globals_css,         # add @import for SDK styles
@@ -108,7 +108,7 @@ Each function is **idempotent** — checks for markers before patching.
 
 ## Adding a New `iblai add <feature>` Subcommand
 
-1. **Create generator** at `iblai_cli/generators/add_newfeature.py`:
+1. **Create generator** at `iblai/generators/add_newfeature.py`:
    ```python
    class AddNewFeatureGenerator:
        def __init__(self, project):
@@ -118,7 +118,7 @@ Each function is **idempotent** — checks for markers before patching.
            return ["components/iblai/new-feature.tsx", ...]
    ```
 
-2. **Create templates** at `iblai_cli/templates/add/newfeature/`:
+2. **Create templates** at `iblai/templates/add/newfeature/`:
    - `component.tsx.j2`, etc.
 
 3. **Add command** to `commands/add.py`:

@@ -40,7 +40,7 @@ iblai tauri dev
 ## Architecture
 
 ```
-iblai_cli/
+iblai/
 ├── cli.py                    # Click entry point — registers startapp, add, tauri
 ├── config.py                 # .env file loading with stage overrides
 ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
@@ -73,13 +73,14 @@ iblai_cli/
 
 ### Python Naming Convention
 
-The package directory is `iblai_cli/` (underscores), not `iblai-cli/` (hyphens). This is a hard Python requirement — `import iblai_cli` works, but `import iblai-cli` is a syntax error (Python interprets `-` as minus). The convention is:
+Python package directories cannot contain hyphens — `import iblai-cli` is a syntax error (Python interprets `-` as minus). The names used across the project:
 
-- **Package directory** (importable): underscores → `iblai_cli/`
-- **Distribution name** (pip/PyPI): hyphens → `iblai-app-cli`
-- **CLI command**: hyphens → `iblai`
+- **Package directory** (importable): `iblai/`
+- **Distribution name** (pip/PyPI): `iblai-app-cli`
+- **CLI command**: `iblai`
+- **npm package**: `@iblai/cli`
 
-Do not rename `iblai_cli/` to `iblai-cli/`.
+Do not rename `iblai/` to `iblai-cli/`.
 
 ### Generator Hierarchy
 

@@ -2,7 +2,7 @@
 
 from jinja2 import Environment, FileSystemLoader
 
-from iblai_cli.generators.base_app import BaseAppGenerator
+from iblai.generators.base_app import BaseAppGenerator
 
 
 class AgentAppGenerator(BaseAppGenerator):

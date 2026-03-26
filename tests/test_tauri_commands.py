@@ -8,8 +8,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from iblai_cli.cli import cli
-from iblai_cli.commands.tauri import _detect_exec_prefix
+from iblai.cli import cli
+from iblai.commands.tauri import _detect_exec_prefix
 
 
 class TestTauriCommandGroup:
@@ -101,15 +101,15 @@ class TestTauriPrerequisites:
     def runner(self):
         return CliRunner()
 
-    @patch("iblai_cli.commands.tauri._has_rust", return_value=False)
+    @patch("iblai.commands.tauri._has_rust", return_value=False)
     def test_passthrough_missing_rust_exits(self, mock_rust, runner):
         """Passing unknown args to tauri checks for Rust first."""
         result = runner.invoke(cli, ["tauri", "dev"], catch_exceptions=False)
         assert result.exit_code != 0
         assert "Rust toolchain not found" in result.output or "rustup" in result.output
 
-    @patch("iblai_cli.commands.tauri._has_rust", return_value=True)
-    @patch("iblai_cli.commands.tauri.subprocess.run")
+    @patch("iblai.commands.tauri._has_rust", return_value=True)
+    @patch("iblai.commands.tauri.subprocess.run")
     def test_passthrough_missing_tauri_cli_exits(self, mock_run, mock_rust, runner):
         """If @tauri-apps/cli is not installed, print helpful message."""
         mock_run.return_value = type("R", (), {"returncode": 1})()

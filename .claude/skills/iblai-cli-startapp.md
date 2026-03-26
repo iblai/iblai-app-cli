@@ -54,7 +54,7 @@ BaseGenerator (generators/base.py)
   - render_template(name, **extra_context): Jinja2 rendering
   - get_context(): {app_name, platform_key, mentor_id, has_mentor_id, tauri}
   - write_file(), copy_file(), create_directory_structure()
-  - template_dir: resolves to iblai_cli/templates/ (or sys._MEIPASS for PyInstaller)
+  - template_dir: resolves to iblai/templates/ (or sys._MEIPASS for PyInstaller)
   │
   └── BaseAppGenerator (generators/base_app.py)
         - Own Jinja2 Environment: FileSystemLoader [base/, shared/, add/]
@@ -91,14 +91,14 @@ if template.lower() == "agent":
         generator.enhance_with_prompt()
 
     if tauri:
-        from iblai_cli.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_tauri import AddTauriGenerator
         tauri_gen = AddTauriGenerator(project_root=str(output_path), app_name=app_name)
         tauri_gen.generate()
 ```
 
 ## Adding a New Template Type
 
-1. Create `iblai_cli/generators/new_type.py`:
+1. Create `iblai/generators/new_type.py`:
    ```python
    class NewTypeGenerator(BaseAppGenerator):
        def get_context(self):
@@ -112,7 +112,7 @@ if template.lower() == "agent":
            self._write("app/(app)/page.tsx", self._render("custom-page.tsx.j2"))
    ```
 
-2. Create `iblai_cli/templates/new_type/` directory with override templates
+2. Create `iblai/templates/new_type/` directory with override templates
 
 3. Add to `startapp.py`:
    - Import the generator
