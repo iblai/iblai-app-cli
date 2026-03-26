@@ -253,7 +253,8 @@ def startapp(
         agent = answers["agent"]
 
     # Prompt for app name if not provided via flag or env
-    if not app_name:
+    interactive = not app_name
+    if interactive:
         questions = [
             inquirer.Text(
                 "app_name",
@@ -269,6 +270,22 @@ def startapp(
             console.print("[red]Operation cancelled[/red]")
             return
         app_name = answers["app_name"]
+
+    # Ask about Tauri integration (interactive mode only, when --tauri was not passed)
+    if interactive and not tauri:
+        questions = [
+            inquirer.Confirm(
+                "tauri",
+                message=(
+                    "Include Tauri desktop/mobile support?"
+                    " (generates src-tauri/, enables native builds)"
+                ),
+                default=False,
+            ),
+        ]
+        answers = inquirer.prompt(questions)
+        if answers:
+            tauri = answers["tauri"]
 
     # Determine output directory
     output_path = Path(output) / app_name
