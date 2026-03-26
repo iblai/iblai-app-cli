@@ -186,6 +186,15 @@ class TestBaseAppGenerator:
     def test_generates_mcp_json(self, generated_dir):
         assert (generated_dir / ".mcp.json").exists()
 
+    def test_generates_claude_md(self, generated_dir):
+        claude_md = generated_dir / "CLAUDE.md"
+        assert claude_md.exists()
+        content = claude_md.read_text()
+        assert "MCP Server" in content
+        assert "pnpm dev" in content
+        assert "initializeDataLayer" in content
+        assert "DO NOT INITIALIZE GIT" in content
+
     def test_generates_button_and_sonner(self, generated_dir):
         assert (generated_dir / "components" / "ui" / "button.tsx").exists()
         assert (generated_dir / "components" / "ui" / "sonner.tsx").exists()

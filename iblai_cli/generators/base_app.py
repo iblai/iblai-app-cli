@@ -89,6 +89,7 @@ class BaseAppGenerator(BaseGenerator):
         self._write(".gitignore", self._render(".gitignore.j2"))
         self._write("eslint.config.mjs", self._render("eslint.config.mjs.j2"))
         self._write(".mcp.json", self._render(".mcp.json.j2"))
+        self._write("CLAUDE.md", self._render("CLAUDE.md.j2"))
         self._write("components.json", self._render("components.json.j2"))
 
         # --- Root layout + globals (from shared) ---
