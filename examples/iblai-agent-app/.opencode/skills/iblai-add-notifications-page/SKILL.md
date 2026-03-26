@@ -9,7 +9,7 @@ Add a full-screen notification center to your IBL.ai app using the SDK's
 `NotificationDisplay` component. The page includes an Inbox tab (list +
 detail view) and an Alerts tab (admin only — manage notification templates).
 
-![Notifications Page](notifications-page.png)
+![Notifications Page](docs/screenshots/notifications-page.png)
 
 ## Prerequisites
 

@@ -161,24 +161,24 @@ class BaseAppGenerator(BaseGenerator):
         self._write("public/env.js", self._render("public/env.js.j2"))
         self._write("public/README.md", self._render("public/README.md.j2"))
 
-        # --- Claude skills (.claude/skills/) — copy all files (md + images) ---
+        # --- Claude skills (.claude/skills/) — copy .md files only ---
         import shutil
 
         skills_src = self.template_dir / "skills"
         if skills_src.is_dir():
             for skill_file in sorted(skills_src.iterdir()):
-                if skill_file.is_file():
+                if skill_file.is_file() and skill_file.suffix == ".md":
                     dest = self.output_dir / ".claude" / "skills" / skill_file.name
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(skill_file, dest)
 
-        # --- OpenCode skills (.opencode/skills/<name>/) — copy all files ---
+        # --- OpenCode skills (.opencode/skills/<name>/) — copy .md files only ---
         opencode_src = self.template_dir / "opencode-skills"
         if opencode_src.is_dir():
             for skill_dir in sorted(opencode_src.iterdir()):
                 if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
                     for skill_file in sorted(skill_dir.iterdir()):
-                        if skill_file.is_file():
+                        if skill_file.is_file() and skill_file.suffix == ".md":
                             dest = (
                                 self.output_dir
                                 / ".opencode"
@@ -188,6 +188,15 @@ class BaseAppGenerator(BaseGenerator):
                             )
                             dest.parent.mkdir(parents=True, exist_ok=True)
                             shutil.copy2(skill_file, dest)
+
+        # --- Screenshots (docs/screenshots/) — shared by all skills ---
+        screenshots_src = self.template_dir / "screenshots"
+        if screenshots_src.is_dir():
+            screenshots_dest = self.output_dir / "docs" / "screenshots"
+            screenshots_dest.mkdir(parents=True, exist_ok=True)
+            for img in sorted(screenshots_src.iterdir()):
+                if img.is_file():
+                    shutil.copy2(img, screenshots_dest / img.name)
 
         # --- Playwright E2E tests (e2e/ directory) ---
         self._write(

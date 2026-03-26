@@ -4,7 +4,7 @@ Add a full-screen analytics dashboard to your IBL.ai app using the SDK's
 analytics components. Supports an overview dashboard as well as a full
 tabbed layout with Users, Topics, Financial, Transcripts, and Reports tabs.
 
-![Analytics Page](analytics-page.png)
+![Analytics Page](docs/screenshots/analytics-page.png)
 
 ## Prerequisites
 

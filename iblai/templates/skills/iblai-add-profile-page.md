@@ -5,7 +5,7 @@ SDK's `Profile` component. The page renders inside your authenticated
 `(app)` route group and includes tabs for Basic info, Social links,
 Education, Experience, Resume, and Security settings.
 
-![Profile Page](profile-page.png)
+![Profile Page](docs/screenshots/profile-page.png)
 
 ## Prerequisites
 

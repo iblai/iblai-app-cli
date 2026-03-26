@@ -9,7 +9,7 @@ Add a full-screen organization/account settings page using the SDK's `Account`
 component. The page includes tabs for Organization info, User Management,
 Integrations, Advanced settings, and optionally Billing.
 
-![Account Page](account-page.png)
+![Account Page](docs/screenshots/account-page.png)
 
 > **Note:** The `Account` component requires Next.js (it uses `next/image`
 > internally). Import it from `@iblai/iblai-js/web-containers/next`.
