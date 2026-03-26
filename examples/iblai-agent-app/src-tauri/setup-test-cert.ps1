@@ -43,24 +43,48 @@ Write-Host "  Subject:    $($cert.Subject)" -ForegroundColor Gray
 Write-Host "  Thumbprint: $($cert.Thumbprint)" -ForegroundColor Cyan
 Write-Host "  Expires:    $($cert.NotAfter)" -ForegroundColor Gray
 
-# Install to both Root and TrustedPeople stores
+# Install certificate to trust stores
 Write-Host "`nInstalling certificate to trust stores..." -ForegroundColor Yellow
 
-# Trusted Root Certification Authorities — required for MSIX signature chain validation
+# CurrentUser\Root — for user-level signature validation (Get-AuthenticodeSignature)
 $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
 Write-Host "  Installed to CurrentUser\Root (signature validation)" -ForegroundColor Gray
 
-# Trusted People — required for sideloading trust with Developer Mode
+# CurrentUser\TrustedPeople — for sideloading trust with Developer Mode
 $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPeople", "CurrentUser")
 $store.Open("ReadWrite")
 $store.Add($cert)
 $store.Close()
 Write-Host "  Installed to CurrentUser\TrustedPeople (sideloading)" -ForegroundColor Gray
 
-Write-Host "Certificate installed to both trust stores." -ForegroundColor Green
+# LocalMachine\Root — required by the AppX deployment service (Add-AppxPackage).
+# The AppX service runs as SYSTEM and checks the machine-level root store,
+# not CurrentUser\Root. Without this, Add-AppxPackage fails with 0x800B0109
+# (CERT_E_UNTRUSTED_ROOT) even though Get-AuthenticodeSignature shows Valid.
+# Requires administrator privileges.
+$localMachineOk = $false
+try {
+    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
+    $store.Open("ReadWrite")
+    $store.Add($cert)
+    $store.Close()
+    $localMachineOk = $true
+    Write-Host "  Installed to LocalMachine\Root (MSIX installation)" -ForegroundColor Gray
+} catch {
+    Write-Host "  WARNING: Could not install to LocalMachine\Root (requires admin)" -ForegroundColor Red
+    Write-Host "  Add-AppxPackage will fail with 0x800B0109 without this." -ForegroundColor Red
+    Write-Host "  Re-run as Administrator:" -ForegroundColor Yellow
+    Write-Host "    Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"'" -ForegroundColor White
+}
+
+if ($localMachineOk) {
+    Write-Host "Certificate installed to all trust stores." -ForegroundColor Green
+} else {
+    Write-Host "Certificate installed to user stores only (machine store requires admin)." -ForegroundColor Yellow
+}
 
 # Summary
 Write-Host ""
@@ -68,11 +92,19 @@ Write-Host "--- Setup Complete ---" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Enable Developer Mode: Settings > Update & Security > For developers" -ForegroundColor White
-Write-Host "  2. Build and sign the MSIX:" -ForegroundColor White
+if (-not $localMachineOk) {
+    Write-Host "  2. Re-run this script as Administrator (required for MSIX install)" -ForegroundColor Red
+    Write-Host "     Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"'" -ForegroundColor White
+    Write-Host "  3. Build and sign the MSIX:" -ForegroundColor White
+} else {
+    Write-Host "  2. Build and sign the MSIX:" -ForegroundColor White
+}
 Write-Host "     .\build-msix.ps1 -CertThumbprint `"$($cert.Thumbprint)`"" -ForegroundColor White
-Write-Host "  3. Double-click the .msix file in msix-output/ to install" -ForegroundColor White
+Write-Host "  $(if ($localMachineOk) { '3' } else { '4' }). Double-click the .msix file in msix-output/ to install" -ForegroundColor White
 Write-Host ""
 Write-Host "To remove this certificate later:" -ForegroundColor DarkYellow
 Write-Host "  Get-ChildItem Cert:\CurrentUser\My | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\CurrentUser\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
 Write-Host "  Get-ChildItem Cert:\CurrentUser\TrustedPeople | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
+Write-Host "  # If installed as admin:" -ForegroundColor Gray
+Write-Host "  Get-ChildItem Cert:\LocalMachine\Root | Where-Object { `$_.Subject -eq '$Subject' } | Remove-Item" -ForegroundColor Gray
