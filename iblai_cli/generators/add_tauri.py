@@ -267,8 +267,8 @@ class AddTauriGenerator:
             "tauri:dev": "tauri dev",
             "tauri:build": "tauri build",
             "tauri:build:debug": "next build && tauri build --debug",
-            "tauri:build:msix": "pwsh src-tauri/build-msix.ps1",
-            "tauri:build:msix:arm64": "pwsh src-tauri/build-msix.ps1 -Architecture arm64",
+            "tauri:build:msix": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1",
+            "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64",
         }
         for key, val in tauri_scripts.items():
             if key not in scripts:
