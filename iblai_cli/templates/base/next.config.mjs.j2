@@ -71,6 +71,8 @@ const nextConfig = {
 
     const reactReduxDir = dedup('react-redux');
     if (reactReduxDir) config.resolve.alias['react-redux'] = reactReduxDir;
+
+
 {% if not tauri %}
 
     // Stub out @tauri-apps/api imports — the SDK references them for
