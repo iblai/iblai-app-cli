@@ -23,7 +23,7 @@ npm install -g pnpm
 
 | Requirement | How to install |
 |-------------|---------------|
-| Python 3.11+ | [python.org](https://www.python.org/downloads/) or `winget install Python.Python.3.12` |
+| Python 3.11+ | [python.org](https://www.python.org/downloads/) or `winget install Python.Python.3.11` |
 | pip | Included with Python |
 
 After installing Python:

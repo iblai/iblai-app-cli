@@ -10,7 +10,7 @@ xcode-select --install
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Python (if not using system Python)
-brew install python@3.12
+brew install python@3.11
 
 # Node.js
 brew install node pnpm
@@ -20,7 +20,7 @@ brew install node pnpm
 
 | Requirement | How to install |
 |-------------|---------------|
-| Python 3.11+ | `brew install python@3.12` or [python.org](https://www.python.org/downloads/) |
+| Python 3.11+ | `brew install python@3.11` or [python.org](https://www.python.org/downloads/) |
 | Xcode CLI tools | `xcode-select --install` |
 
 macOS ships with Python 3 on recent versions, but Homebrew's version is recommended for development.
