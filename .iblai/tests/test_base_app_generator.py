@@ -185,15 +185,16 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / "skills"
         assert skills_dir.is_dir()
         assert (skills_dir / "README.md").exists()
-        # Check categorized subdirectories
+        # Check categorized subdirectories (pages merged into components)
         assert (skills_dir / "setup").is_dir()
         assert (skills_dir / "components").is_dir()
-        assert (skills_dir / "pages").is_dir()
         assert (skills_dir / "builds").is_dir()
         assert (skills_dir / "testing").is_dir()
+        assert not (skills_dir / "pages").exists()
         # Check specific files
         assert (skills_dir / "setup" / "iblai-setup.md").exists()
         assert (skills_dir / "components" / "iblai-add-auth.md").exists()
+        assert (skills_dir / "components" / "iblai-add-account-page.md").exists()
         assert (skills_dir / "builds" / "iblai-build-windows-msix.md").exists()
         assert (skills_dir / "testing" / "iblai-add-test.md").exists()
         # Total count

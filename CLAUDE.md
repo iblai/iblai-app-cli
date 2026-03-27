@@ -59,7 +59,7 @@ Internal machinery is in `.iblai/`:
 ├── commands/
 │   ├── startapp.py           # iblai startapp agent [options]
 │   ├── add.py                # iblai add auth|chat|profile|notifications|mcp|tauri
-│   └── tauri.py              # iblai builds [passthrough to @tauri-apps/cli]
+│   └── builds.py              # iblai builds [passthrough to @tauri-apps/cli]
 ├── generators/
 │   ├── base.py               # BaseGenerator — template rendering, file writing
 │   ├── base_app.py           # BaseAppGenerator — generates ~28 shared files
@@ -76,7 +76,7 @@ Internal machinery is in `.iblai/`:
     ├── shared/               # Shared templates (layout, SSO, components, e2e, CLAUDE.md)
     ├── add/                  # iblai add templates (auth, chat, profile, notifications)
     ├── tauri/                # Tauri templates (src-tauri/, CI workflows, MSIX scripts)
-    ├── skills/               # 13 skill .md files (single source, symlinked to Claude/OpenCode/Cursor)
+    ├── skills/               # 15 skill .md files (single source, symlinked to Claude/OpenCode/Cursor)
     └── screenshots/          # 4 .png files referenced by skills
 ```
 

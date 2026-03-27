@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-SRC="$ROOT_DIR/docs/iblai-logo.png"
+SRC="$ROOT_DIR/.iblai/docs/iblai-logo.png"
 DST="$ROOT_DIR/.iblai/iblai/templates/icons"
 
 if ! command -v convert &>/dev/null; then

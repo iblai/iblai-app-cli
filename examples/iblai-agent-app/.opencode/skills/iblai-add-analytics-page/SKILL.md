@@ -1,1 +1,1 @@
-../../../skills/pages/iblai-add-analytics-page.md
+../../../skills/components/iblai-add-analytics-page.md
