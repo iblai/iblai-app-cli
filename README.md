@@ -442,7 +442,7 @@ The AI follows strict rules: it modifies text, colors, and styling but never cha
 All build and development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
 
 ```bash
-make -C .iblai install    # Install in editable mode with dev dependencies
+make -C .iblai install    # Install in editable mode (pip install -e ".iblai/[dev]")
 make -C .iblai test       # Run the test suite (254+ tests)
 make -C .iblai lint       # Check code formatting (black + flake8)
 make -C .iblai format     # Auto-format code with black
@@ -462,8 +462,8 @@ alias mk='make -C .iblai'
 ### Running a specific test
 
 ```bash
-pytest -c .iblai/pytest.ini .iblai/tests/test_add_tauri.py -v --tb=short
-pytest -c .iblai/pytest.ini .iblai/tests/test_generators.py -k "test_name" -v
+cd .iblai && pytest tests/test_add_tauri.py -v --tb=short
+cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 ```
 
 ### Project structure
@@ -480,7 +480,8 @@ iblai-app-cli/
 │   ├── scripts/                  # Build scripts (PyInstaller, example refresh)
 │   ├── npm/                      # npm platform binary packages
 │   ├── Makefile                  # Development targets
-│   └── pytest.ini                # Test configuration
+│   ├── pytest.ini                # Test configuration
+│   └── pyproject.toml            # Python project config
 ├── skills/                       # AI assistant skills (categorized)
 │   ├── commands/                 # CLI command skills
 │   ├── builds/                   # Binary build / publish skills
@@ -489,7 +490,6 @@ iblai-app-cli/
 ├── examples/                     # Reference generated app
 ├── .github/workflows/            # CI/CD (build, release, publish)
 ├── .claude/ .opencode/ .cursor/  # Tool skill symlinks
-├── pyproject.toml                # Python project config
 ├── CLAUDE.md                     # Claude Code guidance
 └── README.md
 ```

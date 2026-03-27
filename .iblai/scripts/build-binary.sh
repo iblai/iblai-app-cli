@@ -27,7 +27,7 @@ fi
 echo "==> Installing dependencies..."
 python -m pip install --upgrade pip -q
 pip install pyinstaller -q
-pip install . -q
+pip install "$ROOT_DIR/.iblai" -q
 
 # ---- PyInstaller ----
 echo "==> Building binary with PyInstaller..."

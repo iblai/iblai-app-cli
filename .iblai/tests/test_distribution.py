@@ -153,7 +153,7 @@ class TestPyprojectDistribution:
             import tomllib
         except ImportError:
             import tomli as tomllib
-        self.pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
+        self.pyproject = tomllib.loads((IBLAI_DIR / "pyproject.toml").read_text())
 
     def test_dual_entry_points(self):
         scripts = self.pyproject["project"]["scripts"]
