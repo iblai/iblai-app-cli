@@ -11,7 +11,7 @@ store, and pre-built components. Here's what you have and what you can do next.
 
 - **AuthProvider** + **TenantProvider** wrap your app via `providers/index.tsx`
 - **SSO callback** at `app/(auth)/sso-login-complete/page.tsx` — handles tokens after login
-- Unauthenticated users are automatically redirected to `auth.iblai.org`
+- Unauthenticated users are automatically redirected to `login.iblai.app`
 - All tokens are stored in `localStorage` by the SSO callback
 
 ### Redux Store (`store/index.ts`)
@@ -57,10 +57,10 @@ Edit `.env.local`:
 
 ```bash
 # Consolidated API (recommended)
-NEXT_PUBLIC_API_BASE_URL=https://api.iblai.org
-NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org
-NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org
-NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.org
+NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
+NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
+NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
 NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
 NEXT_PUBLIC_DEFAULT_AGENT_ID=your-mentor-id  # agent app only
 ```

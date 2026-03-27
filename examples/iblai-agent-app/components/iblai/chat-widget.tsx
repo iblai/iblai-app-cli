@@ -113,7 +113,7 @@ export function ChatWidget({
 
   const resolvedMentorUrl = useMemo(() => {
     if (mentorUrl) return mentorUrl;
-    const domain = config.platformBaseDomain?.() ?? "iblai.org";
+    const domain = config.platformBaseDomain?.() ?? "iblai.app";
     return `https://mentorai.${domain}`;
   }, [mentorUrl]);
 

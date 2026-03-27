@@ -167,7 +167,7 @@ class TestAddBuildsGenerator:
         )
         urls = data["remote"]["urls"]
         assert "https://*.iblai.app/*" in urls
-        assert "https://*.iblai.org/*" in urls
+        assert "https://*.iblai.app/*" in urls
 
     def test_generates_appx_manifest(self, generated_dir):
         manifest = generated_dir / "src-tauri" / "AppxManifest.xml"

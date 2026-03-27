@@ -26,10 +26,10 @@ AUTH_DEPS = [
 
 # Default env vars for .env.local.
 AUTH_ENV_VARS = {
-    "NEXT_PUBLIC_API_BASE_URL": "https://api.iblai.org",
-    "NEXT_PUBLIC_AUTH_URL": "https://auth.iblai.org",
-    "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.org",
-    "NEXT_PUBLIC_PLATFORM_BASE_DOMAIN": "iblai.org",
+    "NEXT_PUBLIC_API_BASE_URL": "https://api.iblai.app",
+    "NEXT_PUBLIC_AUTH_URL": "https://login.iblai.app",
+    "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.app",
+    "NEXT_PUBLIC_PLATFORM_BASE_DOMAIN": "iblai.app",
 }
 
 

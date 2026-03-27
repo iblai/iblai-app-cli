@@ -54,9 +54,11 @@ Wrap the root layout's `{children}` with `<IblaiProviders>`.
 
 Add to `.env.local`:
 ```
-NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org
-NEXT_PUBLIC_DM_URL=https://base.manager.iblai.app
-NEXT_PUBLIC_LMS_URL=https://learn.iblai.app
+NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
+NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
+NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
 ```
 
 ### 10. Verify
