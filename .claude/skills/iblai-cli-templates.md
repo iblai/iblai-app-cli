@@ -1,1 +1,1 @@
-../../skills/internals/iblai-cli-templates.md
+../.iblai/skills/internals/iblai-cli-templates.md

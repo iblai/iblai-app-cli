@@ -304,17 +304,17 @@ class TestAddMcpGenerator:
         project, _ = generated
         skills_dir = project.root / ".claude" / "skills"
         expected = {
-            "iblai-add-account-page.md",
-            "iblai-add-analytics-page.md",
+            "iblai-add-account.md",
+            "iblai-add-analytics.md",
             "iblai-add-auth.md",
             "iblai-add-chat.md",
             "iblai-add-component.md",
             "iblai-add-notifications.md",
-            "iblai-add-notifications-page.md",
             "iblai-add-profile.md",
-            "iblai-add-profile-page.md",
             "iblai-add-test.md",
             "iblai-build-windows-msix.md",
+            "iblai-generate-icons.md",
+            "iblai-add-shadcn-component.md",
             "iblai-customize-chat.md",
             "iblai-setup.md",
         }

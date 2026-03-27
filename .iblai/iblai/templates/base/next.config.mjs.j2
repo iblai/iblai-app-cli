@@ -36,7 +36,7 @@ function dedup(packageName) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-{% if tauri %}
+{% if builds %}
   // Tauri: static export to ./out for desktop/mobile builds
   output: "export",
   images: {
@@ -73,7 +73,7 @@ const nextConfig = {
     if (reactReduxDir) config.resolve.alias['react-redux'] = reactReduxDir;
 
 
-{% if not tauri %}
+{% if not builds %}
 
     // Stub out @tauri-apps/api imports — the SDK references them for
     // desktop (Tauri) builds, but they are not needed in web-only apps.

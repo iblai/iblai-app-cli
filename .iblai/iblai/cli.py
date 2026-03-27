@@ -7,7 +7,7 @@ from iblai import __version__
 from iblai.config import load_config
 from iblai.commands.startapp import startapp
 from iblai.commands.add import add
-from iblai.commands.tauri import tauri
+from iblai.commands.builds import builds
 
 # Load .env and .env.{DEV_STAGE} before Click parses options.
 # This injects values into os.environ so Click's envvar= resolves them.
@@ -32,7 +32,7 @@ def cli(ctx: click.Context) -> None:
 # Register commands
 cli.add_command(startapp)
 cli.add_command(add)
-cli.add_command(tauri)
+cli.add_command(builds)
 
 
 if __name__ == "__main__":

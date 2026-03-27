@@ -1,4 +1,4 @@
-.PHONY: install test lint format binary example clean help
+.PHONY: install test lint format binary example icons clean help
 
 # Repo root is the parent of .iblai/
 ROOT_DIR := $(shell cd .. && pwd)
@@ -37,6 +37,13 @@ binary: ## Build standalone binary for the current platform
 
 example: ## Regenerate the example app at examples/iblai-agent-app
 	bash scripts/refresh-example.sh
+
+# ---------------------------------------------------------------------------
+# Icons
+# ---------------------------------------------------------------------------
+
+icons: ## Regenerate template icons from docs/iblai-logo.png
+	bash scripts/generate-icons.sh
 
 # ---------------------------------------------------------------------------
 # Cleanup

@@ -20,22 +20,19 @@ Invoke them with `/` in your AI assistant.
 | `/iblai-add-profile` | Add profile dropdown to navbar |
 | `/iblai-add-notifications` | Add notification bell |
 | `/iblai-add-component` | Generic guide for any SDK component |
+| `/iblai-add-shadcn-component` | Add shadcnspace blocks with IBL.ai brand consistency |
 | `/iblai-customize-chat` | ChatWidget props and customization |
-
-### Pages
-
-| Skill | Description |
-|-------|-------------|
-| `/iblai-add-profile-page` | Full profile settings page (7 tabs) |
-| `/iblai-add-account-page` | Organization/account settings page |
-| `/iblai-add-analytics-page` | Analytics dashboard page |
-| `/iblai-add-notifications-page` | Full notification center page |
+| `/iblai-add-profile` | Profile dropdown + full settings page |
+| `/iblai-add-account` | Organization/account settings |
+| `/iblai-add-analytics` | Analytics dashboard |
+| `/iblai-add-notifications` | Notification bell + center page |
 
 ### Builds
 
 | Skill | Description |
 |-------|-------------|
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
+| `/iblai-generate-icons` | Generate all Tauri icon sizes from a source image |
 
 ### Testing
 
