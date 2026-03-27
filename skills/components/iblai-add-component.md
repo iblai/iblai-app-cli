@@ -224,10 +224,10 @@ For components with their own dedicated skills, use those instead:
 
 | Component | Skill |
 |-----------|-------|
-| Profile (personal settings) | `/iblai-add-profile-page` |
-| Account (org settings) | `/iblai-add-account-page` |
-| Analytics dashboard | `/iblai-add-analytics-page` |
-| Notifications | `/iblai-add-notifications-page` |
+| Profile (dropdown + settings page) | `/iblai-add-profile` |
+| Account (org settings) | `/iblai-add-account` |
+| Analytics dashboard | `/iblai-add-analytics` |
+| Notifications (bell + center page) | `/iblai-add-notifications` |
 | Chat widget | `/iblai-add-chat` |
 
 ---

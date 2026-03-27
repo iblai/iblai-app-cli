@@ -298,21 +298,19 @@ class TestAddMcpGenerator:
         skills_dir = project.root / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 15
+        assert len(skills) == 13
 
     def test_mcp_claude_skill_filenames(self, generated):
         project, _ = generated
         skills_dir = project.root / ".claude" / "skills"
         expected = {
-            "iblai-add-account-page.md",
-            "iblai-add-analytics-page.md",
+            "iblai-add-account.md",
+            "iblai-add-analytics.md",
             "iblai-add-auth.md",
             "iblai-add-chat.md",
             "iblai-add-component.md",
             "iblai-add-notifications.md",
-            "iblai-add-notifications-page.md",
             "iblai-add-profile.md",
-            "iblai-add-profile-page.md",
             "iblai-add-test.md",
             "iblai-build-windows-msix.md",
             "iblai-generate-icons.md",
@@ -328,7 +326,7 @@ class TestAddMcpGenerator:
         skills_dir = project.root / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 15
+        assert len(skill_dirs) == 13
 
     def test_mcp_skills_are_symlinked(self, generated):
         """Skills in .claude/, .opencode/, .cursor/ are symlinks to skills/."""

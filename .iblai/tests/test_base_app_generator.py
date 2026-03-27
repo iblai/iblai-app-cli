@@ -150,13 +150,13 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 15
+        assert len(skills) == 13
         assert "iblai-setup.md" in skills
         assert "iblai-customize-chat.md" in skills
-        assert "iblai-add-profile-page.md" in skills
-        assert "iblai-add-account-page.md" in skills
-        assert "iblai-add-analytics-page.md" in skills
-        assert "iblai-add-notifications-page.md" in skills
+        assert "iblai-add-profile.md" in skills
+        assert "iblai-add-account.md" in skills
+        assert "iblai-add-analytics.md" in skills
+        assert "iblai-add-notifications.md" in skills
         assert "iblai-add-component.md" in skills
         assert "iblai-add-test.md" in skills
         # startup skills removed — app is already generated when skills are present
@@ -167,13 +167,13 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 15
+        assert len(skill_dirs) == 13
         assert "iblai-setup" in skill_dirs
-        assert "iblai-add-analytics-page" in skill_dirs
-        assert "iblai-add-notifications-page" in skill_dirs
+        assert "iblai-add-analytics" in skill_dirs
+        assert "iblai-add-notifications" in skill_dirs
         assert "iblai-add-component" in skill_dirs
-        assert "iblai-add-profile-page" in skill_dirs
-        assert "iblai-add-account-page" in skill_dirs
+        assert "iblai-add-profile" in skill_dirs
+        assert "iblai-add-account" in skill_dirs
         assert "iblai-add-test" in skill_dirs
         # OpenCode SKILL.md is a symlink to skills/<name>.md
         skill_md = skills_dir / "iblai-setup" / "SKILL.md"
@@ -194,13 +194,13 @@ class TestBaseAppGenerator:
         # Check specific files
         assert (skills_dir / "setup" / "iblai-setup.md").exists()
         assert (skills_dir / "components" / "iblai-add-auth.md").exists()
-        assert (skills_dir / "components" / "iblai-add-account-page.md").exists()
+        assert (skills_dir / "components" / "iblai-add-account.md").exists()
         assert (skills_dir / "builds" / "iblai-build-windows-msix.md").exists()
         assert (skills_dir / "testing" / "iblai-add-test.md").exists()
         # Total count
         all_skills = sorted(skills_dir.rglob("*.md"))
         skill_files = [f for f in all_skills if f.name != "README.md"]
-        assert len(skill_files) == 15
+        assert len(skill_files) == 13
 
     def test_generates_cursor_rules(self, generated_dir):
         """Cursor .cursor/rules/ directory with symlinks."""

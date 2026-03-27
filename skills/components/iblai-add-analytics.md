@@ -1,4 +1,4 @@
-# Add an Analytics Page
+# Add IBL.ai Analytics
 
 Add a full-screen analytics dashboard to your IBL.ai app using the SDK's
 analytics components. Supports an overview dashboard as well as a full
