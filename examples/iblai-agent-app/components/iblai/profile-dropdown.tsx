@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * IBL.ai Profile Dropdown
+ * ibl.ai Profile Dropdown
  *
  * A fully self-contained user avatar + dropdown menu with profile editing,
  * tenant switching, and logout. Uses the SDK's UserProfileDropdown component.

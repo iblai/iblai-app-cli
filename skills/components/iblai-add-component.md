@@ -1,6 +1,6 @@
-# Add an IBL.ai SDK Component
+# Add an ibl.ai SDK Component
 
-A generic guide for adding any IBL.ai SDK component (`@iblai/iblai-js/web-containers`)
+A generic guide for adding any ibl.ai SDK component (`@iblai/iblai-js/web-containers`)
 to a page. Use this when there is no dedicated skill for the specific component you need.
 
 ## Step 1: Discover the Component
@@ -8,7 +8,7 @@ to a page. Use this when there is no dedicated skill for the specific component 
 Use the MCP tools to look up the component's props and usage:
 
 ```
-// In Claude Code or Cursor with the IBL.ai MCP server active:
+// In Claude Code or Cursor with the ibl.ai MCP server active:
 get_component_info("ComponentName")          // full props interface + usage
 get_hook_info("useHookName")                 // hook parameters + return values
 get_api_query_info("useGetSomethingQuery")   // RTK Query endpoint details
@@ -169,7 +169,7 @@ export default function MyPage() {
 
 ## Step 5: Common Prop Patterns
 
-Most IBL.ai SDK components follow one of these prop patterns:
+Most ibl.ai SDK components follow one of these prop patterns:
 
 **Pattern A — User-scoped (profile, notifications)**
 ```typescript
@@ -235,15 +235,13 @@ For components with their own dedicated skills, use those instead:
 ## UI Blocks (shadcnspace)
 
 For pre-built UI blocks (dashboards, heroes, pricing pages, navigation),
-use shadcnspace components alongside IBL.ai SDK components:
+use shadcnspace components alongside ibl.ai SDK components:
 
 ```bash
 npx shadcn@latest add @shadcn-space/<block-name>
 ```
 
-See the `/iblai-add-shadcn-component` skill for:
-- IBL.ai brand color palette, gradients, and typography
-- How to compose shadcnspace blocks with ChatWidget, ProfileDropdown, NotificationBell
-- Customizing blocks to match the IBL.ai visual language
+See the `/iblai-add-shadcn-component` skill for integration patterns
+and [BRAND.md](../../BRAND.md) for the full ibl.ai brand guide.
 
 Browse all blocks: https://shadcnspace.com/blocks

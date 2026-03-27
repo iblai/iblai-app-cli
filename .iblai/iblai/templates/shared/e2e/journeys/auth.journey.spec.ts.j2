@@ -31,7 +31,7 @@ test.describe('auth journey', () => {
       timeout: 10_000,
     });
 
-    // IBL.ai auth tokens should be present after login
+    // ibl.ai auth tokens should be present after login
     const axdToken = await page.evaluate(() =>
       window.localStorage.getItem('axd_token'),
     );

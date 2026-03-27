@@ -64,7 +64,7 @@ Every passthrough command runs:
 - `build.rs` — `tauri_build::build()`
 - `src/main.rs` — desktop entry, references lib crate by package name (underscores)
 - `src/lib.rs` — `pub fn run()` with `tauri::Builder`
-- `capabilities/default.json` — IPC permissions, IBL.ai remote URLs
+- `capabilities/default.json` — IPC permissions, ibl.ai remote URLs
 - `AppxManifest.xml` — MSIX manifest with auto-patched Publisher for signing
 - `build-msix.ps1` — PowerShell MSIX build script with cert auto-matching
 - `setup-test-cert.ps1` — Self-signed certificate for MSIX sideloading

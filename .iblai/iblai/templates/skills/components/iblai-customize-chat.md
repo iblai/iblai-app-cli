@@ -1,4 +1,4 @@
-# Customize the IBL.ai ChatWidget
+# Customize the ibl.ai ChatWidget
 
 The ChatWidget wraps the `<mentor-ai>` Web Component from `@iblai/iblai-web-mentor`. It renders the MentorAI platform in an iframe and handles authentication automatically.
 

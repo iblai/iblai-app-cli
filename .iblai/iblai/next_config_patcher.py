@@ -1,4 +1,4 @@
-"""Patch next.config.{ts,mjs,js}, globals.css, and .env.local for IBL.ai integration."""
+"""Patch next.config.{ts,mjs,js}, globals.css, and .env.local for ibl.ai integration."""
 
 import re
 from pathlib import Path
@@ -13,7 +13,7 @@ console = Console()
 # ---------------------------------------------------------------------------
 
 LOCALSTORAGE_POLYFILL = """\
-// IBL.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
+// ibl.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
 if (typeof window === "undefined" && typeof localStorage !== "undefined" && typeof localStorage.getItem !== "function") {
   const _s: Record<string, string> = {};
   globalThis.localStorage = {
@@ -28,7 +28,7 @@ if (typeof window === "undefined" && typeof localStorage !== "undefined" && type
 """
 
 LOCALSTORAGE_POLYFILL_JS = """\
-// IBL.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
+// ibl.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
 if (typeof window === "undefined" && typeof localStorage !== "undefined" && typeof localStorage.getItem !== "function") {
   const _s = {};
   globalThis.localStorage = {
@@ -47,7 +47,7 @@ if (typeof window === "undefined" && typeof localStorage !== "undefined" && type
 # ---------------------------------------------------------------------------
 
 TAURI_STUBS = """\
-    // IBL.ai: Stub @tauri-apps/api imports (not needed for web-only apps)
+    // ibl.ai: Stub @tauri-apps/api imports (not needed for web-only apps)
     config.resolve.alias["@tauri-apps/api/core"] = false;
     config.resolve.alias["@tauri-apps/api/event"] = false;"""
 
@@ -59,7 +59,7 @@ MARKER_TAURI = "@tauri-apps/api/core"
 # ---------------------------------------------------------------------------
 
 DEFAULT_NEXT_CONFIG_TS = """\
-// IBL.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
+// ibl.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
 if (typeof window === "undefined" && typeof localStorage !== "undefined" && typeof localStorage.getItem !== "function") {
   const _s: Record<string, string> = {};
   globalThis.localStorage = {
@@ -194,7 +194,7 @@ def patch_globals_css(root: Path, app_dir: Path) -> Optional[str]:
 
 def write_env_local(root: Path, env_vars: Dict[str, str]) -> str:
     """
-    Create or append IBL.ai env vars to .env.local.
+    Create or append ibl.ai env vars to .env.local.
 
     Skips keys that already exist in the file. Returns ``".env.local"``.
     """
@@ -209,7 +209,7 @@ def write_env_local(root: Path, env_vars: Dict[str, str]) -> str:
     if lines_to_add:
         separator = "\n" if existing and not existing.endswith("\n") else ""
         header = (
-            "# IBL.ai Configuration\n" if not existing else "\n# IBL.ai Configuration\n"
+            "# ibl.ai Configuration\n" if not existing else "\n# ibl.ai Configuration\n"
         )
         with open(path, "a", encoding="utf-8") as f:
             f.write(separator + header + "\n".join(lines_to_add) + "\n")

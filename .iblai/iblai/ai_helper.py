@@ -141,7 +141,7 @@ Return ONLY the enhanced component code, no explanations."""
         for filename, content in files.items():
             files_block += f"\n--- FILE: {filename} ---\n{content}\n"
 
-        llm_prompt = f"""You are an expert React/Next.js developer customizing an IBL.ai agent chat application.
+        llm_prompt = f"""You are an expert React/Next.js developer customizing an ibl.ai agent chat application.
 
 The user wants the following customization applied to this app:
 "{prompt}"
@@ -199,7 +199,7 @@ Example format:
         context: Dict[str, Any],
     ) -> str:
         """Build a prompt for component generation."""
-        return f"""You are an expert React developer creating components for an IBL.ai agent application.
+        return f"""You are an expert React developer creating components for an ibl.ai agent application.
 
 Generate a {component_type} component with these requirements:
 {requirements}

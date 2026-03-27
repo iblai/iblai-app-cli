@@ -67,4 +67,4 @@ make -C .iblai help
 
 ## License
 
-MIT — [IBL.ai](https://ibl.ai)
+MIT — [ibl.ai](https://ibl.ai)

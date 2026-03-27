@@ -22,7 +22,7 @@ class TestCLI:
         """Test that CLI help command works."""
         result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
-        assert "IBL.ai CLI" in result.output
+        assert "ibl.ai CLI" in result.output
         assert "startapp" in result.output
 
     def test_cli_version(self, runner):
@@ -35,7 +35,7 @@ class TestCLI:
         """Test startapp command help."""
         result = runner.invoke(cli, ["startapp", "--help"])
         assert result.exit_code == 0
-        assert "Create a new IBL.ai application" in result.output
+        assert "Create a new ibl.ai application" in result.output
         assert "agent" in result.output
 
 

@@ -1,6 +1,6 @@
-# Add IBL.ai Authentication
+# Add ibl.ai Authentication
 
-Add SSO authentication from IBL.ai to this Next.js project. After completion, unauthenticated users will be redirected to the IBL Auth SPA, and tokens will be stored in localStorage on return.
+Add SSO authentication from ibl.ai to this Next.js project. After completion, unauthenticated users will be redirected to the ibl.ai Auth SPA, and tokens will be stored in localStorage on return.
 
 ## Prerequisites
 
@@ -61,4 +61,4 @@ NEXT_PUBLIC_LMS_URL=https://learn.iblai.app
 
 ### 10. Verify
 
-Run `pnpm dev`. The app should redirect to the IBL Auth SPA for login. After authenticating, the user should be redirected back to the app.
+Run `pnpm dev`. The app should redirect to the ibl.ai Auth SPA for login. After authenticating, the user should be redirected back to the app.

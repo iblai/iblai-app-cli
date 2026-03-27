@@ -16,7 +16,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 
 ## Project Overview
 
-**iblai-agent-app** — a Next.js 15 App Router project with IBL.ai SSO authentication, Redux Toolkit store, and pre-built SDK components.
+**iblai-agent-app** — a Next.js 15 App Router project with ibl.ai SSO authentication, Redux Toolkit store, and pre-built SDK components.
 
 - **Template**: agent (full-screen ChatWidget via `<mentor-ai>` web component)
 - **Agent ID**: configured via `NEXT_PUBLIC_DEFAULT_AGENT_ID`
@@ -144,7 +144,7 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 | `/iblai-add-analytics` | Analytics dashboard |
 | `/iblai-add-notifications` | Notification bell + center page |
 | `/iblai-add-component` | Generic guide for any SDK component |
-| `/iblai-add-shadcn-component` | Add shadcnspace blocks with IBL.ai brand consistency |
+| `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
 | `/iblai-generate-icons` | Generate all Tauri icon sizes from a source image |

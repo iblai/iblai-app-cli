@@ -1,4 +1,4 @@
-# Add IBL.ai Account Settings
+# Add ibl.ai Account Settings
 
 Add a full-screen organization/account settings page using the SDK's `Account`
 component. The page includes tabs for Organization info, User Management,

@@ -21,7 +21,7 @@ console = Console()
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """
-    IBL.ai CLI - Quickly scaffold IBL.ai applications.
+    ibl.ai CLI - Quickly scaffold ibl.ai applications.
 
     Use 'iblai COMMAND --help' for more information on a specific command.
     """

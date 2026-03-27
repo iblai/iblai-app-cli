@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * IBL.ai Notification Bell
+ * ibl.ai Notification Bell
  *
  * Displays an icon with unread count badge. Clicking opens a dropdown
  * with the latest notifications.

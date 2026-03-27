@@ -126,7 +126,7 @@ def startapp(
     builds: bool = False,
 ) -> None:
     """
-    Create a new IBL.ai application from a template.
+    Create a new ibl.ai application from a template.
 
     TEMPLATE: The type of app to create (currently only 'agent' is supported)
 

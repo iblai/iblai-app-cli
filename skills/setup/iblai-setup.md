@@ -1,6 +1,6 @@
-# IBL.ai App Setup Guide
+# ibl.ai App Setup Guide
 
-Your app is already generated with IBL.ai authentication, providers, Redux
+Your app is already generated with ibl.ai authentication, providers, Redux
 store, and pre-built components. Here's what you have and what you can do next.
 
 ---

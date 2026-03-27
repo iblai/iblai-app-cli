@@ -10,7 +10,7 @@ e2e/
 ├── playwright.config.ts     # 3 browser setups (Chromium, Firefox, WebKit)
 ├── auth.setup.ts            # SSO auth — fills credentials, saves storage state per browser
 ├── .env.development         # APP_HOST, AUTH_HOST, PLAYWRIGHT_USERNAME/PASSWORD
-├── custom-reporter.ts       # IBL.ai SDK reporter
+├── custom-reporter.ts       # ibl.ai SDK reporter
 └── journeys/
     ├── auth.journey.spec.ts # Auth flow + localStorage token verification
     └── chat.journey.spec.ts # ChatWidget + mentor-ai rendering

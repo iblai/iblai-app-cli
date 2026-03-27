@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * IBL.ai Chat Widget
+ * ibl.ai Chat Widget
  *
  * A wrapper around the <mentor-ai> Web Component from @iblai/iblai-web-mentor.
  * The component renders an iframe to the hosted MentorAI platform and handles

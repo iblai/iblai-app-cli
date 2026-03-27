@@ -1,6 +1,6 @@
-# Contributing to IBL.ai CLI
+# Contributing to ibl.ai CLI
 
-Thank you for your interest in contributing to the IBL.ai CLI!
+Thank you for your interest in contributing to the ibl.ai CLI!
 
 ## Development Setup
 

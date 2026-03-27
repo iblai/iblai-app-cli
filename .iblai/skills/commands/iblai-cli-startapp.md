@@ -1,6 +1,6 @@
 # iblai startapp — Command and Generator System
 
-How the `iblai startapp` command scaffolds new IBL.ai applications.
+How the `iblai startapp` command scaffolds new ibl.ai applications.
 
 ---
 

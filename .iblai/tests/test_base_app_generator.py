@@ -8,7 +8,7 @@ from iblai.generators.base_app import BaseAppGenerator
 
 
 class TestBaseAppGenerator:
-    """Tests for BaseAppGenerator — minimal Next.js app with IBL.ai auth."""
+    """Tests for BaseAppGenerator — minimal Next.js app with ibl.ai auth."""
 
     @pytest.fixture
     def generated_dir(self, tmp_path):

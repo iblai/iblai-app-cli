@@ -1,6 +1,6 @@
-# IBL.ai CLI Examples
+# ibl.ai CLI Examples
 
-This document provides practical examples of using the IBL.ai CLI to create applications.
+This document provides practical examples of using the ibl.ai CLI to create applications.
 
 ## Basic Usage
 
@@ -160,7 +160,7 @@ export default function SettingsPage() {
 - Update `chat-messages.tsx` to customize message rendering
 - Enhance `chat-input-form.tsx` to add file upload or voice input
 
-### Using IBL.ai Packages
+### Using ibl.ai Packages
 
 The generated app uses the `@iblai/iblai-js` unified SDK with subpath imports:
 

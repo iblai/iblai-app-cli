@@ -20,7 +20,7 @@ Invoke them with `/` in your AI assistant.
 | `/iblai-add-profile` | Add profile dropdown to navbar |
 | `/iblai-add-notifications` | Add notification bell |
 | `/iblai-add-component` | Generic guide for any SDK component |
-| `/iblai-add-shadcn-component` | Add shadcnspace blocks with IBL.ai brand consistency |
+| `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
 | `/iblai-customize-chat` | ChatWidget props and customization |
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |

@@ -95,7 +95,7 @@ only need standard desktop builds (NSIS, MSI, DMG, AppImage).
 
 ## Default Icons
 
-Generated apps ship with IBL.ai logo icons as defaults. Replace them
+Generated apps ship with ibl.ai logo icons as defaults. Replace them
 with your own logo at any time:
 
 ```bash

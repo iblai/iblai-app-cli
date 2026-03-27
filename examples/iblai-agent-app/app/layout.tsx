@@ -12,7 +12,7 @@ const openSans = Open_Sans({
 
 export const metadata: Metadata = {
   title: "iblai-agent-app",
-  description: "AI Agent powered by IBL.ai",
+  description: "AI Agent powered by ibl.ai",
 };
 
 export default function RootLayout({

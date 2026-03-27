@@ -1,4 +1,4 @@
-"""``iblai add`` command — add IBL.ai features to an existing project."""
+"""``iblai add`` command — add ibl.ai features to an existing project."""
 
 from typing import Optional
 
@@ -12,7 +12,7 @@ console = Console()
 
 
 def _has_iblai_auth(project) -> bool:
-    """Check if IBL.ai auth is present (from `iblai add auth` or `iblai startapp`)."""
+    """Check if ibl.ai auth is present (from `iblai add auth` or `iblai startapp`)."""
     return (project.lib_dir / "iblai" / "config.ts").exists() or (
         project.lib_dir / "config.ts"
     ).exists()
@@ -48,7 +48,7 @@ def _require_nextjs():
 
 @click.group()
 def add():
-    """Add IBL.ai features to an existing Next.js project.
+    """Add ibl.ai features to an existing Next.js project.
 
     \b
     Available features:
@@ -68,7 +68,7 @@ def add():
 @add.command()
 @click.option("--platform", "-p", help="Platform/tenant key", type=str, default=None)
 def auth(platform: Optional[str]):
-    """Add IBL.ai SSO authentication to your project."""
+    """Add ibl.ai SSO authentication to your project."""
     project = _require_nextjs()
 
     if not platform:
@@ -94,7 +94,7 @@ def auth(platform: Optional[str]):
             "     [yellow]Important:[/yellow] /sso-login-complete must NOT be inside\n"
             "     IblaiProviders. Use per-page wrapping or Next.js route groups.\n\n"
             "  2. Run [bold]pnpm dev[/bold] — unauthenticated users will be\n"
-            "     redirected to the IBL Auth SPA automatically.",
+            "     redirected to the ibl.ai Auth SPA automatically.",
             border_style="green",
             title="iblai add auth",
         )
@@ -247,7 +247,7 @@ def mcp():
             "  [cyan]Installed @iblai/mcp (devDependency)[/cyan]\n\n"
             "[bold]What you get:[/bold]\n\n"
             "  - .mcp.json: Claude Code / Cursor will auto-detect the @iblai/mcp server\n"
-            "  - .claude/skills/: Slash commands for guided IBL.ai integration\n\n"
+            "  - .claude/skills/: Slash commands for guided ibl.ai integration\n\n"
             "[bold]Available Claude skills:[/bold]\n\n"
             "  /iblai-add-auth           Add SSO auth step-by-step\n"
             "  /iblai-add-chat           Add AI chat widget step-by-step\n"

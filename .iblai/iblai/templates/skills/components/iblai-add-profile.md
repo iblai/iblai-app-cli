@@ -1,6 +1,6 @@
-# Add IBL.ai Profile
+# Add ibl.ai Profile
 
-Add profile features to your IBL.ai app — a full profile settings page
+Add profile features to your ibl.ai app — a full profile settings page
 with tabs for Basic info, Social links, Education, Experience, Resume,
 and Security, plus a compact avatar dropdown for your navbar.
 
