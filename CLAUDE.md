@@ -136,14 +136,13 @@ Available in `skills/` (invoke with `/` in Claude Code, OpenCode, or Cursor):
 |-------|-------------|
 | `/iblai-setup` | What's set up, env config, localStorage keys, MCP tools |
 | `/iblai-add-auth` | Add SSO authentication |
-| `/iblai-add-chat` | Add real-time AI chat widget |
+| `/iblai-add-chat` | AI chat widget + customization |
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |
 | `/iblai-add-analytics` | Analytics dashboard |
 | `/iblai-add-notifications` | Notification bell + center page |
 | `/iblai-add-component` | Generic guide for any SDK component |
 | `/iblai-add-shadcn-component` | Add shadcnspace blocks with brand consistency |
-| `/iblai-customize-chat` | ChatWidget props and customization |
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
 | `/iblai-generate-icons` | Generate all icon sizes from a source image |
