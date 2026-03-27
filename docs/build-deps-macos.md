@@ -65,10 +65,10 @@ For iOS builds, you need the full Xcode (not just CLI tools):
 rustup target add aarch64-apple-ios aarch64-apple-ios-sim
 
 # Initialize iOS project
-iblai tauri ios init
+iblai builds ios init
 
 # Run in simulator
-iblai tauri ios dev
+iblai builds ios dev
 ```
 
 ## Node.js (for generated apps)

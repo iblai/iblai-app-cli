@@ -25,7 +25,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 - **Template**: base (auth + store + blank canvas)
 - **Extend with**: `iblai add auth|chat|profile|notifications|mcp|tauri`
 {% endif %}
-{% if tauri %}
+{% if builds %}
 - **Desktop/mobile**: Tauri v2 shell (`src-tauri/`)
 {% endif %}
 
@@ -42,12 +42,12 @@ pnpm typecheck          # TypeScript type checking
 pnpm test:e2e           # Headless (Chromium + Firefox + WebKit)
 pnpm test:e2e:ui        # Interactive Playwright UI
 pnpm test:e2e:headed    # Headed browser mode
-{% if tauri %}
+{% if builds %}
 
 # Tauri desktop/mobile
-iblai tauri dev                     # Dev mode (Next.js + native shell)
-iblai tauri build                   # Production build for current platform
-iblai tauri icon path/to/icon.png   # Generate all icon sizes
+iblai builds dev                     # Dev mode (Next.js + native shell)
+iblai builds build                   # Production build for current platform
+iblai builds icon path/to/icon.png   # Generate all icon sizes
 pnpm tauri:build:msix               # Windows MSIX package (x64)
 pnpm tauri:build:msix:arm64         # Windows MSIX package (arm64)
 {% endif %}
@@ -140,7 +140,7 @@ iblai add chat           # AI chat widget (<mentor-ai> web component)
 iblai add profile        # User profile dropdown
 iblai add notifications  # Notification bell with unread badge
 iblai add mcp            # MCP server config + Claude/OpenCode skills
-iblai add tauri          # Tauri v2 desktop/mobile shell
+iblai add builds          # Tauri v2 desktop/mobile shell
 ```
 
 ## Skills

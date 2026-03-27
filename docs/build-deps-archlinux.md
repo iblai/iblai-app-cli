@@ -25,7 +25,7 @@ sudo pacman -S python python-pip
 
 ## Generated app Tauri build
 
-These are needed to run `iblai tauri build` on a generated app.
+These are needed to run `iblai builds build` on a generated app.
 
 | Package | Purpose |
 |---------|---------|

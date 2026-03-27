@@ -1,4 +1,4 @@
-"""iblai tauri -- Tauri v2 build and development commands.
+"""iblai builds -- Tauri v2 build and development commands.
 
 Thin wrapper around @tauri-apps/cli (installed via npm/pnpm/bun).
 All arguments except ``init`` and ``ci-workflow`` are passed directly
@@ -93,7 +93,7 @@ def _require_tauri_cli():
             "The Tauri CLI npm package is not installed.\n\n"
             f"[bold]Install it:[/bold]\n"
             f"  {install_hint}\n\n"
-            "If this is a new project, run [cyan]iblai tauri init[/cyan] first,\n"
+            "If this is a new project, run [cyan]iblai builds init[/cyan] first,\n"
             "then install dependencies.",
             title="Missing Dependency",
             border_style="red",
@@ -130,25 +130,25 @@ Package manager detection (by lockfile):
   (fallback)       ->  npx tauri ...
 
 iblai-managed commands:
-  iblai tauri init                     Add Tauri to current project
-  iblai tauri generate-icons <source>  Generate all icon sizes from source image
-  iblai tauri ci-workflow              Generate GitHub Actions workflows
+  iblai builds init                     Add Tauri to current project
+  iblai builds generate-icons <source>  Generate all icon sizes from source image
+  iblai builds ci-workflow              Generate GitHub Actions workflows
 
 All other arguments are forwarded to tauri:
-  iblai tauri dev                    Start desktop dev mode
-  iblai tauri build [--debug]        Build desktop app for distribution
-  iblai tauri icon <path>            Generate all icon sizes from source image
+  iblai builds dev                    Start desktop dev mode
+  iblai builds build [--debug]        Build desktop app for distribution
+  iblai builds icon <path>            Generate all icon sizes from source image
 
 iOS (macOS with Xcode required):
-  iblai tauri ios init               Initialize iOS project (run once after pnpm install)
-  iblai tauri ios dev                Run in iOS Simulator
-  iblai tauri ios dev --device       Run on connected physical device
-  iblai tauri ios build              Build iOS app (.ipa)
+  iblai builds ios init               Initialize iOS project (run once after pnpm install)
+  iblai builds ios dev                Run in iOS Simulator
+  iblai builds ios dev --device       Run on connected physical device
+  iblai builds ios build              Build iOS app (.ipa)
 
 Android (requires Android SDK):
-  iblai tauri android init           Initialize Android project
-  iblai tauri android dev            Run on emulator or connected device
-  iblai tauri android build          Build Android app (.apk / .aab)
+  iblai builds android init           Initialize Android project
+  iblai builds android dev            Run on emulator or connected device
+  iblai builds android build          Build Android app (.apk / .aab)
 
 Windows MSIX:
   pnpm tauri:build:msix              Build MSIX package (x64)
@@ -157,7 +157,7 @@ Windows MSIX:
 """
 
 
-class TauriGroup(click.Group):
+class BuildsGroup(click.Group):
     """Custom Click group that passes unrecognised subcommands to tauri."""
 
     def parse_args(self, ctx, args):
@@ -181,9 +181,9 @@ class TauriGroup(click.Group):
         return _HELP
 
 
-@click.group(cls=TauriGroup, invoke_without_command=True)
+@click.group(cls=BuildsGroup, invoke_without_command=True)
 @click.pass_context
-def tauri(ctx):
+def builds(ctx):
     """Tauri v2 build and development commands."""
     ctx.ensure_object(dict)
     if ctx.invoked_subcommand is None and not ctx.obj.get("passthrough_args"):
@@ -195,10 +195,10 @@ def tauri(ctx):
 # ---------------------------------------------------------------------------
 
 
-@tauri.command()
+@builds.command()
 def init():
     """Add Tauri v2 desktop shell to the current project."""
-    from iblai.generators.add_tauri import AddTauriGenerator
+    from iblai.generators.add_builds import AddBuildsGenerator
 
     root = Path.cwd()
     pkg = root / "package.json"
@@ -212,7 +212,7 @@ def init():
         console.print("[yellow]src-tauri/ already exists. Skipping.[/yellow]")
         return
 
-    gen = AddTauriGenerator(project_root=str(root))
+    gen = AddBuildsGenerator(project_root=str(root))
     created = gen.generate()
 
     console.print()
@@ -223,20 +223,20 @@ def init():
             + "\n\n"
             "[bold]Next steps:[/bold]\n"
             "  1. Install dependencies: pnpm install\n"
-            "  2. Generate icons: iblai tauri generate-icons path/to/logo.png\n"
-            "  3. Start development: iblai tauri dev\n"
-            "  4. Build for distribution: iblai tauri build\n\n"
+            "  2. Generate icons: iblai builds generate-icons path/to/logo.png\n"
+            "  3. Start development: iblai builds dev\n"
+            "  4. Build for distribution: iblai builds build\n\n"
             "[bold]CI/CD:[/bold]\n"
-            "  iblai tauri ci-workflow --desktop\n"
-            "  iblai tauri ci-workflow --ios\n"
-            "  iblai tauri ci-workflow --all",
+            "  iblai builds ci-workflow --desktop\n"
+            "  iblai builds ci-workflow --ios\n"
+            "  iblai builds ci-workflow --all",
             title="Success",
             border_style="green",
         )
     )
 
 
-@tauri.command("generate-icons")
+@builds.command("generate-icons")
 @click.argument("source", type=click.Path(exists=True))
 def generate_icons(source):
     """Generate all Tauri icon sizes from a source image.
@@ -247,15 +247,15 @@ def generate_icons(source):
 
     \b
     Example:
-        iblai tauri generate-icons logo.png
-        iblai tauri generate-icons docs/my-icon.png
+        iblai builds generate-icons logo.png
+        iblai builds generate-icons docs/my-icon.png
     """
     import shutil
     import subprocess
 
     if not Path("src-tauri").exists():
         console.print(
-            "[red]No src-tauri/ directory. Run 'iblai tauri init' first.[/red]"
+            "[red]No src-tauri/ directory. Run 'iblai builds init' first.[/red]"
         )
         sys.exit(1)
 
@@ -351,7 +351,7 @@ def generate_icons(source):
     # ICNS (wrap 128x128 PNG with Python)
     png_128 = icons_dir / "128x128.png"
     if png_128.exists():
-        from iblai.generators.add_tauri import _create_icns
+        from iblai.generators.add_builds import _create_icns
 
         (icons_dir / "icon.icns").write_bytes(_create_icns(png_128.read_bytes()))
         console.print("  [green]icon.icns[/green] (macOS)")
@@ -359,7 +359,7 @@ def generate_icons(source):
     console.print(f"\n[green]Icons generated in {icons_dir}[/green]")
 
 
-@tauri.command("ci-workflow")
+@builds.command("ci-workflow")
 @click.option(
     "--desktop",
     is_flag=True,
@@ -375,13 +375,13 @@ def generate_icons(source):
 @click.option("--all", "gen_all", is_flag=True, help="Generate all platform workflows")
 def ci_workflow(desktop, gen_ios, gen_msix, gen_all):
     """Generate GitHub Actions workflow files for Tauri builds."""
-    from iblai.generators.add_tauri import AddTauriGenerator
+    from iblai.generators.add_builds import AddBuildsGenerator
 
     if not desktop and not gen_ios and not gen_msix and not gen_all:
         desktop = True
 
     root = Path.cwd()
-    gen = AddTauriGenerator(project_root=str(root))
+    gen = AddBuildsGenerator(project_root=str(root))
 
     created = gen.generate_ci_workflows(
         desktop=desktop or gen_all,

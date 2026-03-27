@@ -23,18 +23,18 @@ cd "$ROOT_DIR"
 
 python3 -c "
 from iblai.generators.agent import AgentAppGenerator
-from iblai.generators.add_tauri import AddTauriGenerator
+from iblai.generators.add_builds import AddBuildsGenerator
 
 gen = AgentAppGenerator(
     app_name='iblai-agent-app',
     platform_key='iblai',
     mentor_id='00000000-0000-0000-0000-000000000000',
     output_dir='examples/iblai-agent-app',
-    tauri=True,
+    builds=True,
 )
 gen.generate()
 
-tauri_gen = AddTauriGenerator(
+tauri_gen = AddBuildsGenerator(
     project_root='examples/iblai-agent-app',
     app_name='iblai-agent-app',
 )

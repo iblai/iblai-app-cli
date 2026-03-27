@@ -261,11 +261,11 @@ def mcp():
 
 
 @add.command()
-def tauri():
-    """Wrap your Next.js app as a Tauri v2 desktop application."""
+def builds():
+    """Add desktop/mobile build support (Tauri v2)."""
     from pathlib import Path
 
-    from iblai.generators.add_tauri import AddTauriGenerator
+    from iblai.generators.add_builds import AddBuildsGenerator
 
     project = _require_nextjs()
     root = Path(".")
@@ -274,7 +274,7 @@ def tauri():
         console.print("[yellow]src-tauri/ already exists. Skipping.[/yellow]")
         return
 
-    gen = AddTauriGenerator(project_root=str(root))
+    gen = AddBuildsGenerator(project_root=str(root))
     created = gen.generate()
 
     console.print()
@@ -285,14 +285,14 @@ def tauri():
             + "\n\n"
             "[bold]Next steps:[/bold]\n"
             "  1. Install dependencies: pnpm install\n"
-            "  2. Generate icons: iblai tauri icon path/to/icon.png\n"
-            "  3. Start development: iblai tauri dev\n"
-            "  4. Build for distribution: iblai tauri build\n\n"
+            "  2. Generate icons: iblai builds icon path/to/icon.png\n"
+            "  3. Start development: iblai builds dev\n"
+            "  4. Build for distribution: iblai builds build\n\n"
             "[bold]CI/CD:[/bold]\n"
-            "  iblai tauri ci-workflow --desktop   Generate desktop build workflow\n"
-            "  iblai tauri ci-workflow --ios        Generate iOS build workflow\n"
-            "  iblai tauri ci-workflow --all        Generate all platform workflows",
+            "  iblai builds ci-workflow --desktop   Generate desktop build workflow\n"
+            "  iblai builds ci-workflow --ios        Generate iOS build workflow\n"
+            "  iblai builds ci-workflow --all        Generate all platform workflows",
             border_style="green",
-            title="iblai add tauri",
+            title="iblai add builds",
         )
     )

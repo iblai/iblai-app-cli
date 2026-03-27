@@ -34,7 +34,7 @@ pyinstaller \
   --hidden-import=iblai.commands \
   --hidden-import=iblai.commands.startapp \
   --hidden-import=iblai.commands.add \
-  --hidden-import=iblai.commands.tauri \
+  --hidden-import=iblai.commands.builds \
   --hidden-import=iblai.generators \
   --hidden-import=iblai.generators.base \
   --hidden-import=iblai.generators.base_app \
@@ -44,7 +44,7 @@ pyinstaller \
   --hidden-import=iblai.generators.add_profile \
   --hidden-import=iblai.generators.add_notifications \
   --hidden-import=iblai.generators.add_mcp \
-  --hidden-import=iblai.generators.add_tauri \
+  --hidden-import=iblai.generators.add_builds \
   --hidden-import=iblai.ai_helper \
   --hidden-import=iblai.project_detector \
   --hidden-import=iblai.package_manager \

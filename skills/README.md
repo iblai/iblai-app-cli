@@ -11,7 +11,7 @@ Invoke them with `/` in Claude Code, OpenCode, or Cursor.
 |-------|-------------|
 | `/iblai-cli-startapp` | How `iblai startapp` and the generator hierarchy work |
 | `/iblai-cli-add-command` | How `iblai add` integrates features into existing projects |
-| `/iblai-cli-tauri` | How `iblai tauri` wraps @tauri-apps/cli with prerequisites |
+| `/iblai-cli-builds` | How `iblai builds` wraps @tauri-apps/cli with prerequisites |
 
 ### Builds
 

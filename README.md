@@ -462,7 +462,7 @@ alias mk='make -C .iblai'
 ### Running a specific test
 
 ```bash
-cd .iblai && pytest tests/test_add_tauri.py -v --tb=short
+cd .iblai && pytest tests/test_add_builds.py -v --tb=short
 cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 ```
 

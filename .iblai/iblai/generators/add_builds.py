@@ -110,7 +110,7 @@ def _create_icns(png_data: bytes) -> bytes:
     )
 
 
-class AddTauriGenerator:
+class AddBuildsGenerator:
     """Add Tauri v2 desktop shell to an existing Next.js project.
 
     Generates src-tauri/ with a minimal Tauri configuration, patches

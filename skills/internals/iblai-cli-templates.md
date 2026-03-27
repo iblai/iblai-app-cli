@@ -51,7 +51,7 @@ How the template system works in iblai-app-cli.
 │   ├── chat/               # 1 template
 │   ├── profile/            # 1 template
 │   └── notifications/      # 1 template
-├── tauri/                  # Used by AddTauriGenerator
+├── tauri/                  # Used by AddBuildsGenerator
 │   ├── src-tauri/          # tauri.conf.json.j2, Cargo.toml.j2, etc.
 │   └── workflows/          # CI workflow templates
 ├── skills/                 # 13 Claude skill .md files + .png screenshots

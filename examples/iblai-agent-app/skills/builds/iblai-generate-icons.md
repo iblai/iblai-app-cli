@@ -10,11 +10,11 @@ and macOS builds from a single source image.
 ```bash
 # Option A: iblai CLI (generates ALL icons including MSIX)
 # Requires ImageMagick (convert)
-iblai tauri generate-icons path/to/logo.png
+iblai builds generate-icons path/to/logo.png
 
 # Option B: Tauri's built-in (standard Tauri icons only, no MSIX)
 # Requires @tauri-apps/cli + Rust toolchain
-iblai tauri icon path/to/logo.png
+iblai builds icon path/to/logo.png
 ```
 
 Both commands write icons to `src-tauri/icons/`, overwriting existing files.
@@ -32,7 +32,7 @@ Both commands write icons to `src-tauri/icons/`, overwriting existing files.
 
 ## ImageMagick Installation
 
-Required for `iblai tauri generate-icons`. Not needed for `iblai tauri icon`.
+Required for `iblai builds generate-icons`. Not needed for `iblai builds icon`.
 
 | Platform | Command |
 |----------|---------|
@@ -42,7 +42,7 @@ Required for `iblai tauri generate-icons`. Not needed for `iblai tauri icon`.
 | Fedora/RHEL | `sudo dnf install ImageMagick` |
 | Windows | `winget install ImageMagick.ImageMagick` |
 
-If ImageMagick is not installed, `iblai tauri generate-icons` automatically
+If ImageMagick is not installed, `iblai builds generate-icons` automatically
 falls back to `pnpm exec tauri icon`.
 
 ---
@@ -77,7 +77,7 @@ All icons are written to `src-tauri/icons/`:
 
 ## Comparison: generate-icons vs tauri icon
 
-| Feature | `iblai tauri generate-icons` | `iblai tauri icon` |
+| Feature | `iblai builds generate-icons` | `iblai builds icon` |
 |---------|------------------------------|-------------------|
 | Tauri bundle icons (PNG, ICO, ICNS) | Yes | Yes |
 | MSIX icons (StoreLogo, Square*, Wide*) | Yes | No |
@@ -87,8 +87,8 @@ All icons are written to `src-tauri/icons/`:
 | Transparent background | Always | Depends on source |
 | Non-square handling | Centers on transparent canvas | Resizes/crops |
 
-**Recommendation**: Use `iblai tauri generate-icons` if you plan to build
-MSIX packages (Windows Store / enterprise). Use `iblai tauri icon` if you
+**Recommendation**: Use `iblai builds generate-icons` if you plan to build
+MSIX packages (Windows Store / enterprise). Use `iblai builds icon` if you
 only need standard desktop builds (NSIS, MSI, DMG, AppImage).
 
 ---
@@ -99,7 +99,7 @@ Generated apps ship with IBL.ai logo icons as defaults. Replace them
 with your own logo at any time:
 
 ```bash
-iblai tauri generate-icons my-company-logo.png
+iblai builds generate-icons my-company-logo.png
 ```
 
 ---
@@ -109,7 +109,7 @@ iblai tauri generate-icons my-company-logo.png
 Simply re-run the command with the new source image:
 
 ```bash
-iblai tauri generate-icons path/to/new-logo.png
+iblai builds generate-icons path/to/new-logo.png
 ```
 
 All icons in `src-tauri/icons/` are overwritten. Commit the updated icons.
@@ -145,7 +145,7 @@ Install ImageMagick for your platform (see table above), or use
 Tauri's built-in icon generator instead:
 
 ```bash
-iblai tauri icon path/to/logo.png
+iblai builds icon path/to/logo.png
 ```
 
 ### Icons not updating in the built app
@@ -153,7 +153,7 @@ iblai tauri icon path/to/logo.png
 After regenerating icons, rebuild the Tauri app:
 
 ```bash
-iblai tauri build
+iblai builds build
 # or for MSIX:
 pnpm tauri:build:msix
 ```
@@ -162,5 +162,5 @@ The old icons may be cached in `src-tauri/target/`. To force a clean build:
 
 ```bash
 rm -rf src-tauri/target
-iblai tauri build
+iblai builds build
 ```

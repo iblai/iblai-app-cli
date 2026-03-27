@@ -37,9 +37,9 @@ pnpm test:e2e:ui        # Interactive Playwright UI
 pnpm test:e2e:headed    # Headed browser mode
 
 # Tauri desktop/mobile
-iblai tauri dev                     # Dev mode (Next.js + native shell)
-iblai tauri build                   # Production build for current platform
-iblai tauri icon path/to/icon.png   # Generate all icon sizes
+iblai builds dev                     # Dev mode (Next.js + native shell)
+iblai builds build                   # Production build for current platform
+iblai builds icon path/to/icon.png   # Generate all icon sizes
 pnpm tauri:build:msix               # Windows MSIX package (x64)
 pnpm tauri:build:msix:arm64         # Windows MSIX package (arm64)
 ```
@@ -127,7 +127,7 @@ iblai add chat           # AI chat widget (<mentor-ai> web component)
 iblai add profile        # User profile dropdown
 iblai add notifications  # Notification bell with unread badge
 iblai add mcp            # MCP server config + Claude/OpenCode skills
-iblai add tauri          # Tauri v2 desktop/mobile shell
+iblai add builds          # Tauri v2 desktop/mobile shell
 ```
 
 ## Skills

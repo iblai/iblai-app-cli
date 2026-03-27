@@ -101,10 +101,10 @@ console = Console()
     envvar="DEV_STAGE",
 )
 @click.option(
-    "--tauri",
+    "--builds",
     is_flag=True,
     default=False,
-    help="Include Tauri v2 desktop shell (generates src-tauri/)",
+    help="Include desktop/mobile build support (Tauri v2, generates src-tauri/)",
 )
 @click.pass_context
 def startapp(
@@ -123,7 +123,7 @@ def startapp(
     prompt: Optional[str],
     env_file: Optional[str],
     stage: Optional[str],
-    tauri: bool = False,
+    builds: bool = False,
 ) -> None:
     """
     Create a new IBL.ai application from a template.
@@ -271,21 +271,21 @@ def startapp(
             return
         app_name = answers["app_name"]
 
-    # Ask about Tauri integration (interactive mode only, when --tauri was not passed)
-    if interactive and not tauri:
+    # Ask about Tauri integration (interactive mode only, when --builds was not passed)
+    if interactive and not builds:
         questions = [
             inquirer.Confirm(
-                "tauri",
+                "builds",
                 message=(
-                    "Include Tauri desktop/mobile support?"
-                    " (generates src-tauri/, enables native builds)"
+                    "Include desktop/mobile build support?"
+                    " (Tauri v2 — generates src-tauri/, enables native builds)"
                 ),
                 default=False,
             ),
         ]
         answers = inquirer.prompt(questions)
         if answers:
-            tauri = answers["tauri"]
+            builds = answers["builds"]
 
     # Determine output directory
     output_path = Path(output) / app_name
@@ -316,7 +316,7 @@ def startapp(
                     ai_model=ai_model,
                     ai_temperature=ai_temperature,
                     ai_max_tokens=ai_max_tokens,
-                    tauri=tauri,
+                    builds=builds,
                 )
                 generator.generate()
 
@@ -324,11 +324,11 @@ def startapp(
                     progress.update(task, description="Enhancing with AI...")
                     generator.enhance_with_prompt()
 
-                if tauri:
+                if builds:
                     progress.update(task, description="Adding Tauri desktop shell...")
-                    from iblai.generators.add_tauri import AddTauriGenerator
+                    from iblai.generators.add_builds import AddBuildsGenerator
 
-                    tauri_gen = AddTauriGenerator(
+                    tauri_gen = AddBuildsGenerator(
                         project_root=str(output_path),
                         app_name=app_name,
                     )
@@ -348,7 +348,7 @@ def startapp(
                     + (f"[cyan]AI Provider:[/cyan] {ai_provider}\n" if use_ai else "")
                     + (f"[cyan]AI Model:[/cyan] {ai_model}\n" if ai_model else "")
                     + (f"[cyan]Prompt:[/cyan] {prompt}\n" if prompt else "")
-                    + (f"[cyan]Tauri:[/cyan] enabled\n" if tauri else "")
+                    + (f"[cyan]Tauri:[/cyan] enabled\n" if builds else "")
                     + f"[cyan]Location:[/cyan] {output_path}\n\n"
                     "[bold]Next steps:[/bold]\n"
                     f"  1. cd {output_path}\n"
@@ -356,24 +356,24 @@ def startapp(
                     "  3. cp .env.example .env.local\n"
                     "  4. Update .env.local with your configuration\n"
                     + (
-                        "  5. iblai tauri dev  (desktop + web dev server)\n\n"
-                        if tauri
+                        "  5. iblai builds dev  (desktop + web dev server)\n\n"
+                        if builds
                         else "  5. pnpm dev\n\n"
                     )
                     + (
                         "[bold]Tauri desktop app:[/bold]\n"
-                        "  iblai tauri dev              Start desktop dev mode\n"
-                        "  iblai tauri build            Build for distribution\n"
-                        "  iblai tauri generate-icons logo.png  Generate app icons\n"
-                        "  iblai tauri ci-workflow      Generate CI build workflows\n\n"
+                        "  iblai builds dev              Start desktop dev mode\n"
+                        "  iblai builds build            Build for distribution\n"
+                        "  iblai builds generate-icons logo.png  Generate app icons\n"
+                        "  iblai builds ci-workflow      Generate CI build workflows\n\n"
                         "[bold]iOS (macOS with Xcode required):[/bold]\n"
-                        "  iblai tauri ios init         Initialize iOS project (run once)\n"
+                        "  iblai builds ios init         Initialize iOS project (run once)\n"
                         "  pnpm tauri:dev:ios           Run in iOS Simulator\n"
                         "  pnpm tauri:build:ios         Build iOS app (.ipa)\n\n"
                         "[bold]Android:[/bold]\n"
-                        "  iblai tauri android init     Initialize Android project\n"
-                        "  iblai tauri android dev      Run on emulator/device\n\n"
-                        if tauri
+                        "  iblai builds android init     Initialize Android project\n"
+                        "  iblai builds android dev      Run on emulator/device\n\n"
+                        if builds
                         else ""
                     )
                     + "[bold]AI-assisted development:[/bold]\n"

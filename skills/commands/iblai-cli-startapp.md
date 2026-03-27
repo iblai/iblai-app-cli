@@ -24,7 +24,7 @@ Click command with these options:
 @click.option("--prompt", "-P", envvar="IBLAI_PROMPT")
 @click.option("--env-file", type=Path)
 @click.option("--stage", envvar="DEV_STAGE")
-@click.option("--tauri", is_flag=True, default=False)
+@click.option("--builds", is_flag=True, default=False)
 ```
 
 ### Interactive Prompt Flow
@@ -91,8 +91,8 @@ if template.lower() == "agent":
         generator.enhance_with_prompt()
 
     if tauri:
-        from iblai.generators.add_tauri import AddTauriGenerator
-        tauri_gen = AddTauriGenerator(project_root=str(output_path), app_name=app_name)
+        from iblai.generators.add_builds import AddBuildsGenerator
+        tauri_gen = AddBuildsGenerator(project_root=str(output_path), app_name=app_name)
         tauri_gen.generate()
 ```
 

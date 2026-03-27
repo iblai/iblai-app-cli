@@ -1,11 +1,11 @@
-"""Tests for the AddTauriGenerator."""
+"""Tests for the AddBuildsGenerator."""
 
 import json
 
 import pytest
 
 
-class TestAddTauriGenerator:
+class TestAddBuildsGenerator:
     """Tests for adding Tauri v2 desktop shell to a project."""
 
     @pytest.fixture
@@ -37,10 +37,10 @@ class TestAddTauriGenerator:
 
     @pytest.fixture
     def generated_dir(self, project_dir):
-        """Run AddTauriGenerator on the project."""
-        from iblai.generators.add_tauri import AddTauriGenerator
+        """Run AddBuildsGenerator on the project."""
+        from iblai.generators.add_builds import AddBuildsGenerator
 
-        gen = AddTauriGenerator(project_root=str(project_dir))
+        gen = AddBuildsGenerator(project_root=str(project_dir))
         gen.generate()
         return project_dir
 
@@ -240,9 +240,9 @@ class TestAddTauriGenerator:
 
     def test_idempotent_package_json_patching(self, generated_dir):
         """Running generate twice doesn't duplicate entries."""
-        from iblai.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_builds import AddBuildsGenerator
 
-        gen = AddTauriGenerator(project_root=str(generated_dir))
+        gen = AddBuildsGenerator(project_root=str(generated_dir))
         gen._patch_package_json()
         data = json.loads((generated_dir / "package.json").read_text())
         # Should still have exactly one @tauri-apps/api entry
@@ -259,9 +259,9 @@ class TestTauriCIWorkflows:
         return tmp_path
 
     def test_generates_desktop_workflow(self, project_dir):
-        from iblai.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_builds import AddBuildsGenerator
 
-        gen = AddTauriGenerator(project_root=str(project_dir))
+        gen = AddBuildsGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=True, ios=False)
         assert ".github/workflows/tauri-build-desktop.yml" in created
         wf = project_dir / ".github" / "workflows" / "tauri-build-desktop.yml"
@@ -273,9 +273,9 @@ class TestTauriCIWorkflows:
         assert "windows-latest" in content
 
     def test_generates_ios_workflow(self, project_dir):
-        from iblai.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_builds import AddBuildsGenerator
 
-        gen = AddTauriGenerator(project_root=str(project_dir))
+        gen = AddBuildsGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=False, ios=True)
         assert ".github/workflows/tauri-build-ios.yml" in created
         wf = project_dir / ".github" / "workflows" / "tauri-build-ios.yml"
@@ -285,9 +285,9 @@ class TestTauriCIWorkflows:
         assert "aarch64-apple-ios" in content
 
     def test_generates_windows_msix_workflow(self, project_dir):
-        from iblai.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_builds import AddBuildsGenerator
 
-        gen = AddTauriGenerator(project_root=str(project_dir))
+        gen = AddBuildsGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=False, ios=False, windows_msix=True)
         assert ".github/workflows/tauri-build-windows-msix.yml" in created
         wf = project_dir / ".github" / "workflows" / "tauri-build-windows-msix.yml"
@@ -299,9 +299,9 @@ class TestTauriCIWorkflows:
         assert "build-msix.ps1" in content
 
     def test_generates_all_workflows(self, project_dir):
-        from iblai.generators.add_tauri import AddTauriGenerator
+        from iblai.generators.add_builds import AddBuildsGenerator
 
-        gen = AddTauriGenerator(project_root=str(project_dir))
+        gen = AddBuildsGenerator(project_root=str(project_dir))
         created = gen.generate_ci_workflows(desktop=True, ios=True, windows_msix=True)
         assert len(created) == 3
 

@@ -1,15 +1,15 @@
-# iblai tauri — Tauri v2 Desktop/Mobile Commands
+# iblai builds — Tauri v2 Desktop/Mobile Commands
 
-How the `iblai tauri` command group wraps `@tauri-apps/cli` with prerequisite checking and passthrough architecture.
+How the `iblai builds` command group wraps `@tauri-apps/cli` with prerequisite checking and passthrough architecture.
 
 ---
 
-## Architecture (`commands/tauri.py`)
+## Architecture (`commands/builds.py`)
 
-### TauriGroup — Custom Click Group
+### BuildsGroup — Custom Click Group
 
 ```python
-class TauriGroup(click.Group):
+class BuildsGroup(click.Group):
     """Passes unrecognised subcommands to @tauri-apps/cli."""
 
     def parse_args(self, ctx, args):
@@ -28,13 +28,13 @@ class TauriGroup(click.Group):
 ```
 
 **iblai-managed commands** (handled by Click):
-- `iblai tauri init` — calls `AddTauriGenerator`
-- `iblai tauri ci-workflow` — generates GitHub Actions workflows
+- `iblai builds init` — calls `AddBuildsGenerator`
+- `iblai builds ci-workflow` — generates GitHub Actions workflows
 
 **Everything else** is passed through to `@tauri-apps/cli`:
-- `iblai tauri dev` → `pnpm exec tauri dev`
-- `iblai tauri build --debug` → `pnpm exec tauri build --debug`
-- `iblai tauri ios init` → `pnpm exec tauri ios init`
+- `iblai builds dev` → `pnpm exec tauri dev`
+- `iblai builds build --debug` → `pnpm exec tauri build --debug`
+- `iblai builds ios init` → `pnpm exec tauri ios init`
 
 ### Exec Prefix Detection
 
@@ -54,7 +54,7 @@ Every passthrough command runs:
 1. `_require_rust()` — checks `rustc` + `cargo` in PATH, prints rustup.rs install instructions if missing
 2. `_require_tauri_cli()` — runs `<exec> tauri --version`, prints "run pnpm install" if missing
 
-## AddTauriGenerator (`generators/add_tauri.py`)
+## AddBuildsGenerator (`generators/add_builds.py`)
 
 ### What it generates
 
@@ -75,7 +75,7 @@ Every passthrough command runs:
 - `_create_icns(png_data)` — ICNS container wrapping a PNG
 - Generates: 32x32, 128x128, 128x128@2x, icon.png, icon.ico, icon.icns, plus 6 MSIX icons
 
-**Patching** (for `iblai add tauri` on existing projects):
+**Patching** (for `iblai add builds` on existing projects):
 - `next.config.mjs` — removes `@tauri-apps/api` stubs, adds `output: "export"`
 - `package.json` — adds `@tauri-apps/api`, `@tauri-apps/cli`, tauri scripts
 

@@ -268,14 +268,14 @@ class TestTauriNextConfig:
     """Tests for tauri flag effect on next.config.mjs."""
 
     def test_tauri_flag_produces_static_export(self, tmp_path):
-        """When tauri=True, next.config.mjs has output:'export' and no stubs."""
+        """When builds=True, next.config.mjs has output:'export' and no stubs."""
         from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
             app_name="test",
             platform_key="test",
             output_dir=str(tmp_path / "app"),
-            tauri=True,
+            builds=True,
         )
         gen.generate()
         config = (tmp_path / "app" / "next.config.mjs").read_text()
@@ -284,14 +284,14 @@ class TestTauriNextConfig:
         assert "@tauri-apps/api/event'] = false" not in config
 
     def test_no_tauri_flag_keeps_stubs(self, tmp_path):
-        """When tauri=False, next.config.mjs has @tauri-apps stubs and no export."""
+        """When builds=False, next.config.mjs has @tauri-apps stubs and no export."""
         from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
             app_name="test",
             platform_key="test",
             output_dir=str(tmp_path / "app"),
-            tauri=False,
+            builds=False,
         )
         gen.generate()
         config = (tmp_path / "app" / "next.config.mjs").read_text()
@@ -300,7 +300,7 @@ class TestTauriNextConfig:
         assert "@tauri-apps/api/event'] = false" in config
 
     def test_tauri_flag_adds_tauri_deps_to_package_json(self, tmp_path):
-        """When tauri=True, package.json includes Tauri deps and scripts."""
+        """When builds=True, package.json includes Tauri deps and scripts."""
         import json
         from iblai.generators.base_app import BaseAppGenerator
 
@@ -308,7 +308,7 @@ class TestTauriNextConfig:
             app_name="test",
             platform_key="test",
             output_dir=str(tmp_path / "app"),
-            tauri=True,
+            builds=True,
         )
         gen.generate()
         pkg = json.loads((tmp_path / "app" / "package.json").read_text())
@@ -317,7 +317,7 @@ class TestTauriNextConfig:
         assert "tauri:dev" in pkg["scripts"]
 
     def test_no_tauri_flag_excludes_tauri_deps(self, tmp_path):
-        """When tauri=False, package.json has no Tauri deps."""
+        """When builds=False, package.json has no Tauri deps."""
         import json
         from iblai.generators.base_app import BaseAppGenerator
 
@@ -325,7 +325,7 @@ class TestTauriNextConfig:
             app_name="test",
             platform_key="test",
             output_dir=str(tmp_path / "app"),
-            tauri=False,
+            builds=False,
         )
         gen.generate()
         pkg = json.loads((tmp_path / "app" / "package.json").read_text())

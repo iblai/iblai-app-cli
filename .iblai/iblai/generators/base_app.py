@@ -54,7 +54,7 @@ class BaseAppGenerator(BaseGenerator):
         return {
             "app_name": self.app_name,
             "platform_key": self.platform_key,
-            "tauri": self.tauri,
+            "builds": self.builds,
         }
 
     def _render(self, template_path: str) -> str:

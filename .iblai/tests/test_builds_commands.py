@@ -1,4 +1,4 @@
-"""Tests for the iblai tauri command group."""
+"""Tests for the iblai builds command group."""
 
 import json
 import os
@@ -9,11 +9,11 @@ import pytest
 from click.testing import CliRunner
 
 from iblai.cli import cli
-from iblai.commands.tauri import _detect_exec_prefix
+from iblai.commands.builds import _detect_exec_prefix
 
 
 class TestTauriCommandGroup:
-    """Test the iblai tauri CLI help and structure."""
+    """Test the iblai builds CLI help and structure."""
 
     @pytest.fixture
     def runner(self):
@@ -22,10 +22,10 @@ class TestTauriCommandGroup:
     def test_tauri_command_in_main_help(self, runner):
         result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
-        assert "tauri" in result.output
+        assert "builds" in result.output
 
     def test_tauri_help_shows_passthrough_docs(self, runner):
-        result = runner.invoke(cli, ["tauri"])
+        result = runner.invoke(cli, ["builds"])
         assert result.exit_code == 0
         assert "init" in result.output
         assert "generate-icons" in result.output
@@ -33,18 +33,18 @@ class TestTauriCommandGroup:
         assert "pnpm exec tauri" in result.output
 
     def test_tauri_generate_icons_help(self, runner):
-        result = runner.invoke(cli, ["tauri", "generate-icons", "--help"])
+        result = runner.invoke(cli, ["builds", "generate-icons", "--help"])
         assert result.exit_code == 0
         assert "ImageMagick" in result.output
         assert "source" in result.output.lower()
 
     def test_tauri_init_help(self, runner):
-        result = runner.invoke(cli, ["tauri", "init", "--help"])
+        result = runner.invoke(cli, ["builds", "init", "--help"])
         assert result.exit_code == 0
         assert "Add Tauri" in result.output
 
     def test_tauri_ci_workflow_help(self, runner):
-        result = runner.invoke(cli, ["tauri", "ci-workflow", "--help"])
+        result = runner.invoke(cli, ["builds", "ci-workflow", "--help"])
         assert result.exit_code == 0
         assert "--desktop" in result.output
         assert "--ios" in result.output
@@ -108,25 +108,25 @@ class TestTauriPrerequisites:
     def runner(self):
         return CliRunner()
 
-    @patch("iblai.commands.tauri._has_rust", return_value=False)
+    @patch("iblai.commands.builds._has_rust", return_value=False)
     def test_passthrough_missing_rust_exits(self, mock_rust, runner):
         """Passing unknown args to tauri checks for Rust first."""
-        result = runner.invoke(cli, ["tauri", "dev"], catch_exceptions=False)
+        result = runner.invoke(cli, ["builds", "dev"], catch_exceptions=False)
         assert result.exit_code != 0
         assert "Rust toolchain not found" in result.output or "rustup" in result.output
 
-    @patch("iblai.commands.tauri._has_rust", return_value=True)
-    @patch("iblai.commands.tauri.subprocess.run")
+    @patch("iblai.commands.builds._has_rust", return_value=True)
+    @patch("iblai.commands.builds.subprocess.run")
     def test_passthrough_missing_tauri_cli_exits(self, mock_run, mock_rust, runner):
         """If @tauri-apps/cli is not installed, print helpful message."""
         mock_run.return_value = type("R", (), {"returncode": 1})()
-        result = runner.invoke(cli, ["tauri", "dev"], catch_exceptions=False)
+        result = runner.invoke(cli, ["builds", "dev"], catch_exceptions=False)
         assert result.exit_code != 0
         assert "@tauri-apps/cli not found" in result.output
 
 
 class TestTauriInit:
-    """Test iblai tauri init command."""
+    """Test iblai builds init command."""
 
     @pytest.fixture
     def runner(self):
@@ -134,7 +134,7 @@ class TestTauriInit:
 
     def test_init_requires_package_json(self, runner):
         with runner.isolated_filesystem():
-            result = runner.invoke(cli, ["tauri", "init"])
+            result = runner.invoke(cli, ["builds", "init"])
             assert result.exit_code != 0
             assert "package.json" in result.output
 
@@ -147,7 +147,7 @@ class TestTauriInit:
         original_dir = os.getcwd()
         try:
             os.chdir(tmp_path)
-            result = runner.invoke(cli, ["tauri", "init"])
+            result = runner.invoke(cli, ["builds", "init"])
             assert result.exit_code == 0
             assert (tmp_path / "src-tauri").is_dir()
             assert (tmp_path / "src-tauri" / "tauri.conf.json").exists()
@@ -161,7 +161,7 @@ class TestTauriInit:
         original_dir = os.getcwd()
         try:
             os.chdir(tmp_path)
-            result = runner.invoke(cli, ["tauri", "init"])
+            result = runner.invoke(cli, ["builds", "init"])
             assert result.exit_code == 0
             assert "already exists" in result.output
         finally:

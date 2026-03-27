@@ -129,7 +129,7 @@ Generate a GitHub Actions workflow that builds MSIX for both x64 and
 arm64, creates an `.msixbundle`, and optionally signs it:
 
 ```bash
-iblai tauri ci-workflow --windows-msix
+iblai builds ci-workflow --windows-msix
 ```
 
 This creates `.github/workflows/tauri-build-windows-msix.yml` with:

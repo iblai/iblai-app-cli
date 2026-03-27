@@ -28,14 +28,14 @@ make -C .iblai clean      # Remove build artifacts
 make -C .iblai help       # Show all available targets
 
 # Run a specific test (from .iblai/ directory)
-cd .iblai && pytest tests/test_add_tauri.py -v --tb=short
+cd .iblai && pytest tests/test_add_builds.py -v --tb=short
 cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 
 # Run the CLI directly (development mode)
 iblai --version
 iblai startapp agent --platform acme --agent my-id --app-name my-app
 iblai add auth
-iblai tauri dev
+iblai builds dev
 ```
 
 **Tip**: Add a shell alias for convenience:
@@ -59,7 +59,7 @@ Internal machinery is in `.iblai/`:
 ├── commands/
 │   ├── startapp.py           # iblai startapp agent [options]
 │   ├── add.py                # iblai add auth|chat|profile|notifications|mcp|tauri
-│   └── tauri.py              # iblai tauri [passthrough to @tauri-apps/cli]
+│   └── tauri.py              # iblai builds [passthrough to @tauri-apps/cli]
 ├── generators/
 │   ├── base.py               # BaseGenerator — template rendering, file writing
 │   ├── base_app.py           # BaseAppGenerator — generates ~28 shared files
@@ -69,7 +69,7 @@ Internal machinery is in `.iblai/`:
 │   ├── add_profile.py        # iblai add profile generator
 │   ├── add_notifications.py  # iblai add notifications generator
 │   ├── add_mcp.py            # iblai add mcp generator
-│   └── add_tauri.py          # iblai add tauri generator + placeholder icon creation
+│   └── add_builds.py          # iblai add builds generator + placeholder icon creation
 └── templates/
     ├── base/                 # Base template files (package.json, next.config, providers, store)
     ├── agent/                # Agent overrides (page.tsx, config.ts, .env.example, package.json)
@@ -164,7 +164,7 @@ npm distribution: `.iblai/npm/cli/` is the `@iblai/cli` wrapper package with `op
 ```bash
 make -C .iblai test                                       # full suite
 cd .iblai && pytest tests/ -v --tb=short                  # same thing
-cd .iblai && pytest tests/test_add_tauri.py -k "test_generates_icon" -v  # specific
+cd .iblai && pytest tests/test_add_builds.py -k "test_generates_icon" -v  # specific
 ```
 
 Test files (in `.iblai/tests/`):
@@ -172,8 +172,8 @@ Test files (in `.iblai/tests/`):
 - `test_generators.py` — Agent generator, route groups, components.json
 - `test_base_app_generator.py` — Base template, skills, pinned versions, tauri flag
 - `test_add_generators.py` — All 7 add generators, src/ dir support, skill counts
-- `test_add_tauri.py` — Tauri generator, icons, MSIX, CI workflows, next.config patching
-- `test_tauri_commands.py` — TauriGroup passthrough, exec prefix detection, prerequisites
+- `test_add_builds.py` — Tauri generator, icons, MSIX, CI workflows, next.config patching
+- `test_builds_commands.py` — BuildsGroup passthrough, exec prefix detection, prerequisites
 - `test_distribution.py` — npm packages, workflows, PyInstaller, pyproject.toml
 - `test_project_detector.py` — Next.js detection, src/ layout
 - `test_package_manager.py` — pnpm/yarn/npm/bun detection
@@ -201,7 +201,7 @@ Available in `skills/` (symlinked to `.claude/skills/`, `.opencode/skills/`, `.c
 |-------|-------------|
 | `/iblai-cli-startapp` | How `iblai startapp` and the generator hierarchy work |
 | `/iblai-cli-add-command` | How `iblai add` integrates features into existing projects |
-| `/iblai-cli-tauri` | How `iblai tauri` wraps @tauri-apps/cli with prerequisites |
+| `/iblai-cli-builds` | How `iblai builds` wraps @tauri-apps/cli with prerequisites |
 | `/iblai-cli-build-binary` | Building standalone binaries with PyInstaller |
 | `/iblai-cli-publish` | Release workflow: GitHub releases, npm, PyPI |
 | `/iblai-cli-templates` | Jinja2 template system: directories, context, conditionals |

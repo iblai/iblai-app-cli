@@ -26,7 +26,7 @@ class BaseGenerator:
         ai_model: Optional[str] = None,
         ai_temperature: Optional[float] = None,
         ai_max_tokens: Optional[int] = None,
-        tauri: bool = False,
+        builds: bool = False,
     ):
         """
         Initialize the generator.
@@ -62,7 +62,7 @@ class BaseGenerator:
         self.ai_model = ai_model
         self.ai_temperature = ai_temperature
         self.ai_max_tokens = ai_max_tokens
-        self.tauri = tauri
+        self.builds = builds
 
         # Initialize AI helper if AI is enabled
         self.ai_helper = None
@@ -90,7 +90,7 @@ class BaseGenerator:
             "platform_key": self.platform_key,
             "mentor_id": self.mentor_id,
             "has_mentor_id": bool(self.mentor_id),
-            "tauri": self.tauri,
+            "builds": self.builds,
         }
 
     def create_directory_structure(
