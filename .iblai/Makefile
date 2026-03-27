@@ -12,10 +12,10 @@ help: ## Show this help
 # ---------------------------------------------------------------------------
 
 install: ## Install in editable mode with dev dependencies
-	cd $(ROOT_DIR) && pip install -e ".[dev]"
+	pip install -e ".[dev]"
 
 test: ## Run the test suite
-	cd $(ROOT_DIR) && pytest -c .iblai/pytest.ini .iblai/tests/ -v --tb=short
+	pytest tests/ -v --tb=short
 
 lint: ## Run linters (black check + flake8)
 	black --check iblai/ tests/
@@ -43,6 +43,7 @@ example: ## Regenerate the example app at examples/iblai-agent-app
 # ---------------------------------------------------------------------------
 
 clean: ## Remove build artifacts
-	cd $(ROOT_DIR) && rm -rf dist/ build/ *.spec .venv-build/
-	cd $(ROOT_DIR) && rm -rf htmlcov/ .pytest_cache/ .mypy_cache/
+	rm -rf dist/ build/ *.spec .venv-build/
+	rm -rf htmlcov/ .pytest_cache/ .mypy_cache/
+	cd $(ROOT_DIR) && rm -rf dist/ build/ *.spec
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

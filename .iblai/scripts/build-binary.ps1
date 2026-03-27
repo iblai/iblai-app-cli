@@ -10,7 +10,7 @@ Set-Location $ROOT_DIR
 Write-Host "==> Installing dependencies..."
 python -m pip install --upgrade pip -q
 pip install pyinstaller -q
-pip install . -q
+pip install (Join-Path $ROOT_DIR ".iblai") -q
 
 # ---- PyInstaller ----
 Write-Host "==> Building binary with PyInstaller..."

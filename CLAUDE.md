@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
 
 ```bash
-make -C .iblai install    # pip install -e ".[dev]"
+make -C .iblai install    # pip install -e ".iblai/[dev]"
 make -C .iblai test       # pytest (254+ tests, 79% coverage)
 make -C .iblai lint       # black --check + flake8
 make -C .iblai format     # black auto-format
@@ -27,9 +27,9 @@ make -C .iblai example    # Regenerate examples/iblai-agent-app
 make -C .iblai clean      # Remove build artifacts
 make -C .iblai help       # Show all available targets
 
-# Run a specific test
-pytest -c .iblai/pytest.ini .iblai/tests/test_add_tauri.py -v --tb=short
-pytest -c .iblai/pytest.ini .iblai/tests/test_generators.py -k "test_name" -v
+# Run a specific test (from .iblai/ directory)
+cd .iblai && pytest tests/test_add_tauri.py -v --tb=short
+cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 
 # Run the CLI directly (development mode)
 iblai --version
@@ -162,9 +162,9 @@ npm distribution: `.iblai/npm/cli/` is the `@iblai/cli` wrapper package with `op
 ## Testing
 
 ```bash
-make -C .iblai test                                                    # full suite
-pytest -c .iblai/pytest.ini .iblai/tests/ -v --tb=short               # same thing
-pytest -c .iblai/pytest.ini .iblai/tests/test_add_tauri.py -k "test_generates_icon" -v  # specific
+make -C .iblai test                                       # full suite
+cd .iblai && pytest tests/ -v --tb=short                  # same thing
+cd .iblai && pytest tests/test_add_tauri.py -k "test_generates_icon" -v  # specific
 ```
 
 Test files (in `.iblai/tests/`):

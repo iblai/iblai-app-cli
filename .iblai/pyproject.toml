@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "iblai-app-cli"
 version = "0.2.0"
 description = "CLI tool to quickly scaffold IBL.ai applications"
-readme = "README.md"
+readme = {content-type = "text/markdown", text = "CLI tool to quickly scaffold IBL.ai applications. See https://github.com/iblai/iblai-app-cli"}
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
@@ -55,7 +55,6 @@ Repository = "https://github.com/iblai/iblai-app-cli"
 "Bug Tracker" = "https://github.com/iblai/iblai-app-cli/issues"
 
 [tool.setuptools.packages.find]
-where = [".iblai"]
 include = ["iblai*"]
 
 [tool.setuptools.package-data]
@@ -72,7 +71,7 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
-testpaths = [".iblai/tests"]
+testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
