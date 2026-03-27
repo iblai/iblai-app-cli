@@ -40,15 +40,15 @@ def _create_png(
             + struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
         )
 
-    # IHDR: width, height, bit depth 8, color type 2 (RGB), compression 0,
+    # IHDR: width, height, bit depth 8, color type 6 (RGBA), compression 0,
     # filter 0, interlace 0
-    ihdr_data = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    ihdr_data = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
 
     # IDAT: raw image data — each row starts with filter byte 0 (None),
-    # followed by RGB pixels
+    # followed by RGBA pixels
     raw_rows = b""
     for _ in range(height):
-        raw_rows += b"\x00" + bytes([r, g, b]) * width
+        raw_rows += b"\x00" + bytes([r, g, b, 255]) * width
     idat_data = zlib.compress(raw_rows)
 
     return (
@@ -190,19 +190,50 @@ class AddTauriGenerator:
         )
         created.append("src-tauri/build.rs")
 
-        # Placeholder icons so Tauri builds don't fail before the user
-        # runs `pnpm exec tauri icon <source.png>` with their own artwork.
-        icon_files = self._generate_placeholder_icons()
+        # Icons — copy pre-generated IBL.ai logo icons from templates,
+        # or fall back to solid-color RGBA placeholders.
+        icon_files = self._copy_icons()
         created.extend(icon_files)
 
         return created
 
     # ------------------------------------------------------------------
-    # Placeholder icon generation (pure Python, no PIL dependency)
+    # Icon handling
     # ------------------------------------------------------------------
 
+    def _copy_icons(self) -> List[str]:
+        """Copy pre-generated IBL.ai logo icons to src-tauri/icons/.
+
+        Falls back to generating solid-color RGBA placeholders if
+        the pre-generated icon templates are not available.
+        """
+        import shutil as _shutil
+
+        icons_src = self._generator.template_dir / "icons"
+        icons_dest = self.root / "src-tauri" / "icons"
+        icons_dest.mkdir(parents=True, exist_ok=True)
+        created = []
+
+        if not icons_src.is_dir():
+            # Fallback: generate solid-color RGBA placeholders
+            return self._generate_placeholder_icons()
+
+        for icon in sorted(icons_src.iterdir()):
+            if icon.is_file():
+                _shutil.copy2(icon, icons_dest / icon.name)
+                created.append(f"src-tauri/icons/{icon.name}")
+
+        # Generate .icns by wrapping the 128x128 RGBA PNG
+        png_128 = icons_dest / "128x128.png"
+        if png_128.exists():
+            icns_data = _create_icns(png_128.read_bytes())
+            (icons_dest / "icon.icns").write_bytes(icns_data)
+            created.append("src-tauri/icons/icon.icns")
+
+        return created
+
     def _generate_placeholder_icons(self) -> List[str]:
-        """Create minimal valid icon files in src-tauri/icons/."""
+        """Fallback: create minimal RGBA placeholder icons in src-tauri/icons/."""
         icons_dir = self.root / "src-tauri" / "icons"
         icons_dir.mkdir(parents=True, exist_ok=True)
         created = []
@@ -211,14 +242,12 @@ class AddTauriGenerator:
         png_128 = _create_png(128, 128)
         png_256 = _create_png(256, 256)
 
-        # Tauri bundle icons (referenced in tauri.conf.json)
         icon_map = {
             "32x32.png": png_32,
             "128x128.png": png_128,
             "128x128@2x.png": png_256,
             "icon.png": png_256,
-            # MSIX icons (referenced in AppxManifest.xml)
-            "StoreLogo.png": png_32,
+            "StoreLogo.png": _create_png(50, 50),
             "Square44x44Logo.png": _create_png(44, 44),
             "Square71x71Logo.png": _create_png(71, 71),
             "Square150x150Logo.png": _create_png(150, 150),
@@ -230,7 +259,6 @@ class AddTauriGenerator:
             (icons_dir / name).write_bytes(data)
             created.append(f"src-tauri/icons/{name}")
 
-        # .ico (Windows) — ICO container wrapping a 32x32 PNG
         (icons_dir / "icon.ico").write_bytes(_create_ico(png_32))
         created.append("src-tauri/icons/icon.ico")
 

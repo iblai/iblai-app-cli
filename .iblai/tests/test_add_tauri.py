@@ -137,10 +137,12 @@ class TestAddTauriGenerator:
             icon = icons_dir / name
             assert icon.exists(), f"Missing MSIX icon: {name}"
 
-    def test_icon_png_is_valid(self, generated_dir):
-        """Placeholder PNGs start with the correct PNG signature."""
-        png = (generated_dir / "src-tauri" / "icons" / "32x32.png").read_bytes()
+    def test_icon_png_is_valid_rgba(self, generated_dir):
+        """Icon PNGs are valid RGBA format."""
+        png = (generated_dir / "src-tauri" / "icons" / "icon.png").read_bytes()
         assert png[:8] == b"\x89PNG\r\n\x1a\n"
+        # Color type is at byte offset 25 in IHDR chunk: 6 = RGBA
+        assert png[25] == 6, f"Expected RGBA (color type 6), got {png[25]}"
 
     def test_icon_ico_is_valid(self, generated_dir):
         """Placeholder ICO starts with the correct ICO signature."""

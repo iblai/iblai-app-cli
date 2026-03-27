@@ -130,8 +130,9 @@ Package manager detection (by lockfile):
   (fallback)       ->  npx tauri ...
 
 iblai-managed commands:
-  iblai tauri init          Add Tauri to current project
-  iblai tauri ci-workflow   Generate GitHub Actions workflows
+  iblai tauri init                     Add Tauri to current project
+  iblai tauri generate-icons <source>  Generate all icon sizes from source image
+  iblai tauri ci-workflow              Generate GitHub Actions workflows
 
 All other arguments are forwarded to tauri:
   iblai tauri dev                    Start desktop dev mode
@@ -222,7 +223,7 @@ def init():
             + "\n\n"
             "[bold]Next steps:[/bold]\n"
             "  1. Install dependencies: pnpm install\n"
-            "  2. Generate icons: iblai tauri icon path/to/icon.png\n"
+            "  2. Generate icons: iblai tauri generate-icons path/to/logo.png\n"
             "  3. Start development: iblai tauri dev\n"
             "  4. Build for distribution: iblai tauri build\n\n"
             "[bold]CI/CD:[/bold]\n"
@@ -233,6 +234,129 @@ def init():
             border_style="green",
         )
     )
+
+
+@tauri.command("generate-icons")
+@click.argument("source", type=click.Path(exists=True))
+def generate_icons(source):
+    """Generate all Tauri icon sizes from a source image.
+
+    Uses ImageMagick (convert) to create RGBA icons at all required
+    sizes for Tauri, MSIX, and macOS builds. Falls back to
+    'tauri icon' if ImageMagick is not installed.
+
+    \b
+    Example:
+        iblai tauri generate-icons logo.png
+        iblai tauri generate-icons docs/my-icon.png
+    """
+    import shutil
+    import subprocess
+
+    if not Path("src-tauri").exists():
+        console.print(
+            "[red]No src-tauri/ directory. Run 'iblai tauri init' first.[/red]"
+        )
+        sys.exit(1)
+
+    icons_dir = Path("src-tauri/icons")
+    icons_dir.mkdir(parents=True, exist_ok=True)
+
+    # Check for ImageMagick
+    convert_cmd = shutil.which("convert")
+    if not convert_cmd:
+        console.print(
+            "[yellow]ImageMagick (convert) not found. Falling back to tauri icon...[/yellow]"
+        )
+        _require_rust()
+        _require_tauri_cli()
+        cmd = _tauri_cmd("icon", source)
+        result = subprocess.run(cmd)
+        sys.exit(result.returncode)
+
+    console.print(f"[cyan]Generating icons from {source}...[/cyan]")
+
+    sizes = {
+        "32x32.png": "32x32",
+        "128x128.png": "128x128",
+        "128x128@2x.png": "256x256",
+        "icon.png": "256x256",
+        "StoreLogo.png": "50x50",
+        "Square44x44Logo.png": "44x44",
+        "Square71x71Logo.png": "71x71",
+        "Square150x150Logo.png": "150x150",
+        "Square310x310Logo.png": "310x310",
+        "Wide310x150Logo.png": "310x150",
+    }
+
+    for name, size in sizes.items():
+        dest = icons_dir / name
+        subprocess.run(
+            [
+                convert_cmd,
+                source,
+                "-gravity",
+                "center",
+                "-background",
+                "transparent",
+                "-extent",
+                size,
+                str(dest),
+            ],
+            check=True,
+        )
+        console.print(f"  [green]{name}[/green] ({size})")
+
+    # ICO (multi-resolution)
+    subprocess.run(
+        [
+            convert_cmd,
+            source,
+            "-gravity",
+            "center",
+            "-background",
+            "transparent",
+            "(",
+            "-clone",
+            "0",
+            "-extent",
+            "16x16",
+            ")",
+            "(",
+            "-clone",
+            "0",
+            "-extent",
+            "32x32",
+            ")",
+            "(",
+            "-clone",
+            "0",
+            "-extent",
+            "48x48",
+            ")",
+            "(",
+            "-clone",
+            "0",
+            "-extent",
+            "256x256",
+            ")",
+            "-delete",
+            "0",
+            str(icons_dir / "icon.ico"),
+        ],
+        check=True,
+    )
+    console.print("  [green]icon.ico[/green] (multi-resolution)")
+
+    # ICNS (wrap 128x128 PNG with Python)
+    png_128 = icons_dir / "128x128.png"
+    if png_128.exists():
+        from iblai.generators.add_tauri import _create_icns
+
+        (icons_dir / "icon.icns").write_bytes(_create_icns(png_128.read_bytes()))
+        console.print("  [green]icon.icns[/green] (macOS)")
+
+    console.print(f"\n[green]Icons generated in {icons_dir}[/green]")
 
 
 @tauri.command("ci-workflow")

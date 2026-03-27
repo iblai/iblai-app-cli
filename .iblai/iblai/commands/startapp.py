@@ -364,7 +364,7 @@ def startapp(
                         "[bold]Tauri desktop app:[/bold]\n"
                         "  iblai tauri dev              Start desktop dev mode\n"
                         "  iblai tauri build            Build for distribution\n"
-                        "  iblai tauri icon icon.png    Generate all icon sizes\n"
+                        "  iblai tauri generate-icons logo.png  Generate app icons\n"
                         "  iblai tauri ci-workflow      Generate CI build workflows\n\n"
                         "[bold]iOS (macOS with Xcode required):[/bold]\n"
                         "  iblai tauri ios init         Initialize iOS project (run once)\n"
