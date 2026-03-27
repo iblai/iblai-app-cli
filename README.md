@@ -439,68 +439,59 @@ The AI follows strict rules: it modifies text, colors, and styling but never cha
 
 ## Development
 
-### Running tests
+All build and development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
 
 ```bash
-uv sync --extra dev
-uv run pytest tests/ -v
+make -C .iblai install    # Install in editable mode with dev dependencies
+make -C .iblai test       # Run the test suite (254+ tests)
+make -C .iblai lint       # Check code formatting (black + flake8)
+make -C .iblai format     # Auto-format code with black
+make -C .iblai binary     # Build standalone binary for current platform
+make -C .iblai example    # Regenerate the example app at examples/iblai-agent-app
+make -C .iblai clean      # Remove build artifacts
+make -C .iblai help       # Show all available targets
 ```
 
-With coverage:
+**Tip**: Add a shell alias for convenience:
 
 ```bash
-uv run pytest tests/ --cov=iblai --cov-report=term-missing
+alias mk='make -C .iblai'
+# Then: mk test, mk binary, mk lint, etc.
+```
+
+### Running a specific test
+
+```bash
+pytest -c .iblai/pytest.ini .iblai/tests/test_add_tauri.py -v --tb=short
+pytest -c .iblai/pytest.ini .iblai/tests/test_generators.py -k "test_name" -v
 ```
 
 ### Project structure
 
 ```
 iblai-app-cli/
-├── iblai/
-│   ├── cli.py                    # Click CLI entry point
-│   ├── config.py                 # .env file loading with stage overrides
-│   ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
-│   ├── project_detector.py       # Next.js project detection
-│   ├── package_manager.py        # Package manager detection (pnpm/yarn/npm/bun)
-│   ├── next_config_patcher.py    # next.config.mjs / globals.css / store patching
-│   ├── commands/
-│   │   ├── startapp.py           # startapp command handler
-│   │   └── add.py                # iblai add command group
-│   ├── generators/
-│   │   ├── base.py               # BaseGenerator (template rendering)
-│   │   ├── base_app.py           # BaseAppGenerator (base template)
-│   │   ├── agent.py              # AgentAppGenerator (extends BaseAppGenerator)
-│   │   ├── add_auth.py           # iblai add auth generator
-│   │   ├── add_chat.py           # iblai add chat generator
-│   │   ├── add_profile.py        # iblai add profile generator
-│   │   ├── add_notifications.py  # iblai add notifications generator
-│   │   └── add_mcp.py            # iblai add mcp generator
-│   └── templates/
-│       ├── base/                 # Base template files
-│       ├── agent/                # Agent template overrides
-│       ├── shared/               # Shared templates (layout, SSO, providers, etc.)
-│       ├── add/                  # iblai add templates (auth, chat, profile, etc.)
-│       └── skills/               # Claude skill files
-├── tests/
-│   ├── test_cli.py               # CLI integration tests
-│   ├── test_generators.py        # Generator unit tests
-│   ├── test_base_app_generator.py # Base template tests
-│   ├── test_add_generators.py    # iblai add tests
-│   ├── test_project_detector.py  # Project detection tests
-│   ├── test_package_manager.py   # Package manager tests
-│   └── test_next_config_patcher.py # Config patching tests
-├── .github/workflows/
-│   ├── build-binaries.yml        # PyInstaller builds
-│   ├── publish-npm.yml           # npm publishing
-│   └── publish-pypi.yml          # PyPI publishing
-├── npm/                          # npm platform binary packages
-│   ├── cli/                      # @iblai/cli wrapper
-│   ├── cli-linux-x64/
-│   ├── cli-linux-arm64/
-│   ├── cli-darwin-arm64/
-│   └── cli-win32-x64/
-├── components.json               # shadcnspace configuration
-└── pyproject.toml
+├── .iblai/                       # Internal machinery (Python package, tests, build tools)
+│   ├── iblai/                    # Python package (importable as `iblai`)
+│   │   ├── cli.py                # Click CLI entry point
+│   │   ├── commands/             # CLI command handlers
+│   │   ├── generators/           # App generators (base, agent, add_*)
+│   │   └── templates/            # Jinja2 templates, skills, screenshots
+│   ├── tests/                    # Test suite (254+ tests)
+│   ├── scripts/                  # Build scripts (PyInstaller, example refresh)
+│   ├── npm/                      # npm platform binary packages
+│   ├── Makefile                  # Development targets
+│   └── pytest.ini                # Test configuration
+├── skills/                       # AI assistant skills (categorized)
+│   ├── commands/                 # CLI command skills
+│   ├── builds/                   # Binary build / publish skills
+│   └── internals/                # Template system skills
+├── docs/                         # Build dependency guides + screenshots
+├── examples/                     # Reference generated app
+├── .github/workflows/            # CI/CD (build, release, publish)
+├── .claude/ .opencode/ .cursor/  # Tool skill symlinks
+├── pyproject.toml                # Python project config
+├── CLAUDE.md                     # Claude Code guidance
+└── README.md
 ```
 
 ## License

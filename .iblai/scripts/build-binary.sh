@@ -8,7 +8,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
 
 USE_VENV="${IBLAI_VENV:-1}"
@@ -34,7 +34,7 @@ echo "==> Building binary with PyInstaller..."
 pyinstaller \
   --onefile \
   --name iblai \
-  --add-data "iblai/templates:iblai/templates" \
+  --add-data ".iblai/iblai/templates:iblai/templates" \
   --hidden-import=iblai \
   --hidden-import=iblai.config \
   --hidden-import=iblai.commands \
@@ -58,7 +58,7 @@ pyinstaller \
   --copy-metadata readchar \
   --copy-metadata rich \
   --copy-metadata inquirer \
-  iblai/cli.py
+  .iblai/iblai/cli.py
 
 # ---- Verify ----
 echo "==> Verifying binary..."

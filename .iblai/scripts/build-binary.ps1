@@ -17,7 +17,7 @@ Write-Host "==> Building binary with PyInstaller..."
 pyinstaller `
   --onefile `
   --name iblai `
-  --add-data "iblai/templates;iblai/templates" `
+  --add-data ".iblai/iblai/templates;iblai/templates" `
   --hidden-import=iblai `
   --hidden-import=iblai.config `
   --hidden-import=iblai.commands `
@@ -41,7 +41,7 @@ pyinstaller `
   --copy-metadata readchar `
   --copy-metadata rich `
   --copy-metadata inquirer `
-  iblai/cli.py
+  .iblai/iblai/cli.py
 
 # ---- Verify ----
 Write-Host "==> Verifying binary..."

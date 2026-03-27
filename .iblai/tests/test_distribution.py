@@ -8,8 +8,10 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-# Repo root for the feat-install branch
-REPO_ROOT = Path(__file__).parent.parent
+# .iblai/ directory (contains npm/, scripts/, tests/)
+IBLAI_DIR = Path(__file__).parent.parent
+# Repo root (where .git, .github/, pyproject.toml live)
+REPO_ROOT = IBLAI_DIR.parent
 
 
 # ---------------------------------------------------------------------------
@@ -52,14 +54,14 @@ class TestNpmWrapper:
     """Validate the Node.js launcher script."""
 
     def test_iblai_js_has_correct_shebang(self):
-        js_path = REPO_ROOT / "npm" / "cli" / "bin" / "iblai.js"
+        js_path = IBLAI_DIR / "npm" / "cli" / "bin" / "iblai.js"
         first_line = js_path.read_text().splitlines()[0]
         assert first_line == "#!/usr/bin/env node"
 
     def test_iblai_js_platforms_match_optional_deps(self):
         """The PLATFORMS object in iblai.js must align with package.json optionalDependencies."""
-        js_text = (REPO_ROOT / "npm" / "cli" / "bin" / "iblai.js").read_text()
-        pkg = json.loads((REPO_ROOT / "npm" / "cli" / "package.json").read_text())
+        js_text = (IBLAI_DIR / "npm" / "cli" / "bin" / "iblai.js").read_text()
+        pkg = json.loads((IBLAI_DIR / "npm" / "cli" / "package.json").read_text())
 
         opt_deps = set(pkg.get("optionalDependencies", {}).keys())
         # Extract platform keys from the JS source: lines like "  'linux-x64': {"
@@ -99,7 +101,7 @@ class TestNpmPlatformPackages:
 
     @pytest.mark.parametrize("platform_dir", PLATFORM_DIRS)
     def test_platform_package_has_valid_json(self, platform_dir):
-        pkg_path = REPO_ROOT / "npm" / platform_dir / "package.json"
+        pkg_path = IBLAI_DIR / "npm" / platform_dir / "package.json"
         pkg = json.loads(pkg_path.read_text())
         for field in ("name", "version", "os", "cpu", "files", "publishConfig"):
             assert field in pkg, f"{platform_dir}/package.json missing '{field}'"
@@ -107,32 +109,32 @@ class TestNpmPlatformPackages:
     @pytest.mark.parametrize("platform_dir", PLATFORM_DIRS)
     def test_platform_package_os_cpu_correct(self, platform_dir):
         pkg = json.loads(
-            (REPO_ROOT / "npm" / platform_dir / "package.json").read_text()
+            (IBLAI_DIR / "npm" / platform_dir / "package.json").read_text()
         )
         expected_os, expected_cpu = EXPECTED_OS_CPU[platform_dir]
         assert pkg["os"] == expected_os
         assert pkg["cpu"] == expected_cpu
 
     def test_platform_package_versions_match_main(self):
-        main_pkg = json.loads((REPO_ROOT / "npm" / "cli" / "package.json").read_text())
+        main_pkg = json.loads((IBLAI_DIR / "npm" / "cli" / "package.json").read_text())
         main_version = main_pkg["version"]
         for platform_dir in PLATFORM_DIRS:
             pkg = json.loads(
-                (REPO_ROOT / "npm" / platform_dir / "package.json").read_text()
+                (IBLAI_DIR / "npm" / platform_dir / "package.json").read_text()
             )
             assert pkg["version"] == main_version, (
                 f"{platform_dir} version {pkg['version']} != main {main_version}"
             )
 
     def test_main_cli_package_has_bin_entry(self):
-        pkg = json.loads((REPO_ROOT / "npm" / "cli" / "package.json").read_text())
+        pkg = json.loads((IBLAI_DIR / "npm" / "cli" / "package.json").read_text())
         assert "bin" in pkg
         assert "iblai" in pkg["bin"]
         assert pkg["bin"]["iblai"] == "bin/iblai.js"
 
     @pytest.mark.parametrize("platform_dir", PLATFORM_DIRS)
     def test_platform_bin_gitkeep_exists(self, platform_dir):
-        gitkeep = REPO_ROOT / "npm" / platform_dir / "bin" / ".gitkeep"
+        gitkeep = IBLAI_DIR / "npm" / platform_dir / "bin" / ".gitkeep"
         assert gitkeep.exists(), f"{platform_dir}/bin/.gitkeep missing"
 
 
@@ -196,8 +198,8 @@ class TestGitHubWorkflows:
         assert "scripts/build-binary.ps1" in text
 
     def test_build_scripts_include_template_data(self):
-        sh = (REPO_ROOT / "scripts" / "build-binary.sh").read_text()
-        ps1 = (REPO_ROOT / "scripts" / "build-binary.ps1").read_text()
+        sh = (IBLAI_DIR / "scripts" / "build-binary.sh").read_text()
+        ps1 = (IBLAI_DIR / "scripts" / "build-binary.ps1").read_text()
         assert "--add-data" in sh
         assert "iblai/templates" in sh
         assert "--add-data" in ps1

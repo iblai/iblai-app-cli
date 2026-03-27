@@ -43,10 +43,10 @@ examples/*/src-tauri/msix-output/
 examples/*/src-tauri/gen/
 
 # npm platform binaries (populated by CI, not committed)
-npm/cli-linux-x64/bin/iblai
-npm/cli-linux-arm64/bin/iblai
-npm/cli-darwin-x64/bin/iblai
-npm/cli-darwin-arm64/bin/iblai
-npm/cli-win32-x64/bin/iblai.exe
-npm/cli-win32-arm64/bin/iblai.exe
+.iblai/npm/cli-linux-x64/bin/iblai
+.iblai/npm/cli-linux-arm64/bin/iblai
+.iblai/npm/cli-darwin-x64/bin/iblai
+.iblai/npm/cli-darwin-arm64/bin/iblai
+.iblai/npm/cli-win32-x64/bin/iblai.exe
+.iblai/npm/cli-win32-arm64/bin/iblai.exe
 

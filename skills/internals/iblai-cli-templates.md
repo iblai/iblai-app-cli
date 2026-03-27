@@ -7,7 +7,7 @@ How the template system works in iblai-app-cli.
 ## Directory Layout
 
 ```
-iblai/templates/
+.iblai/iblai/templates/
 ├── base/                   # Base template files (non-agent)
 │   ├── package.json.j2
 │   ├── next.config.mjs.j2

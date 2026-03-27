@@ -11,24 +11,24 @@ How to build `iblai` as a single-file executable using PyInstaller.
 make binary
 
 # Or directly
-./scripts/build-binary.sh          # Linux / macOS
-pwsh scripts/build-binary.ps1      # Windows
+./.iblai/scripts/build-binary.sh          # Linux / macOS
+pwsh .iblai/scripts/build-binary.ps1      # Windows
 
 # Skip venv creation (CI)
-IBLAI_VENV=0 bash scripts/build-binary.sh
+IBLAI_VENV=0 bash .iblai/scripts/build-binary.sh
 ```
 
 Output: `dist/iblai` (or `dist/iblai.exe` on Windows).
 
 ## Build Script Internals
 
-### `scripts/build-binary.sh`
+### `.iblai/scripts/build-binary.sh`
 
 ```bash
 pyinstaller \
   --onefile \
   --name iblai \
-  --add-data "iblai/templates:iblai/templates" \  # : separator on Unix
+  --add-data ".iblai/iblai/templates:iblai/templates" \  # : separator on Unix
   --hidden-import=iblai \
   --hidden-import=iblai.config \
   --hidden-import=iblai.commands \
@@ -52,7 +52,7 @@ pyinstaller \
   --copy-metadata readchar \
   --copy-metadata rich \
   --copy-metadata inquirer \
-  iblai/cli.py
+  .iblai/iblai/cli.py
 ```
 
 ### Key flags
@@ -88,21 +88,21 @@ else:
 ## Adding a New Platform
 
 1. Add matrix entry in `.github/workflows/build-binaries.yml`
-2. Create `npm/cli-{target}/package.json` with correct `os` and `cpu`
-3. Create `npm/cli-{target}/bin/.gitkeep`
-4. Add to `npm/cli/package.json` `optionalDependencies`
-5. Add to `npm/cli/bin/iblai.js` `PLATFORMS` map
+2. Create `.iblai/npm/cli-{target}/package.json` with correct `os` and `cpu`
+3. Create `.iblai/npm/cli-{target}/bin/.gitkeep`
+4. Add to `.iblai/npm/cli/package.json` `optionalDependencies`
+5. Add to `.iblai/npm/cli/bin/iblai.js` `PLATFORMS` map
 6. Add to `.gitignore` (binary exclusion)
 7. Add to `.github/workflows/release.yml` (copy + upload asset)
 8. Add to `.github/workflows/publish-npm.yml` (download + publish)
-9. Update `tests/test_distribution.py`: `PLATFORM_DIRS`, `EXPECTED_OS_CPU`, expected workflow targets
+9. Update `.iblai/tests/test_distribution.py`: `PLATFORM_DIRS`, `EXPECTED_OS_CPU`, expected workflow targets
 
 ## Adding a New Module
 
 When you create a new Python module that's imported by the CLI, you must add it to the `--hidden-import` list in **both** build scripts:
 
-1. `scripts/build-binary.sh` — add `--hidden-import=iblai.new_module`
-2. `scripts/build-binary.ps1` — add `--hidden-import=iblai.new_module`
+1. `.iblai/scripts/build-binary.sh` — add `--hidden-import=iblai.new_module`
+2. `.iblai/scripts/build-binary.ps1` — add `--hidden-import=iblai.new_module`
 
 If you forget, the binary will crash with `ModuleNotFoundError` at runtime.
 
