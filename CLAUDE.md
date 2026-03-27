@@ -15,20 +15,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
+Development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
+
 ```bash
-# Development
-make install          # pip install -e ".[dev]"
-make test             # pytest tests/ -v --tb=short
-make lint             # black --check + flake8
-make format           # black auto-format
-make clean            # remove build artifacts
+make -C .iblai install    # pip install -e ".[dev]"
+make -C .iblai test       # pytest (254+ tests, 79% coverage)
+make -C .iblai lint       # black --check + flake8
+make -C .iblai format     # black auto-format
+make -C .iblai binary     # PyInstaller build for current platform
+make -C .iblai example    # Regenerate examples/iblai-agent-app
+make -C .iblai clean      # Remove build artifacts
+make -C .iblai help       # Show all available targets
 
-# Run a single test file or specific test
-pytest tests/test_add_tauri.py -v --tb=short
-pytest tests/test_generators.py -k "test_name" -v
-
-# Build standalone binary for current platform
-make binary           # calls scripts/build-binary.sh
+# Run a specific test
+pytest -c .iblai/pytest.ini .iblai/tests/test_add_tauri.py -v --tb=short
+pytest -c .iblai/pytest.ini .iblai/tests/test_generators.py -k "test_name" -v
 
 # Run the CLI directly (development mode)
 iblai --version
@@ -37,10 +38,18 @@ iblai add auth
 iblai tauri dev
 ```
 
+**Tip**: Add a shell alias for convenience:
+```bash
+alias mk='make -C .iblai'
+# Then: mk test, mk build, mk lint, etc.
+```
+
 ## Architecture
 
+Internal machinery is in `.iblai/`:
+
 ```
-iblai/
+.iblai/iblai/
 ├── cli.py                    # Click entry point — registers startapp, add, tauri
 ├── config.py                 # .env file loading with stage overrides
 ├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
@@ -92,7 +101,7 @@ This structure applies to both the CLI repo itself (6 dev skills) and generated 
 
 Python package directories cannot contain hyphens — `import iblai-cli` is a syntax error (Python interprets `-` as minus). The names used across the project:
 
-- **Package directory** (importable): `iblai/`
+- **Package directory** (importable): `.iblai/iblai/`
 - **Distribution name** (pip/PyPI): `iblai-app-cli`
 - **CLI command**: `iblai`
 - **npm package**: `@iblai/cli`
@@ -137,9 +146,9 @@ BaseGenerator (base.py)
 | `win32-x64` | `windows-latest` | `iblai.exe` |
 | `win32-arm64` | `windows-11-arm` | `iblai.exe` |
 
-Build scripts: `scripts/build-binary.sh` (Linux/macOS), `scripts/build-binary.ps1` (Windows).
+Build scripts: `.iblai/scripts/build-binary.sh` (Linux/macOS), `.iblai/scripts/build-binary.ps1` (Windows).
 
-npm distribution: `npm/cli/` is the `@iblai/cli` wrapper package with `optionalDependencies` pointing to per-platform packages (`@iblai/cli-linux-x64`, etc.). The `bin/iblai.js` launcher resolves the platform binary at runtime.
+npm distribution: `.iblai/npm/cli/` is the `@iblai/cli` wrapper package with `optionalDependencies` pointing to per-platform packages (`@iblai/cli-linux-x64`, etc.). The `bin/iblai.js` launcher resolves the platform binary at runtime.
 
 ## CI/CD Workflows
 
@@ -153,12 +162,12 @@ npm distribution: `npm/cli/` is the `@iblai/cli` wrapper package with `optionalD
 ## Testing
 
 ```bash
-make test                    # 251+ tests, 78% coverage
-pytest tests/ -v --tb=short  # same thing
-pytest tests/test_add_tauri.py -k "test_generates_icon" -v  # specific test
+make -C .iblai test                                                    # full suite
+pytest -c .iblai/pytest.ini .iblai/tests/ -v --tb=short               # same thing
+pytest -c .iblai/pytest.ini .iblai/tests/test_add_tauri.py -k "test_generates_icon" -v  # specific
 ```
 
-Test files:
+Test files (in `.iblai/tests/`):
 - `test_cli.py` — CLI help, startapp, add command group
 - `test_generators.py` — Agent generator, route groups, components.json
 - `test_base_app_generator.py` — Base template, skills, pinned versions, tauri flag

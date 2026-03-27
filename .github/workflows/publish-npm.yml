@@ -33,7 +33,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: iblai-linux-x64
-          path: npm/cli-linux-x64/bin/
+          path: .iblai/npm/cli-linux-x64/bin/
           run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -41,7 +41,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: iblai-linux-arm64
-          path: npm/cli-linux-arm64/bin/
+          path: .iblai/npm/cli-linux-arm64/bin/
           run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -49,7 +49,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: iblai-darwin-arm64
-          path: npm/cli-darwin-arm64/bin/
+          path: .iblai/npm/cli-darwin-arm64/bin/
           run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -57,7 +57,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: iblai-win32-x64
-          path: npm/cli-win32-x64/bin/
+          path: .iblai/npm/cli-win32-x64/bin/
           run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,65 +65,65 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: iblai-win32-arm64
-          path: npm/cli-win32-arm64/bin/
+          path: .iblai/npm/cli-win32-arm64/bin/
           run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Mark binaries as executable
       - name: Set binary permissions
         run: |
-          chmod +x npm/cli-linux-x64/bin/iblai
-          chmod +x npm/cli-linux-arm64/bin/iblai
-          chmod +x npm/cli-darwin-arm64/bin/iblai
+          chmod +x .iblai/npm/cli-linux-x64/bin/iblai
+          chmod +x .iblai/npm/cli-linux-arm64/bin/iblai
+          chmod +x .iblai/npm/cli-darwin-arm64/bin/iblai
 
       # Verify artifacts were downloaded
       - name: Verify binaries
         run: |
           echo "=== linux-x64 ==="
-          ls -la npm/cli-linux-x64/bin/
+          ls -la .iblai/npm/cli-linux-x64/bin/
           echo "=== linux-arm64 ==="
-          ls -la npm/cli-linux-arm64/bin/
+          ls -la .iblai/npm/cli-linux-arm64/bin/
           echo "=== darwin-arm64 ==="
-          ls -la npm/cli-darwin-arm64/bin/
+          ls -la .iblai/npm/cli-darwin-arm64/bin/
           echo "=== win32-x64 ==="
-          ls -la npm/cli-win32-x64/bin/
+          ls -la .iblai/npm/cli-win32-x64/bin/
           echo "=== win32-arm64 ==="
-          ls -la npm/cli-win32-arm64/bin/
+          ls -la .iblai/npm/cli-win32-arm64/bin/
 
       # Publish platform packages first, then the main package
       - name: Publish @iblai/cli-linux-x64
         run: npm publish --access public
-        working-directory: npm/cli-linux-x64
+        working-directory: .iblai/npm/cli-linux-x64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @iblai/cli-linux-arm64
         run: npm publish --access public
-        working-directory: npm/cli-linux-arm64
+        working-directory: .iblai/npm/cli-linux-arm64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @iblai/cli-darwin-arm64
         run: npm publish --access public
-        working-directory: npm/cli-darwin-arm64
+        working-directory: .iblai/npm/cli-darwin-arm64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @iblai/cli-win32-x64
         run: npm publish --access public
-        working-directory: npm/cli-win32-x64
+        working-directory: .iblai/npm/cli-win32-x64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @iblai/cli-win32-arm64
         run: npm publish --access public
-        working-directory: npm/cli-win32-arm64
+        working-directory: .iblai/npm/cli-win32-arm64
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Publish main wrapper package last (depends on platform packages)
       - name: Publish @iblai/cli
         run: npm publish --access public
-        working-directory: npm/cli
+        working-directory: .iblai/npm/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

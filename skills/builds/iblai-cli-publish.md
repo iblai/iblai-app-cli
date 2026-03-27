@@ -25,7 +25,7 @@ How the release and publish workflows distribute the CLI.
 - **Triggers**: `v*` tag push, `workflow_dispatch`, `workflow_call`
 - **Builds**: 5 PyInstaller binaries (linux-x64, linux-arm64, darwin-arm64, win32-x64, win32-arm64)
 - **Uploads**: Each binary as a GitHub Actions artifact (`iblai-{target}`)
-- **Scripts**: `scripts/build-binary.sh` (Unix), `scripts/build-binary.ps1` (Windows)
+- **Scripts**: `.iblai/scripts/build-binary.sh` (Unix), `.iblai/scripts/build-binary.ps1` (Windows)
 
 ### `release.yml`
 
@@ -47,7 +47,7 @@ How the release and publish workflows distribute the CLI.
 - **Triggers**: `workflow_dispatch` only (manual)
 - **Input**: `run_id` — the Build Binaries workflow run to download artifacts from
 - **Checkout**: `release` branch (not `main` — avoids intermediate versions)
-- **Downloads**: All 5 binary artifacts into `npm/cli-{target}/bin/`
+- **Downloads**: All 5 binary artifacts into `.iblai/npm/cli-{target}/bin/`
 - **Publishes**: 6 npm packages in order:
   1. `@iblai/cli-linux-x64`
   2. `@iblai/cli-linux-arm64`
@@ -63,14 +63,14 @@ When bumping version, update these files:
 | File | Field |
 |------|-------|
 | `pyproject.toml` | `version = "0.2.0"` |
-| `iblai/__init__.py` | `__version__ = "0.2.0"` |
-| `npm/cli/package.json` | `"version": "0.2.0"` |
-| `npm/cli-linux-x64/package.json` | `"version": "0.2.0"` |
-| `npm/cli-linux-arm64/package.json` | `"version": "0.2.0"` |
-| `npm/cli-darwin-arm64/package.json` | `"version": "0.2.0"` |
-| `npm/cli-win32-x64/package.json` | `"version": "0.2.0"` |
-| `npm/cli-win32-arm64/package.json` | `"version": "0.2.0"` |
-| `npm/cli/package.json` `optionalDependencies` | Each platform version |
+| `.iblai/iblai/__init__.py` | `__version__ = "0.2.0"` |
+| `.iblai/npm/cli/package.json` | `"version": "0.2.0"` |
+| `.iblai/npm/cli-linux-x64/package.json` | `"version": "0.2.0"` |
+| `.iblai/npm/cli-linux-arm64/package.json` | `"version": "0.2.0"` |
+| `.iblai/npm/cli-darwin-arm64/package.json` | `"version": "0.2.0"` |
+| `.iblai/npm/cli-win32-x64/package.json` | `"version": "0.2.0"` |
+| `.iblai/npm/cli-win32-arm64/package.json` | `"version": "0.2.0"` |
+| `.iblai/npm/cli/package.json` `optionalDependencies` | Each platform version |
 
 ## npm Package Structure
 

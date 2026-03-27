@@ -108,7 +108,7 @@ Each function is **idempotent** — checks for markers before patching.
 
 ## Adding a New `iblai add <feature>` Subcommand
 
-1. **Create generator** at `iblai/generators/add_newfeature.py`:
+1. **Create generator** at `.iblai/iblai/generators/add_newfeature.py`:
    ```python
    class AddNewFeatureGenerator:
        def __init__(self, project):
@@ -118,7 +118,7 @@ Each function is **idempotent** — checks for markers before patching.
            return ["components/iblai/new-feature.tsx", ...]
    ```
 
-2. **Create templates** at `iblai/templates/add/newfeature/`:
+2. **Create templates** at `.iblai/iblai/templates/add/newfeature/`:
    - `component.tsx.j2`, etc.
 
 3. **Add command** to `commands/add.py`:
@@ -132,8 +132,8 @@ Each function is **idempotent** — checks for markers before patching.
        # install deps, patch config, print success
    ```
 
-4. **Add tests** to `tests/test_add_generators.py`
+4. **Add tests** to `.iblai/tests/test_add_generators.py`
 
-5. **Update skill count** in `tests/test_add_generators.py` and `tests/test_base_app_generator.py` if adding a skill
+5. **Update skill count** in `.iblai/tests/test_add_generators.py` and `.iblai/tests/test_base_app_generator.py` if adding a skill
 
 6. **Update CLAUDE.md template** (`templates/shared/CLAUDE.md.j2`) skills table
