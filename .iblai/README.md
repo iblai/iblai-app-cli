@@ -437,13 +437,23 @@ The AI follows strict rules: it modifies text, colors, and styling but never cha
 - **`publish-npm.yml`** -- Publishes `@iblai/cli` and 4 platform packages to npm
 - **`publish-pypi.yml`** -- Publishes `iblai-app-cli` to PyPI
 
+## Install
+
+```bash
+git clone https://github.com/iblai/iblai-app-cli.git
+cd iblai-app-cli
+make -C .iblai install          # End user — installs the CLI
+make -C .iblai install-dev      # Developer — includes test/lint deps
+```
+
 ## Development
 
 All build and development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
 
 ```bash
-make -C .iblai install    # Install in editable mode (pip install -e ".iblai/[dev]")
-make -C .iblai test       # Run the test suite (254+ tests)
+make -C .iblai install        # Install the CLI (end user)
+make -C .iblai install-dev    # Install with dev dependencies
+make -C .iblai test           # Run the test suite (255+ tests)
 make -C .iblai lint       # Check code formatting (black + flake8)
 make -C .iblai format     # Auto-format code with black
 make -C .iblai binary     # Build standalone binary for current platform

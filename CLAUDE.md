@@ -18,8 +18,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
 
 ```bash
-make -C .iblai install    # pip install -e ".iblai/[dev]"
-make -C .iblai test       # pytest (254+ tests, 79% coverage)
+make -C .iblai install        # pip install -e ".iblai/" (end user)
+make -C .iblai install-dev    # pip install -e ".iblai/[dev]" (development)
+make -C .iblai test           # pytest (255+ tests, 75% coverage)
 make -C .iblai lint       # black --check + flake8
 make -C .iblai format     # black auto-format
 make -C .iblai binary     # PyInstaller build for current platform
