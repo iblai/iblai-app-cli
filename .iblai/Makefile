@@ -1,4 +1,4 @@
-.PHONY: install test lint format binary example icons clean help
+.PHONY: install install-dev test lint format binary example icons clean help
 
 # Repo root is the parent of .iblai/
 ROOT_DIR := $(shell cd .. && pwd)
@@ -11,7 +11,10 @@ help: ## Show this help
 # Development
 # ---------------------------------------------------------------------------
 
-install: ## Install in editable mode with dev dependencies
+install: ## Install the CLI (end user)
+	pip install -e .
+
+install-dev: ## Install with dev dependencies (tests, linting)
 	pip install -e ".[dev]"
 
 test: ## Run the test suite

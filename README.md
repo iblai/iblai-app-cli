@@ -15,9 +15,9 @@ Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications.
 ## Install
 
 ```bash
-pip install iblai-app-cli
-# or
-npx @iblai/cli
+git clone https://github.com/iblai/iblai-app-cli.git
+cd iblai-app-cli
+make -C .iblai install
 ```
 
 ## Quick Start
@@ -57,8 +57,10 @@ Browse all available skills in the [skills README](skills/README.md).
 For development setup, building binaries, running tests, and contributing, see the [development guide](.iblai/README.md).
 
 ```bash
-# Quick start for developers
-make -C .iblai install
+# Install with dev dependencies (tests, linting)
+make -C .iblai install-dev
+
+# Run tests and other dev commands
 make -C .iblai test
 make -C .iblai help
 ```
