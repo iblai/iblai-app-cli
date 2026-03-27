@@ -229,3 +229,21 @@ For components with their own dedicated skills, use those instead:
 | Analytics dashboard | `/iblai-add-analytics-page` |
 | Notifications | `/iblai-add-notifications-page` |
 | Chat widget | `/iblai-add-chat` |
+
+---
+
+## UI Blocks (shadcnspace)
+
+For pre-built UI blocks (dashboards, heroes, pricing pages, navigation),
+use shadcnspace components alongside IBL.ai SDK components:
+
+```bash
+npx shadcn@latest add @shadcn-space/<block-name>
+```
+
+See the `/iblai-add-shadcn-component` skill for:
+- IBL.ai brand color palette, gradients, and typography
+- How to compose shadcnspace blocks with ChatWidget, ProfileDropdown, NotificationBell
+- Customizing blocks to match the IBL.ai visual language
+
+Browse all blocks: https://shadcnspace.com/blocks
