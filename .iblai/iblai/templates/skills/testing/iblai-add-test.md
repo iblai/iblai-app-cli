@@ -22,7 +22,7 @@ Edit `e2e/.env.development`:
 
 ```bash
 APP_HOST=http://localhost:3000
-AUTH_HOST=https://auth.iblai.org
+AUTH_HOST=https://login.iblai.app
 PLAYWRIGHT_USERNAME=your-email@example.com
 PLAYWRIGHT_PASSWORD=your-password
 AUTH_FLOW=username_password

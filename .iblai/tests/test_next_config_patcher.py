@@ -171,9 +171,9 @@ class TestWriteEnvLocal:
     """Tests for write_env_local()."""
 
     def test_creates_new_env_local(self, tmp_path):
-        write_env_local(tmp_path, {"NEXT_PUBLIC_AUTH_URL": "https://auth.iblai.org"})
+        write_env_local(tmp_path, {"NEXT_PUBLIC_AUTH_URL": "https://login.iblai.app"})
         content = (tmp_path / ".env.local").read_text()
-        assert "NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org" in content
+        assert "NEXT_PUBLIC_AUTH_URL=https://login.iblai.app" in content
         assert "# ibl.ai Configuration" in content
 
     def test_appends_to_existing(self, tmp_path):

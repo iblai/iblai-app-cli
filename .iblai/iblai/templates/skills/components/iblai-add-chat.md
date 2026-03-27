@@ -32,7 +32,7 @@ Create `components/iblai/chat-widget.tsx` that:
 
 Add to `.env.local`:
 ```
-NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
 ```
 
 ### 5. Use the widget

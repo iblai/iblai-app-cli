@@ -8,7 +8,7 @@ dotenv.config({
 });
 
 const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
-const AUTH_HOST = process.env.AUTH_HOST || 'https://auth.iblai.org';
+const AUTH_HOST = process.env.AUTH_HOST || 'https://login.iblai.app';
 
 setup('authenticate', async ({ page }) => {
   setup.setTimeout(120_000);

@@ -4,7 +4,7 @@
  *
  * Supports two modes:
  *   1. Consolidated API (recommended): set NEXT_PUBLIC_API_BASE_URL to a
- *      single origin (e.g. https://api.iblai.org). LMS, DM, and AXD
+ *      single origin (e.g. https://api.iblai.app). LMS, DM, and AXD
  *      endpoints are derived as /lms, /dm, /axd path prefixes.
  *   2. Distributed: set NEXT_PUBLIC_PLATFORM_BASE_DOMAIN and each service
  *      resolves to its own subdomain (learn.{domain}, base.manager.{domain}).
@@ -30,14 +30,14 @@ export const getEnv = (key: keyof typeof env, fallback = ""): string => {
 };
 
 const domain = () =>
-  getEnv("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.org");
+  getEnv("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.app");
 
 /**
  * Application configuration
  * Priority: runtime env (window.__ENV__) → build-time env (process.env) → fallback
  */
 export const config = {
-  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", `https://auth.${domain()}`),
+  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", "https://login.iblai.app"),
   lmsUrl: () => {
     const explicit = getEnv("NEXT_PUBLIC_LMS_URL");
     if (explicit) return explicit;
