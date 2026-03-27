@@ -1,4 +1,4 @@
-"""Generator for the 'base' template — minimal Next.js app with IBL.ai auth."""
+"""Generator for the 'base' template — minimal Next.js app with ibl.ai auth."""
 
 from pathlib import Path
 from typing import Any, Dict, List
@@ -10,7 +10,7 @@ from iblai.generators.base import BaseGenerator
 
 class BaseAppGenerator(BaseGenerator):
     """
-    Generate a minimal Next.js app with IBL.ai authentication.
+    Generate a minimal Next.js app with ibl.ai authentication.
 
     This is a "blank canvas" with SSO auth, Redux store, and providers
     but no chat UI, sidebar, or agent-specific routes. Developers build
@@ -118,7 +118,7 @@ class BaseAppGenerator(BaseGenerator):
             "components/ui/sonner.tsx", self._render("components/ui/sonner.tsx.j2")
         )
 
-        # --- IBL.ai components (pre-generated, ready to import) ---
+        # --- ibl.ai components (pre-generated, ready to import) ---
         self._write(
             "components/iblai/chat-widget.tsx",
             self._render("chat/chat-widget.tsx.j2"),

@@ -7,7 +7,7 @@ from iblai.generators.base_app import BaseAppGenerator
 
 class AgentAppGenerator(BaseAppGenerator):
     """
-    Generate a Next.js app with IBL.ai authentication and a full-screen
+    Generate a Next.js app with ibl.ai authentication and a full-screen
     ChatWidget on the home page.
 
     The agent template extends the base template, overriding only:

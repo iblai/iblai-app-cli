@@ -1,11 +1,11 @@
-# Add IBL.ai Chat Widget
+# Add ibl.ai Chat Widget
 
-Add a real-time AI chat widget powered by IBL.ai mentors to this project. The widget uses WebSocket streaming for live responses.
+Add a real-time AI chat widget powered by ibl.ai mentors to this project. The widget uses WebSocket streaming for live responses.
 
 ## Prerequisites
 
-- IBL.ai auth must already be integrated (run `/iblai-add-auth` first)
-- A mentor/agent ID from your IBL.ai platform
+- ibl.ai auth must already be integrated (run `/iblai-add-auth` first)
+- A mentor/agent ID from your ibl.ai platform
 
 ## Steps
 

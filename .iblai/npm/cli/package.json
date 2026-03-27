@@ -1,7 +1,7 @@
 {
   "name": "@iblai/cli",
   "version": "0.1.0",
-  "description": "CLI to scaffold IBL.ai applications",
+  "description": "CLI to scaffold ibl.ai applications",
   "license": "MIT",
   "repository": {
     "type": "git",

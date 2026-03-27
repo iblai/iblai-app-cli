@@ -4,7 +4,7 @@
 
 # App CLI
 
-Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications, or adding IBL.ai features (auth, chat, profile, notifications) to existing Next.js apps. Generates production-ready code with SSO authentication, WebSocket chat, and full integration with the ibl.ai platform SDK.
+Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications, or adding ibl.ai features (auth, chat, profile, notifications) to existing Next.js apps. Generates production-ready code with SSO authentication, WebSocket chat, and full integration with the ibl.ai platform SDK.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
@@ -76,26 +76,26 @@ Run `iblai --help` to see all available commands.
 ```
 Usage: iblai [OPTIONS] COMMAND [ARGS]...
 
-  IBL.ai CLI - Quickly scaffold IBL.ai applications.
+  ibl.ai CLI - Quickly scaffold ibl.ai applications.
 
 Options:
   --version  Show the version and exit.
   --help     Show this message and exit.
 
 Commands:
-  startapp  Create a new IBL.ai application from a template.
+  startapp  Create a new ibl.ai application from a template.
 ```
 
 ### Templates
 
 | Template | Description | Command |
 |----------|-------------|---------|
-| `base` | Minimal app with IBL.ai auth — blank canvas for custom development | `iblai startapp base` |
+| `base` | Minimal app with ibl.ai auth — blank canvas for custom development | `iblai startapp base` |
 | `agent` | Full AI agent chat application with sidebar, navbar, WebSocket chat | `iblai startapp agent` |
 
 ### `iblai startapp base`
 
-Scaffolds a minimal Next.js 15 app with IBL.ai SSO authentication, Redux store, and providers — no chat UI, no sidebar, no agent routes. A blank canvas for building your own app with `iblai add` features or custom code.
+Scaffolds a minimal Next.js 15 app with ibl.ai SSO authentication, Redux store, and providers — no chat UI, no sidebar, no agent routes. A blank canvas for building your own app with `iblai add` features or custom code.
 
 ```bash
 iblai startapp base --platform acme
@@ -109,7 +109,7 @@ What you get (~22 files):
 - Home page with user greeting, logout, and hints for `iblai add`
 - `components.json` for shadcnspace UI blocks
 - `.mcp.json` for AI-assisted development
-- Pinned dependency versions matching the IBL.ai SDK
+- Pinned dependency versions matching the ibl.ai SDK
 
 Add features later:
 ```bash
@@ -260,9 +260,9 @@ npx shadcn@latest add @shadcn-space/dashboard-shell-01
 
 Browse all available blocks at [shadcnspace.com/blocks](https://shadcnspace.com/blocks).
 
-## `iblai add` -- Add IBL.ai Features to Existing Apps
+## `iblai add` -- Add ibl.ai Features to Existing Apps
 
-Already have a Next.js app? Use `iblai add` to integrate IBL.ai features without scaffolding a new project.
+Already have a Next.js app? Use `iblai add` to integrate ibl.ai features without scaffolding a new project.
 
 ```bash
 iblai add auth           # SSO authentication + Redux store + providers

@@ -1,6 +1,6 @@
-# Add IBL.ai Notifications
+# Add ibl.ai Notifications
 
-Add notification features to your IBL.ai app — a full notification center
+Add notification features to your ibl.ai app — a full notification center
 page with Inbox and Alerts tabs, plus a compact bell icon for your navbar.
 
 ![Notifications Page](https://raw.githubusercontent.com/iblai/iblai-app-cli/refs/heads/main/examples/iblai-agent-app/docs/screenshots/notifications-page.png)

@@ -1,7 +1,7 @@
-# Add shadcnspace Components with IBL.ai Brand Consistency
+# Add shadcnspace Components with ibl.ai Brand Consistency
 
 Add pre-built UI blocks from [shadcnspace](https://shadcnspace.com) to your
-IBL.ai app while maintaining brand consistency with SDK components.
+ibl.ai app while maintaining brand consistency with SDK components.
 
 ---
 
@@ -46,9 +46,9 @@ components to the correct location with the correct import paths.
 
 ---
 
-## IBL.ai Brand Identity
+## ibl.ai Brand Identity
 
-The IBL.ai SDK defines a complete design system. When adding shadcnspace
+The ibl.ai SDK defines a complete design system. When adding shadcnspace
 blocks, use these values to maintain visual consistency.
 
 ### Color Palette
@@ -67,7 +67,7 @@ blocks, use these values to maintain visual consistency.
 ### Brand Gradient
 
 ```css
-/* The signature IBL.ai gradient — sky-blue to deep-blue */
+/* The signature ibl.ai gradient — sky-blue to deep-blue */
 background: linear-gradient(135deg, #00b0ef, #0058cc);
 
 /* Button gradient (Tailwind classes) */
@@ -88,40 +88,12 @@ className="bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white"
 | Text Secondary | `#717985` | Secondary/muted text |
 | Text Muted | `#9ca3af` | Placeholder, disabled text |
 
-### Typography
+### Full Brand Guide
 
-```css
-font-family: ui-sans-serif, system-ui, sans-serif,
-  'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-```
+For the complete design system — typography, spacing scale, border radius,
+shadows, dark mode, and all CSS utility classes — see [BRAND.md](../../BRAND.md).
 
-Font weights: 300 (light), 400 (normal), 500 (medium), 600 (semibold), 700 (bold)
-
-### Spacing Scale
-
-| Token | Value |
-|-------|-------|
-| xs | 4px (0.25rem) |
-| sm | 8px (0.5rem) |
-| md | 16px (1rem) |
-| lg | 24px (1.5rem) |
-| xl | 32px (2rem) |
-| 2xl | 48px (3rem) |
-
-### Border Radius
-
-| Token | Value |
-|-------|-------|
-| sm | 4px (0.25rem) |
-| md | 6px (0.375rem) |
-| lg | 8px (0.5rem) |
-| xl | 12px (0.75rem) |
-| 2xl | 16px (1rem) |
-| full | 9999px |
-
-### CSS Utility Classes
-
-The SDK provides utility classes you can use alongside shadcnspace blocks:
+### CSS Utility Classes (Quick Reference)
 
 ```css
 /* Backgrounds */
@@ -145,7 +117,7 @@ The SDK provides utility classes you can use alongside shadcnspace blocks:
 
 ## Recommended Block Categories
 
-When choosing shadcnspace blocks for your IBL.ai app, these categories
+When choosing shadcnspace blocks for your ibl.ai app, these categories
 integrate well with the existing SDK components:
 
 ### Dashboard Layouts
@@ -156,7 +128,7 @@ content layout — dashboard blocks extend the main content area.
 
 ### Hero Sections
 
-For landing pages or onboarding screens. Use the IBL.ai gradient
+For landing pages or onboarding screens. Use the ibl.ai gradient
 (`from-[#2563EB] to-[#93C5FD]`) for primary call-to-action buttons.
 
 ### Navigation
@@ -183,7 +155,7 @@ For SaaS features. Use the brand gradient on primary CTAs and
 
 ---
 
-## Composing with IBL.ai Components
+## Composing with ibl.ai Components
 
 ### Embedding ChatWidget in a Dashboard
 
@@ -227,7 +199,7 @@ import { IblaiNotificationBell } from "@/components/iblai/notification-bell";
 
 ### Provider Requirements
 
-IBL.ai components require the provider hierarchy to be set up.
+ibl.ai components require the provider hierarchy to be set up.
 If your page is inside the `(app)/` route group, providers are
 already active. If adding components outside the route group,
 wrap them with `<IblaiProviders>`.
@@ -237,7 +209,7 @@ wrap them with `<IblaiProviders>`.
 ## Customizing Blocks for Brand Consistency
 
 When a shadcnspace block uses generic colors, replace them with
-IBL.ai brand values:
+ibl.ai brand values:
 
 ### Replace Default Blue
 
@@ -245,7 +217,7 @@ IBL.ai brand values:
 // shadcnspace default:
 className="bg-blue-600 text-white"
 
-// IBL.ai brand:
+// ibl.ai brand:
 className="bg-[#0058cc] text-white"
 // or use the gradient:
 className="bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white"
@@ -257,7 +229,7 @@ className="bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white"
 // shadcnspace default:
 className="border border-gray-200"
 
-// IBL.ai brand:
+// ibl.ai brand:
 className="border border-[#e5e7eb]"
 // or use the utility class:
 className="border ibl-border"
@@ -269,13 +241,13 @@ className="border ibl-border"
 // shadcnspace default:
 className="bg-gray-50"
 
-// IBL.ai brand:
+// ibl.ai brand:
 className="bg-[#fafbfc]"
 ```
 
 ### Use the Icon Library
 
-IBL.ai apps use **Lucide React** for icons (same as shadcn/ui):
+ibl.ai apps use **Lucide React** for icons (same as shadcn/ui):
 
 ```tsx
 import { Search, Bell, User, Settings } from "lucide-react";
@@ -305,5 +277,5 @@ And scans SDK components for Tailwind class generation:
 ### Block uses wrong colors
 
 After adding a shadcnspace block, search for hardcoded color classes
-(like `bg-blue-600`, `text-gray-500`) and replace with IBL.ai brand
+(like `bg-blue-600`, `text-gray-500`) and replace with ibl.ai brand
 values from the palette table above.

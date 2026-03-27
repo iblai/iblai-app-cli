@@ -174,7 +174,7 @@ class TestWriteEnvLocal:
         write_env_local(tmp_path, {"NEXT_PUBLIC_AUTH_URL": "https://auth.iblai.org"})
         content = (tmp_path / ".env.local").read_text()
         assert "NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org" in content
-        assert "# IBL.ai Configuration" in content
+        assert "# ibl.ai Configuration" in content
 
     def test_appends_to_existing(self, tmp_path):
         (tmp_path / ".env.local").write_text("EXISTING_VAR=hello\n")

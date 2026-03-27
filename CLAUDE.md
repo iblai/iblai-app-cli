@@ -1,210 +1,175 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance for working with the example app and generated ibl.ai applications.
+
+## MCP Server (Use First)
+
+`.mcp.json` is configured with `@iblai/mcp`. **Always use MCP tools first** before searching the codebase:
+
+```
+get_component_info("Profile")                  # Full props interface for any SDK component
+get_hook_info("useAdvancedChat")               # Hook parameters and return types
+get_api_query_info("useGetUserMetadataQuery")  # RTK Query endpoint details
+get_provider_setup("auth")                     # Provider hierarchy and setup code
+create_page_template("Dashboard", "mentor")    # Generate a page template
+```
 
 ## Project Overview
 
-**iblai-app-cli** — CLI tool for scaffolding IBL.ai frontend applications. Generates Next.js 15 apps with SSO authentication, Redux Toolkit store, Tauri v2 desktop shell, and pre-built SDK components. Also adds IBL.ai features to existing Next.js apps via `iblai add`.
+**ibl.ai App CLI** — scaffolds Next.js 15 apps with ibl.ai SSO authentication, Redux Toolkit store, Tauri v2 desktop/mobile shell, and pre-built SDK components.
 
-- **Language**: Python 3.11
-- **CLI framework**: Click 8
-- **Templates**: Jinja2 3
-- **UI**: Rich 13 (terminal formatting), Inquirer 3 (interactive prompts)
-- **AI**: Anthropic + OpenAI SDKs for `--prompt` enhancement
-- **Distribution**: PyPI (`iblai-app-cli`) + npm (`@iblai/cli` with per-platform binaries)
+The example app at `examples/iblai-agent-app/` is a complete reference implementation with the agent template (full-screen ChatWidget via `<mentor-ai>` web component).
 
-## Commands
+## Brand Identity
 
-Development commands are in `.iblai/Makefile`. Run them with `make -C .iblai`:
+See [BRAND.md](BRAND.md) for the complete ibl.ai brand guidelines: color palette, gradients, typography, spacing, and CSS utility classes.
 
-```bash
-make -C .iblai install        # pip install -e ".iblai/" (end user)
-make -C .iblai install-dev    # pip install -e ".iblai/[dev]" (development)
-make -C .iblai test           # pytest (255+ tests, 75% coverage)
-make -C .iblai lint       # black --check + flake8
-make -C .iblai format     # black auto-format
-make -C .iblai binary     # PyInstaller build for current platform
-make -C .iblai example    # Regenerate examples/iblai-agent-app
-make -C .iblai clean      # Remove build artifacts
-make -C .iblai help       # Show all available targets
+Key values for quick reference:
+- **Primary**: `#0058cc` (brand blue)
+- **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+- **Button**: `from-[#2563EB] to-[#93C5FD]`
 
-# Run a specific test (from .iblai/ directory)
-cd .iblai && pytest tests/test_add_builds.py -v --tb=short
-cd .iblai && pytest tests/test_generators.py -k "test_name" -v
-
-# Run the CLI directly (development mode)
-iblai --version
-iblai startapp agent --platform acme --agent my-id --app-name my-app
-iblai add auth
-iblai builds dev
-```
-
-**Tip**: Add a shell alias for convenience:
-```bash
-alias mk='make -C .iblai'
-# Then: mk test, mk build, mk lint, etc.
-```
-
-## Architecture
-
-Internal machinery is in `.iblai/`:
-
-```
-.iblai/iblai/
-├── cli.py                    # Click entry point — registers startapp, add, tauri
-├── config.py                 # .env file loading with stage overrides
-├── ai_helper.py              # AI enhancement (Anthropic/OpenAI)
-├── project_detector.py       # Detect Next.js App Router projects
-├── package_manager.py        # Detect pnpm/yarn/npm/bun from lockfiles
-├── next_config_patcher.py    # Regex-based next.config.mjs patching
-├── commands/
-│   ├── startapp.py           # iblai startapp agent [options]
-│   ├── add.py                # iblai add auth|chat|profile|notifications|mcp|tauri
-│   └── builds.py              # iblai builds [passthrough to @tauri-apps/cli]
-├── generators/
-│   ├── base.py               # BaseGenerator — template rendering, file writing
-│   ├── base_app.py           # BaseAppGenerator — generates ~28 shared files
-│   ├── agent.py              # AgentAppGenerator — extends base, overlays 4 files
-│   ├── add_auth.py           # iblai add auth generator
-│   ├── add_chat.py           # iblai add chat generator
-│   ├── add_profile.py        # iblai add profile generator
-│   ├── add_notifications.py  # iblai add notifications generator
-│   ├── add_mcp.py            # iblai add mcp generator
-│   └── add_builds.py          # iblai add builds generator + placeholder icon creation
-└── templates/
-    ├── base/                 # Base template files (package.json, next.config, providers, store)
-    ├── agent/                # Agent overrides (page.tsx, config.ts, .env.example, package.json)
-    ├── shared/               # Shared templates (layout, SSO, components, e2e, CLAUDE.md)
-    ├── add/                  # iblai add templates (auth, chat, profile, notifications)
-    ├── tauri/                # Tauri templates (src-tauri/, CI workflows, MSIX scripts)
-    ├── skills/               # 15 skill .md files (single source, symlinked to Claude/OpenCode/Cursor)
-    └── screenshots/          # 4 .png files referenced by skills
-```
-
-### Skills Directory
-
-Skills are stored centrally in `skills/` and symlinked to tool-specific directories:
-
-```
-skills/                          # Actual files (edit here)
-├── README.md
-├── iblai-add-auth.md
-└── ...
-
-.claude/skills/<name>.md         -> ../../skills/<name>.md
-.opencode/skills/<name>/SKILL.md -> ../../../skills/<name>.md
-.cursor/rules/<name>.md          -> ../../skills/<name>.md
-```
-
-This structure applies to both the CLI repo itself (6 dev skills) and generated apps (13 integration skills). Screenshots are in `docs/screenshots/`.
-
-### Python Naming Convention
-
-Python package directories cannot contain hyphens — `import iblai-cli` is a syntax error (Python interprets `-` as minus). The names used across the project:
-
-- **Package directory** (importable): `.iblai/iblai/`
-- **Distribution name** (pip/PyPI): `iblai-app-cli`
-- **CLI command**: `iblai`
-- **npm package**: `@iblai/cli`
-
-Do not rename `iblai/` to `iblai-cli/`.
-
-### Generator Hierarchy
-
-```
-BaseGenerator (base.py)
-  - Template rendering (Jinja2), file writing, static file copying
-  - Context: app_name, platform_key, mentor_id, has_mentor_id, tauri
-  └── BaseAppGenerator (base_app.py)
-        - Generates ~28 files from shared/ + base/ templates
-        - Own Jinja2 Environment with FileSystemLoader [base/, shared/, add/]
-        - get_context() returns {app_name, platform_key, tauri}
-        └── AgentAppGenerator (agent.py)
-              - Calls super().generate(), then overlays 4 agent-specific files
-              - Own Environment with FileSystemLoader [agent/, base/, shared/, add/]
-              - get_context() adds mentor_id, has_mentor_id
-```
-
-### Template Context Variables
-
-| Variable | Type | Set by | Used in |
-|----------|------|--------|---------|
-| `app_name` | str | All generators | package.json, layout, config, Cargo.toml, tauri.conf.json |
-| `platform_key` | str | All generators | .env.example, config.ts |
-| `mentor_id` | str | AgentAppGenerator | .env.example, config.ts, page.tsx |
-| `has_mentor_id` | bool | AgentAppGenerator | CLAUDE.md conditionals |
-| `tauri` | bool | BaseAppGenerator | next.config.mjs, package.json, CLAUDE.md |
-
-## Binary Distribution
-
-5 platforms built via PyInstaller:
-
-| Target | Runner | Binary |
-|--------|--------|--------|
-| `linux-x64` | `ubuntu-22.04` | `iblai` |
-| `linux-arm64` | `ubuntu-22.04-arm` | `iblai` |
-| `darwin-arm64` | `macos-14` | `iblai` |
-| `win32-x64` | `windows-latest` | `iblai.exe` |
-| `win32-arm64` | `windows-11-arm` | `iblai.exe` |
-
-Build scripts: `.iblai/scripts/build-binary.sh` (Linux/macOS), `.iblai/scripts/build-binary.ps1` (Windows).
-
-npm distribution: `.iblai/npm/cli/` is the `@iblai/cli` wrapper package with `optionalDependencies` pointing to per-platform packages (`@iblai/cli-linux-x64`, etc.). The `bin/iblai.js` launcher resolves the platform binary at runtime.
-
-## CI/CD Workflows
-
-| Workflow | Trigger | What it does |
-|----------|---------|-------------|
-| `build-binaries.yml` | `v*` tag, `workflow_dispatch`, `workflow_call` | PyInstaller builds for 5 platforms |
-| `release.yml` | `v*` tag | Calls build-binaries, creates GitHub release, calls publish-pypi |
-| `publish-pypi.yml` | `workflow_call` (from release), `workflow_dispatch` | Builds sdist+wheel, publishes to PyPI |
-| `publish-npm.yml` | `workflow_dispatch` only (manual) | Downloads artifacts by run_id, publishes 6 npm packages from `release` branch |
-
-## Testing
+## Commands (Generated Apps)
 
 ```bash
-make -C .iblai test                                       # full suite
-cd .iblai && pytest tests/ -v --tb=short                  # same thing
-cd .iblai && pytest tests/test_add_builds.py -k "test_generates_icon" -v  # specific
+# Development
+pnpm dev                # Start dev server (localhost:3000)
+pnpm build              # Production build
+pnpm lint               # ESLint
+pnpm typecheck          # TypeScript type checking
+
+# E2E tests
+pnpm test:e2e           # Headless (Chromium + Firefox + WebKit)
+pnpm test:e2e:ui        # Interactive Playwright UI
+
+# Tauri desktop/mobile
+iblai builds dev                     # Dev mode (Next.js + native shell)
+iblai builds build                   # Production build for current platform
+iblai builds generate-icons logo.png # Generate all icon sizes
+iblai builds ci-workflow --all       # Generate CI build workflows
+
+# iOS
+iblai builds ios init                # Initialize iOS project (macOS only)
+pnpm tauri:dev:ios                   # Run in iOS Simulator
+pnpm tauri:build:ios                 # Build iOS app (.ipa)
+
+# Windows MSIX
+pnpm tauri:build:msix                # Build MSIX package (x64)
+pnpm tauri:setup:cert                # Create dev certificate for signing
 ```
 
-Test files (in `.iblai/tests/`):
-- `test_cli.py` — CLI help, startapp, add command group
-- `test_generators.py` — Agent generator, route groups, components.json
-- `test_base_app_generator.py` — Base template, skills, pinned versions, tauri flag
-- `test_add_generators.py` — All 7 add generators, src/ dir support, skill counts
-- `test_add_builds.py` — Tauri generator, icons, MSIX, CI workflows, next.config patching
-- `test_builds_commands.py` — BuildsGroup passthrough, exec prefix detection, prerequisites
-- `test_distribution.py` — npm packages, workflows, PyInstaller, pyproject.toml
-- `test_project_detector.py` — Next.js detection, src/ layout
-- `test_package_manager.py` — pnpm/yarn/npm/bun detection
-- `test_next_config_patcher.py` — webpack, globals.css, .env.local, store patching
-- `test_config.py` — .env loading, stage overrides
-- `test_ai_helper.py` — model/temperature/max_tokens params
+## Architecture (Generated Apps)
 
-## Git Conventions
+### Route Groups
 
-**Branches**: `feat/<name>`, `fix/<name>`, `chore/<name>`, `docs/<name>`
-
-**Commits**: Conventional Commits format:
 ```
-feat(tauri): add Windows MSIX build script
-fix(generators): pass tauri flag through BaseAppGenerator context
-chore: align Python version to 3.11.15
-docs: add per-platform build dependency guides
+app/
+├── (auth)/sso-login-complete/   # SSO callback — runs OUTSIDE providers
+└── (app)/                       # Authenticated routes — wrapped by AppShell
+    ├── layout.tsx               # AppShell + providers
+    └── page.tsx                 # Home page
+```
+
+### Providers (`providers/index.tsx`)
+
+```
+AuthProvider > TenantProvider > {children}
+```
+
+`initializeDataLayer` is called synchronously with **5 arguments** (data-layer v1.2+):
+
+```typescript
+initializeDataLayer(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)
+```
+
+### Redux Store (`store/index.ts`)
+
+`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.mjs`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined`.
+
+### Pre-built Components (`components/iblai/`)
+
+| Component | Description |
+|-----------|-------------|
+| `ChatWidget` | `<mentor-ai>` web component — full-screen AI chat |
+| `ProfileDropdown` | Avatar dropdown with profile link and logout |
+| `IblaiNotificationBell` | Bell icon with unread count badge |
+
+## SDK Versions (Locked)
+
+| Package | Version |
+|---------|---------|
+| `@iblai/iblai-js` | 1.1.1 |
+| `@iblai/iblai-web-mentor` | 2.0.1 |
+| `@iblai/iblai-api` | 4.166.0-ai |
+| `@reduxjs/toolkit` | 2.11.2 |
+| `next` | 15.5.14 |
+
+## Add Features
+
+```bash
+iblai add auth           # SSO authentication + Redux store + providers
+iblai add chat           # AI chat widget (<mentor-ai> web component)
+iblai add profile        # User profile dropdown
+iblai add notifications  # Notification bell with unread badge
+iblai add mcp            # MCP server config + Claude/OpenCode/Cursor skills
+iblai add builds         # Tauri v2 desktop/mobile shell
+```
+
+## Environment (`.env.local`)
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=https://api.iblai.org
+NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org
+NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.org
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
+NEXT_PUBLIC_DEFAULT_AGENT_ID=your-mentor-id
 ```
 
 ## Skills
 
-Available in `skills/` (symlinked to `.claude/skills/`, `.opencode/skills/`, `.cursor/rules/`):
+Available in `skills/` (invoke with `/` in Claude Code, OpenCode, or Cursor):
+
+### App Skills (13)
+
+| Skill | Description |
+|-------|-------------|
+| `/iblai-setup` | What's set up, env config, localStorage keys, MCP tools |
+| `/iblai-add-auth` | Add SSO authentication |
+| `/iblai-add-chat` | Add real-time AI chat widget |
+| `/iblai-add-profile` | Profile dropdown + full settings page |
+| `/iblai-add-account` | Organization/account settings |
+| `/iblai-add-analytics` | Analytics dashboard |
+| `/iblai-add-notifications` | Notification bell + center page |
+| `/iblai-add-component` | Generic guide for any SDK component |
+| `/iblai-add-shadcn-component` | Add shadcnspace blocks with brand consistency |
+| `/iblai-customize-chat` | ChatWidget props and customization |
+| `/iblai-add-test` | Playwright E2E test patterns |
+| `/iblai-build-windows-msix` | Windows MSIX build for test and release |
+| `/iblai-generate-icons` | Generate all icon sizes from a source image |
+
+### CLI Dev Skills (6)
 
 | Skill | Description |
 |-------|-------------|
 | `/iblai-cli-startapp` | How `iblai startapp` and the generator hierarchy work |
 | `/iblai-cli-add-command` | How `iblai add` integrates features into existing projects |
-| `/iblai-cli-builds` | How `iblai builds` wraps @tauri-apps/cli with prerequisites |
+| `/iblai-cli-builds` | How `iblai builds` wraps @tauri-apps/cli |
 | `/iblai-cli-build-binary` | Building standalone binaries with PyInstaller |
 | `/iblai-cli-publish` | Release workflow: GitHub releases, npm, PyPI |
 | `/iblai-cli-templates` | Jinja2 template system: directories, context, conditionals |
+
+## CLI Development
+
+For CLI development (Python package, generators, templates, tests), see [.iblai/CLAUDE.md](.iblai/CLAUDE.md).
+
+Quick reference:
+
+```bash
+make -C .iblai install-dev    # Install with dev dependencies
+make -C .iblai test           # Run 255+ tests
+make -C .iblai example        # Regenerate example app
+make -C .iblai help           # Show all targets
+```
 
 THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.

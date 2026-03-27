@@ -1,4 +1,4 @@
-"""Generator for adding IBL.ai chat widget to an existing Next.js project."""
+"""Generator for adding ibl.ai chat widget to an existing Next.js project."""
 
 from pathlib import Path
 from typing import List

@@ -9,7 +9,7 @@ How the `iblai add` command group detects projects and generates feature files.
 ```python
 @click.group()
 def add():
-    """Add IBL.ai features to an existing Next.js project."""
+    """Add ibl.ai features to an existing Next.js project."""
 
 @add.command()
 def auth(): ...       # SSO authentication (7 files)

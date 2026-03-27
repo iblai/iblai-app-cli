@@ -190,7 +190,7 @@ class AddBuildsGenerator:
         )
         created.append("src-tauri/build.rs")
 
-        # Icons — copy pre-generated IBL.ai logo icons from templates,
+        # Icons — copy pre-generated ibl.ai logo icons from templates,
         # or fall back to solid-color RGBA placeholders.
         icon_files = self._copy_icons()
         created.extend(icon_files)
@@ -202,7 +202,7 @@ class AddBuildsGenerator:
     # ------------------------------------------------------------------
 
     def _copy_icons(self) -> List[str]:
-        """Copy pre-generated IBL.ai logo icons to src-tauri/icons/.
+        """Copy pre-generated ibl.ai logo icons to src-tauri/icons/.
 
         Falls back to generating solid-color RGBA placeholders if
         the pre-generated icon templates are not available.

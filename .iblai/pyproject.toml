@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "iblai-app-cli"
 version = "0.2.0"
-description = "CLI tool to quickly scaffold IBL.ai applications"
-readme = {content-type = "text/markdown", text = "CLI tool to quickly scaffold IBL.ai applications. See https://github.com/iblai/iblai-app-cli"}
+description = "CLI tool to quickly scaffold ibl.ai applications"
+readme = {content-type = "text/markdown", text = "CLI tool to quickly scaffold ibl.ai applications. See https://github.com/iblai/iblai-app-cli"}
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "IBL.ai", email = "support@ibl.ai"}
+    {name = "ibl.ai", email = "support@ibl.ai"}
 ]
 keywords = ["iblai", "cli", "nextjs", "ai", "chat", "agent"]
 classifiers = [

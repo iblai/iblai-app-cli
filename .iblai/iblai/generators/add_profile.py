@@ -1,4 +1,4 @@
-"""Generator for adding IBL.ai profile dropdown to an existing Next.js project."""
+"""Generator for adding ibl.ai profile dropdown to an existing Next.js project."""
 
 from pathlib import Path
 

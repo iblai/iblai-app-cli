@@ -1,4 +1,4 @@
-"""Generator for adding IBL.ai auth to an existing Next.js project."""
+"""Generator for adding ibl.ai auth to an existing Next.js project."""
 
 from pathlib import Path
 from typing import List

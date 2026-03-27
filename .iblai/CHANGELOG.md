@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `iblai startapp base` template -- minimal Next.js app with IBL.ai SSO auth, Redux store, and providers. No chat UI, no sidebar, no agent routes. A blank canvas for custom development with pinned dependency versions. Uses shared templates (`templates/shared/`) with the agent template for common files (tsconfig, postcss, gitignore, SSO callback, providers, etc.) and template-specific files (`templates/base/`) for the simplified package.json, store, providers, config, and home page.
-- `iblai add` command group for integrating IBL.ai features into existing Next.js apps:
+- `iblai startapp base` template -- minimal Next.js app with ibl.ai SSO auth, Redux store, and providers. No chat UI, no sidebar, no agent routes. A blank canvas for custom development with pinned dependency versions. Uses shared templates (`templates/shared/`) with the agent template for common files (tsconfig, postcss, gitignore, SSO callback, providers, etc.) and template-specific files (`templates/base/`) for the simplified package.json, store, providers, config, and home page.
+- `iblai add` command group for integrating ibl.ai features into existing Next.js apps:
   - `iblai add auth`: SSO authentication -- generates SSO callback page, config, storage service, auth utilities, Redux store, provider wrapper, and SDK styles (7 files).
   - `iblai add chat`: AI chat widget -- full-featured component with WebSocket streaming, markdown rendering (react-markdown + remark-gfm), session management with localStorage persistence, conversation starters, copy-to-clipboard, scroll management, and agent-template-matching styling.
   - `iblai add profile`: User profile dropdown using the SDK's `UserProfileDropdown` component with tenant switching and logout.
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `iblai-app-cli`.
 - `iblai startapp agent` command to scaffold Next.js 15 agent chat applications.
-- SSO authentication with IBL Auth SPA.
+- SSO authentication with ibl.ai Auth SPA.
 - WebSocket-based real-time chat with `useAdvancedChat` from `@iblai/iblai-js`.
 - AI-assisted customization via `--prompt` with Anthropic and OpenAI support.
 - Full app generation: Next.js 15, React 19, Tailwind CSS 4, Redux Toolkit, Radix UI.
