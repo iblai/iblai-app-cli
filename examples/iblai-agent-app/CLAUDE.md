@@ -138,7 +138,7 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 |-------|-------------|
 | `/iblai-setup` | What's set up, env config, localStorage keys, MCP tools |
 | `/iblai-add-auth` | Add SSO authentication to an existing project |
-| `/iblai-add-chat` | Add real-time AI chat widget |
+| `/iblai-add-chat` | AI chat widget + customization |
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |
 | `/iblai-add-analytics` | Analytics dashboard |
@@ -148,7 +148,6 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
 | `/iblai-generate-icons` | Generate all Tauri icon sizes from a source image |
-| `/iblai-customize-chat` | ChatWidget props and customization |
 
 ## UI Blocks (shadcnspace)
 

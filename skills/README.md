@@ -16,16 +16,13 @@ Invoke them with `/` in your AI assistant.
 | Skill | Description |
 |-------|-------------|
 | `/iblai-add-auth` | Add SSO authentication |
-| `/iblai-add-chat` | Add real-time AI chat widget |
-| `/iblai-add-profile` | Add profile dropdown to navbar |
-| `/iblai-add-notifications` | Add notification bell |
-| `/iblai-add-component` | Generic guide for any SDK component |
-| `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
-| `/iblai-customize-chat` | ChatWidget props and customization |
+| `/iblai-add-chat` | AI chat widget + customization |
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |
 | `/iblai-add-analytics` | Analytics dashboard |
 | `/iblai-add-notifications` | Notification bell + center page |
+| `/iblai-add-component` | Generic guide for any SDK component |
+| `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
 
 ### Builds
 
