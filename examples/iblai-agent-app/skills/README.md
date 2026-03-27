@@ -36,6 +36,7 @@ Invoke them with `/` in your AI assistant.
 | Skill | Description |
 |-------|-------------|
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
+| `/iblai-generate-icons` | Generate all Tauri icon sizes from a source image |
 
 ### Testing
 
