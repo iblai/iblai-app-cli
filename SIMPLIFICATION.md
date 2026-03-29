@@ -137,13 +137,53 @@ What should be in place on the `simplification` branch of `iblai-app-cli`, based
 3. **Post-action guidance** -- DONE (all commands have Rich success panels)
 4. **account + analytics generators** -- DONE (AddAccountGenerator, AddAnalyticsGenerator)
 5. **`iblai init`** -- DONE (top-level alias for `iblai add mcp`)
-6. **shadcn theme alignment** -- TODO (CSS variable bridge mapping ibl.ai tokens to shadcn vars)
+6. **shadcn theme alignment** -- DONE (ibl.ai OKLCH values mapped to all shadcn CSS variables in globals.css)
 7. **`iblai open`** -- DONE (opens localhost:3000 or docs)
 8. **`iblai config`** -- TODO (.env.local management)
 9. **Smart bare command** -- DONE (Rich welcome screen with command groups)
 10. **App store tools** -- TODO (screenshots, submission guides)
 11. **`--yes` flag** -- DONE (skip all interactive prompts for CI/CD)
-12. **npx publish** -- TODO (actual npm publish for production use)
+12. **npx publish** -- TODO (actual npm publish for production use, versions bumped to 0.2.0)
+13. **custom-domains fix** -- DONE (falls back to NEXT_PUBLIC_MAIN_TENANT_KEY on localhost)
+
+---
+
+## Simutil Research
+
+[dungngminh/simutil](https://github.com/dungngminh/simutil) (MIT license) is a terminal UI for launching Android emulators and iOS simulators. Referenced in [#1044](https://github.com/iblai/iblai-platform/issues/1044).
+
+### What it provides
+
+- **One-key device launch** — browse emulators/simulators in a TUI, launch with Enter
+- **Android launch options** — normal, cold boot, no audio, etc.
+- **ADB tools** — wireless connect, pairing (code + QR), device management
+- **Physical device discovery** — list connected iOS/Android devices
+- **Cross-platform** — macOS, Linux (no Windows yet)
+
+### Written in Dart
+
+Simutil is a Dart CLI app using [Nocterm](https://nocterm.dev/) (a terminal UI framework). It is **not** a Python or Node.js tool. Incorporating its code directly would require either:
+- Porting the Dart code to Python (significant effort)
+- Shelling out to `simutil` as a binary dependency (like we do with `cargo tauri`)
+- Reimplementing the core functionality (device listing, emulator launch) in Python using subprocess calls to `adb`, `emulator`, `xcrun simctl`
+
+### Relevance to iblai-app-cli
+
+The useful concepts for our CLI are:
+
+1. **`iblai builds devices`** — list available emulators/simulators + connected physical devices. Wraps `xcrun simctl list` (iOS) and `emulator -list-avds` + `adb devices` (Android). This would complement our existing `iblai builds ios dev` and `iblai builds android dev` commands.
+
+2. **Launch options for Android emulators** — cold boot, no audio, wipe data. Could be flags on `iblai builds android dev`.
+
+3. **Wireless ADB connect** — `iblai builds android connect <ip>` for wireless debugging. Useful for physical device testing.
+
+### Recommended integration
+
+**Do not copy the Dart code.** Instead:
+- Implement device listing as a new `iblai builds devices` command in Python
+- Use `subprocess.run()` to call `xcrun simctl list --json` and `emulator -list-avds`
+- Use `rich.table` to display available devices
+- This is a future feature (lower priority than the current TODO items)
 
 ---
 
