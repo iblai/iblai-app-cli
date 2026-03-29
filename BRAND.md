@@ -9,15 +9,21 @@ Brand guidelines for building consistent ibl.ai applications. Based on the
 
 ### Primary
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| Primary | `#0058cc` | Brand blue — buttons, links, active states |
-| Primary Light | `#00b0ef` | Sky blue — gradient start, highlights |
-| Primary Dark | `#004499` | Deep blue — hover states, emphasis |
-| Chat Primary | `#3b82f6` | Chat interface elements |
-| Avatar BG | `#0ea5e9` | Default avatar background |
-| Link | `#0058cc` | Link text |
-| Link Hover | `#004499` | Link hover |
+| Token | Hex | OKLCH | Usage |
+|-------|-----|-------|-------|
+| Primary | `#0058cc` | `oklch(0.492 0.194 259.3)` | Brand blue — buttons, links, active states |
+| Primary Light | `#00b0ef` | `oklch(0.713 0.148 233.2)` | Sky blue — gradient start, highlights |
+| Primary Dark | `#004499` | `oklch(0.406 0.152 258.2)` | Deep blue — hover states, emphasis |
+| Chat Primary | `#3b82f6` | `oklch(0.623 0.188 259.8)` | Chat interface elements |
+| Avatar BG | `#0ea5e9` | `oklch(0.670 0.148 230.5)` | Default avatar background |
+| Link | `#0058cc` | `oklch(0.492 0.194 259.3)` | Link text |
+| Link Hover | `#004499` | `oklch(0.406 0.152 258.2)` | Link hover |
+
+### shadcn CSS Variables
+
+Generated apps map ibl.ai tokens to shadcn CSS variables in `globals.css` using OKLCH values.
+shadcn components (`bg-primary`, `text-muted-foreground`, `border-border`, etc.) automatically
+use the ibl.ai brand colors. No additional theme configuration needed.
 
 ### Brand Gradient
 

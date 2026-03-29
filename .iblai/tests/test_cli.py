@@ -115,11 +115,85 @@ class TestAddCommand:
         assert "add" in result.output
 
     def test_add_help_shows_subcommands(self, runner):
-        """iblai add --help lists all six subcommands."""
+        """iblai add --help lists all eight subcommands."""
         result = runner.invoke(cli, ["add", "--help"])
         assert result.exit_code == 0
-        for sub in ("auth", "chat", "profile", "notifications", "mcp", "builds"):
+        for sub in (
+            "auth",
+            "chat",
+            "profile",
+            "notifications",
+            "account",
+            "analytics",
+            "mcp",
+            "builds",
+        ):
             assert sub in result.output
+
+    def test_init_help(self, runner):
+        """iblai init --help shows the command."""
+        result = runner.invoke(cli, ["init", "--help"])
+        assert result.exit_code == 0
+        assert "AI-assisted" in result.output
+
+    def test_open_help(self, runner):
+        """iblai open --help shows targets."""
+        result = runner.invoke(cli, ["open", "--help"])
+        assert result.exit_code == 0
+        assert "app" in result.output
+        assert "docs" in result.output
+
+    def test_open_in_main_help(self, runner):
+        """iblai --help lists open and init commands."""
+        result = runner.invoke(cli, ["--help"])
+        assert result.exit_code == 0
+        assert "open" in result.output
+        assert "init" in result.output
+
+    def test_config_show_help(self, runner):
+        """iblai config show --help works."""
+        result = runner.invoke(cli, ["config", "show", "--help"])
+        assert result.exit_code == 0
+        assert (
+            "effective configuration" in result.output.lower()
+            or "configuration" in result.output.lower()
+        )
+
+    def test_config_set_help(self, runner):
+        """iblai config set --help works."""
+        result = runner.invoke(cli, ["config", "set", "--help"])
+        assert result.exit_code == 0
+        assert "KEY" in result.output
+        assert "VALUE" in result.output
+
+    def test_config_show_displays_variables(self, runner):
+        """iblai config show prints known variables."""
+        with runner.isolated_filesystem():
+            result = runner.invoke(cli, ["config", "show"])
+            assert result.exit_code == 0
+            assert "NEXT_PUBLIC_API_BASE_URL" in result.output
+            assert "NEXT_PUBLIC_AUTH_URL" in result.output
+            assert "NEXT_PUBLIC_MAIN_TENANT_KEY" in result.output
+
+    def test_config_set_creates_env_local(self, runner):
+        """iblai config set writes to .env.local."""
+        import os
+
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                cli, ["config", "set", "NEXT_PUBLIC_MAIN_TENANT_KEY", "acme"]
+            )
+            assert result.exit_code == 0
+            assert "Set" in result.output
+            # Verify file was created
+            content = open(".env.local").read()
+            assert "NEXT_PUBLIC_MAIN_TENANT_KEY=acme" in content
+
+    def test_config_in_main_help(self, runner):
+        """iblai --help lists config command."""
+        result = runner.invoke(cli, ["--help"])
+        assert result.exit_code == 0
+        assert "config" in result.output
 
     def test_add_auth_requires_nextjs(self, runner):
         """Running iblai add auth outside a Next.js project shows an error."""

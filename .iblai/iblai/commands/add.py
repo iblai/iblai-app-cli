@@ -223,6 +223,86 @@ def notifications():
 
 
 # ---------------------------------------------------------------------------
+# account
+# ---------------------------------------------------------------------------
+
+
+@add.command()
+def account():
+    """Add organization/account settings page."""
+    project = _require_nextjs()
+
+    if not _has_iblai_auth(project):
+        console.print("[red]Error: Auth integration not found.[/red]")
+        console.print(
+            "Run [bold]iblai add auth[/bold] or [bold]iblai startapp base[/bold] first."
+        )
+        raise SystemExit(1)
+
+    from iblai.generators.add_account import AddAccountGenerator
+
+    gen = AddAccountGenerator(project)
+    created = gen.generate()
+
+    console.print()
+    console.print(
+        Panel.fit(
+            "[bold green]Account settings page installed[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
+            + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
+            + "\n\n"
+            "[bold]Route:[/bold] /account\n\n"
+            "[bold]Features:[/bold]\n\n"
+            "  Organization info, User Management, Integrations,\n"
+            "  Advanced settings, Billing (when configured)\n\n"
+            "[bold]Note:[/bold] Requires admin privileges for most tabs.\n"
+            "  The isAdmin flag is derived from the tenants array in localStorage.",
+            border_style="green",
+            title="iblai add account",
+        )
+    )
+
+
+# ---------------------------------------------------------------------------
+# analytics
+# ---------------------------------------------------------------------------
+
+
+@add.command()
+def analytics():
+    """Add analytics dashboard page."""
+    project = _require_nextjs()
+
+    if not _has_iblai_auth(project):
+        console.print("[red]Error: Auth integration not found.[/red]")
+        console.print(
+            "Run [bold]iblai add auth[/bold] or [bold]iblai startapp base[/bold] first."
+        )
+        raise SystemExit(1)
+
+    from iblai.generators.add_analytics import AddAnalyticsGenerator
+
+    gen = AddAnalyticsGenerator(project)
+    created = gen.generate()
+
+    console.print()
+    console.print(
+        Panel.fit(
+            "[bold green]Analytics dashboard installed[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
+            + "\n".join(f"  [cyan]{f}[/cyan]" for f in created)
+            + "\n\n"
+            "[bold]Route:[/bold] /analytics\n\n"
+            "[bold]Features:[/bold]\n\n"
+            "  Overview dashboard with Users, Topics, Financial,\n"
+            "  Transcripts, and Reports tabs.",
+            border_style="green",
+            title="iblai add analytics",
+        )
+    )
+
+
+# ---------------------------------------------------------------------------
 # mcp
 # ---------------------------------------------------------------------------
 
