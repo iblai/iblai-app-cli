@@ -72,6 +72,62 @@ def cli(ctx: click.Context) -> None:
         _show_welcome()
 
 
+# ---------------------------------------------------------------------------
+# iblai init — alias for iblai add mcp (agent-native onboarding)
+# ---------------------------------------------------------------------------
+
+
+@cli.command("init")
+def init_cmd():
+    """Configure the current project for AI-assisted development with ibl.ai.
+
+    \b
+    Adds .mcp.json, skills/, and tool symlinks for Claude Code, OpenCode,
+    and Cursor. This is equivalent to 'iblai add mcp'.
+    """
+    from pathlib import Path
+
+    from iblai.generators.add_mcp import AddMcpGenerator
+    from iblai.project_detector import detect_project
+
+    project = detect_project(".")
+    if project is None:
+        console.print(
+            "[red]Error: No package.json found in the current directory.[/red]"
+        )
+        console.print("Run this command from the root of your Next.js project.")
+        raise SystemExit(1)
+
+    gen = AddMcpGenerator(project)
+    created = gen.generate()
+
+    console.print()
+    console.print(
+        Panel(
+            "[bold green]Project initialized for AI-assisted development[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
+            + "\n".join(f"  [cyan]{f}[/cyan]" for f in created[:5])
+            + (
+                f"\n  [dim]... and {len(created) - 5} more files[/dim]"
+                if len(created) > 5
+                else ""
+            )
+            + "\n\n"
+            "[bold]What was added:[/bold]\n"
+            "  .mcp.json           MCP server configuration\n"
+            "  skills/             AI assistant skills (Claude, OpenCode, Cursor)\n"
+            "  .claude/skills/     Symlinks for Claude Code\n"
+            "  .opencode/skills/   Symlinks for OpenCode\n"
+            "  .cursor/rules/      Symlinks for Cursor\n\n"
+            "[bold]Next steps:[/bold]\n"
+            "  Open this project in Claude Code, OpenCode, or Cursor.\n"
+            "  Type [cyan]/[/cyan] to see available skills.",
+            border_style="green",
+            title="iblai init",
+        )
+    )
+
+
 # Register commands
 cli.add_command(startapp)
 cli.add_command(add)
