@@ -132,16 +132,18 @@ What should be in place on the `simplification` branch of `iblai-app-cli`, based
 
 ## Priority Order
 
-1. **README rewrite** (done in this branch)
-2. **npx polish** -- critical for vibe coders who want `npx @iblai/cli startapp agent` to just work
-3. **Post-action guidance** -- print next steps after every command
-4. **account + analytics generators** -- complete the component catalog
-5. **`iblai init`** -- agent-native onboarding (alias for `iblai add mcp`)
-6. **shadcn theme alignment** -- ensure visual seamlessness
-7. **`iblai open`** -- bridge CLI and web
-8. **`iblai config`** -- .env management
-9. **Smart bare command** -- rich help screen
-10. **App store tools** -- screenshots, submission guides
+1. **README rewrite** -- DONE
+2. **npx polish** -- DONE (development fallback in bin/iblai.js, tested locally with node launcher)
+3. **Post-action guidance** -- DONE (all commands have Rich success panels)
+4. **account + analytics generators** -- DONE (AddAccountGenerator, AddAnalyticsGenerator)
+5. **`iblai init`** -- DONE (top-level alias for `iblai add mcp`)
+6. **shadcn theme alignment** -- TODO (CSS variable bridge mapping ibl.ai tokens to shadcn vars)
+7. **`iblai open`** -- DONE (opens localhost:3000 or docs)
+8. **`iblai config`** -- TODO (.env.local management)
+9. **Smart bare command** -- DONE (Rich welcome screen with command groups)
+10. **App store tools** -- TODO (screenshots, submission guides)
+11. **`--yes` flag** -- DONE (skip all interactive prompts for CI/CD)
+12. **npx publish** -- TODO (actual npm publish for production use)
 
 ---
 
