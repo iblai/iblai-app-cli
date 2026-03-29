@@ -153,6 +153,10 @@ Android (requires Android SDK):
 Windows MSIX:
   pnpm tauri:build:msix              Build MSIX package (x64)
   pnpm tauri:build:msix:arm64        Build MSIX package (arm64)
+
+App store tools:
+  iblai builds devices               List available simulators and emulators
+  iblai builds screenshots [--pages] Generate Playwright screenshot script
   pnpm tauri:setup:cert              Create dev certificate for signing (requires admin)
 """
 
@@ -426,3 +430,312 @@ def ci_workflow(desktop, gen_ios, gen_msix, gen_all):
             )
     else:
         console.print("[yellow]No workflows generated.[/yellow]")
+
+
+# ---------------------------------------------------------------------------
+# iblai builds devices — list available simulators/emulators/devices
+# ---------------------------------------------------------------------------
+
+
+@builds.command("devices")
+def devices():
+    """List available iOS simulators, Android emulators, and physical devices."""
+    import json
+    import os
+    import platform
+    import shutil
+    import subprocess
+
+    from rich.table import Table as RichTable
+
+    table = RichTable(
+        title="Available Devices",
+        show_lines=True,
+        border_style="blue",
+    )
+    table.add_column("Platform", style="bold", min_width=12)
+    table.add_column("Device", min_width=22)
+    table.add_column("Version", min_width=10)
+    table.add_column("Status", min_width=10)
+    table.add_column("UDID", style="dim", min_width=16)
+
+    found = False
+
+    # --- iOS Simulators (macOS only) ---
+    if platform.system() == "Darwin" and shutil.which("xcrun"):
+        try:
+            result = subprocess.run(
+                ["xcrun", "simctl", "list", "devices", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                for runtime, device_list in data.get("devices", {}).items():
+                    # runtime looks like "com.apple.CoreSimulator.SimRuntime.iOS-18-0"
+                    version = runtime.split(".")[-1].replace("-", ".")
+                    if (
+                        "iOS" not in runtime
+                        and "watchOS" not in runtime
+                        and "tvOS" not in runtime
+                    ):
+                        continue
+                    for dev in device_list:
+                        if not dev.get("isAvailable", False):
+                            continue
+                        state = dev.get("state", "Unknown")
+                        style = "green" if state == "Booted" else ""
+                        table.add_row(
+                            "iOS Sim",
+                            dev.get("name", "Unknown"),
+                            version,
+                            f"[{style}]{state}[/{style}]" if style else state,
+                            dev.get("udid", ""),
+                        )
+                        found = True
+        except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+            pass
+
+    # --- Android Emulators ---
+    emulator_cmd = shutil.which("emulator")
+    if not emulator_cmd:
+        android_home = os.environ.get("ANDROID_HOME") or os.environ.get(
+            "ANDROID_SDK_ROOT"
+        )
+        if android_home:
+            candidate = Path(android_home) / "emulator" / "emulator"
+            if candidate.exists():
+                emulator_cmd = str(candidate)
+
+    if emulator_cmd:
+        try:
+            result = subprocess.run(
+                [emulator_cmd, "-list-avds"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                for avd in result.stdout.strip().splitlines():
+                    avd = avd.strip()
+                    if avd:
+                        # Extract API level from AVD name if possible
+                        api = ""
+                        for part in avd.split("_"):
+                            if part.startswith("API"):
+                                api = f"API {part[3:]}"
+                        table.add_row("Android Emu", avd, api or "—", "Offline", avd)
+                        found = True
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    # --- Physical iOS devices (macOS only) ---
+    if platform.system() == "Darwin" and shutil.which("xcrun"):
+        try:
+            result = subprocess.run(
+                ["xcrun", "xctrace", "list", "devices"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                in_devices = False
+                for line in result.stdout.splitlines():
+                    if "== Devices ==" in line:
+                        in_devices = True
+                        continue
+                    if "== Simulators ==" in line:
+                        break
+                    if in_devices and line.strip():
+                        # Format: "Device Name (version) (UDID)"
+                        line = line.strip()
+                        # Skip "This Mac" entries
+                        if "This Mac" in line or "Mac" in line.split("(")[0]:
+                            continue
+                        parts = line.rsplit("(", 2)
+                        if len(parts) >= 3:
+                            name = parts[0].strip()
+                            version = parts[1].rstrip(")").strip()
+                            udid = parts[2].rstrip(")").strip()
+                            table.add_row(
+                                "Physical",
+                                name,
+                                version,
+                                "[green]Connected[/green]",
+                                udid,
+                            )
+                            found = True
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    # --- Physical Android devices ---
+    if shutil.which("adb"):
+        try:
+            result = subprocess.run(
+                ["adb", "devices", "-l"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                for line in result.stdout.splitlines()[1:]:
+                    line = line.strip()
+                    if not line or "offline" in line:
+                        continue
+                    parts = line.split()
+                    if len(parts) >= 2 and parts[1] in ("device", "unauthorized"):
+                        serial = parts[0]
+                        # Extract model from properties
+                        model = serial
+                        for part in parts[2:]:
+                            if part.startswith("model:"):
+                                model = part.split(":")[1]
+                                break
+                        status = (
+                            "[green]Connected[/green]"
+                            if parts[1] == "device"
+                            else "[yellow]Unauthorized[/yellow]"
+                        )
+                        table.add_row("Physical", model, "—", status, serial)
+                        found = True
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    if found:
+        console.print()
+        console.print(table)
+        console.print()
+    else:
+        console.print("[yellow]No devices found.[/yellow]\n")
+        if platform.system() == "Darwin":
+            console.print(
+                "  iOS Simulators: Open Xcode → Settings → Platforms → Download simulators"
+            )
+        console.print("  Android Emulators: Install Android Studio → AVD Manager")
+        console.print("  Physical devices: Connect via USB or wireless ADB")
+
+
+# ---------------------------------------------------------------------------
+# iblai builds screenshots — generate Playwright screenshot script
+# ---------------------------------------------------------------------------
+
+
+SCREENSHOTS_SCRIPT = """\
+import {{ test }} from "@playwright/test";
+
+const BASE_URL = process.env.SCREENSHOT_BASE_URL || "{base_url}";
+
+const VIEWPORTS = {{
+  "iPhone 6.7\\"": {{ width: 430, height: 932 }},
+  "iPhone 6.1\\"": {{ width: 390, height: 844 }},
+  "iPad 12.9\\"": {{ width: 1024, height: 1366 }},
+  "Android Phone": {{ width: 412, height: 915 }},
+  "Android Tablet": {{ width: 800, height: 1280 }},
+  "Apple Watch 49mm": {{ width: 205, height: 251 }},
+  "Apple Watch 45mm": {{ width: 198, height: 242 }},
+  "Desktop": {{ width: 1440, height: 900 }},
+}};
+
+const PAGES = [
+{pages_entries}
+];
+
+function slug(s: string): string {{
+  return s.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+}}
+
+for (const [device, viewport] of Object.entries(VIEWPORTS)) {{
+  test.describe(device, () => {{
+    test.use({{ viewport }});
+
+    for (const page of PAGES) {{
+      test(page.name, async ({{ page: p }}) => {{
+        await p.goto(`${{BASE_URL}}${{page.path}}`);
+        await p.waitForTimeout(2000);
+        await p.screenshot({{
+          path: `{output_dir}/${{slug(device)}}/${{page.name}}.png`,
+          fullPage: false,
+        }});
+      }});
+    }}
+  }});
+}}
+"""
+
+
+@builds.command("screenshots")
+@click.option(
+    "--pages",
+    multiple=True,
+    default=["/", "/sso-login-complete"],
+    help="Paths to capture (default: / /sso-login-complete). Repeat for multiple.",
+)
+@click.option(
+    "--url",
+    default="http://localhost:3000",
+    help="Base URL (default: http://localhost:3000, or SCREENSHOT_BASE_URL env var).",
+)
+@click.option(
+    "--output",
+    "output_dir",
+    default="screenshots",
+    help="Output directory for screenshots (default: screenshots/).",
+)
+def screenshots(pages, url, output_dir):
+    """Generate a Playwright script for capturing app store screenshots.
+
+    \b
+    Generates e2e/screenshots.spec.ts with test.describe groups for each
+    device viewport (iPhone, iPad, Android, Watch, Desktop).
+
+    \b
+    Examples:
+      iblai builds screenshots
+      iblai builds screenshots --pages / /profile /notifications
+      iblai builds screenshots --url https://staging.myapp.com
+    """
+    e2e_dir = Path("e2e")
+    e2e_dir.mkdir(parents=True, exist_ok=True)
+
+    output_file = e2e_dir / "screenshots.spec.ts"
+
+    # Build the PAGES entries
+    pages_lines = []
+    for page_path in pages:
+        name = page_path.strip("/").replace("/", "-") or "home"
+        pages_lines.append(f'  {{ name: "{name}", path: "{page_path}" }},')
+    pages_entries = "\n".join(pages_lines)
+
+    # Generate the script
+    script = SCREENSHOTS_SCRIPT.format(
+        base_url=url,
+        pages_entries=pages_entries,
+        output_dir=output_dir,
+    )
+
+    existed = output_file.exists()
+    output_file.write_text(script, encoding="utf-8")
+
+    # Create output directory
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    console.print()
+    console.print(
+        Panel(
+            "[bold green]Screenshot script generated[/bold green]\n\n"
+            f"[bold]File:[/bold] {output_file}\n"
+            + ("[dim](overwritten)[/dim]\n" if existed else "\n")
+            + f"[bold]Viewports:[/bold] 8 (iPhone, iPad, Android, Watch, Desktop)\n"
+            f"[bold]Pages:[/bold] {', '.join(pages)}\n"
+            f"[bold]Output:[/bold] {output_dir}/\n\n"
+            "[bold]Run the capture:[/bold]\n"
+            "  1. Start the dev server: pnpm dev\n"
+            f"  2. pnpm exec playwright test {output_file}\n\n"
+            "[bold]Custom base URL:[/bold]\n"
+            f"  SCREENSHOT_BASE_URL=https://staging.example.com \\\n"
+            f"    pnpm exec playwright test {output_file}",
+            border_style="green",
+            title="iblai builds screenshots",
+        )
+    )

@@ -43,6 +43,8 @@ def _show_welcome():
     table.add_row("  iblai builds dev", "Dev mode (Next.js + native shell)")
     table.add_row("  iblai builds build", "Production build")
     table.add_row("  iblai builds generate-icons", "Generate app icons")
+    table.add_row("  iblai builds devices", "List simulators/emulators")
+    table.add_row("  iblai builds screenshots", "Generate screenshot script")
     table.add_row("", "")
     table.add_row("[bold]Quick actions[/bold]", "")
     table.add_row("  iblai init", "Configure AI-assisted development")
