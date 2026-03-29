@@ -106,6 +106,13 @@ console = Console()
     default=False,
     help="Include desktop/mobile build support (Tauri v2, generates src-tauri/)",
 )
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    default=False,
+    help="Skip all interactive prompts (requires --platform and --app-name)",
+)
 @click.pass_context
 def startapp(
     ctx: click.Context,
@@ -124,6 +131,7 @@ def startapp(
     env_file: Optional[str],
     stage: Optional[str],
     builds: bool = False,
+    yes: bool = False,
 ) -> None:
     """
     Create a new ibl.ai application from a template.
@@ -222,8 +230,17 @@ def startapp(
     if prompt:
         console.print(f"[green]✓ Enhancement prompt:[/green] {prompt}")
 
-    # Prompt for missing required parameters
-    if not platform:
+    # Non-interactive mode: validate required values
+    if yes:
+        if not platform:
+            console.print("[red]Error: --platform is required when using --yes[/red]")
+            raise SystemExit(1)
+        if not app_name:
+            console.print("[red]Error: --app-name is required when using --yes[/red]")
+            raise SystemExit(1)
+
+    # Prompt for missing required parameters (skipped with --yes)
+    if not platform and not yes:
         questions = [
             inquirer.Text(
                 "platform",
@@ -237,8 +254,8 @@ def startapp(
             return
         platform = answers["platform"]
 
-    # Require agent ID for the agent template
-    if template.lower() == "agent" and not agent:
+    # Require agent ID for the agent template (skipped with --yes)
+    if template.lower() == "agent" and not agent and not yes:
         questions = [
             inquirer.Text(
                 "agent",
@@ -252,8 +269,8 @@ def startapp(
             return
         agent = answers["agent"]
 
-    # Prompt for app name if not provided via flag or env
-    interactive = not app_name
+    # Prompt for app name if not provided via flag or env (skipped with --yes)
+    interactive = not app_name and not yes
     if interactive:
         questions = [
             inquirer.Text(
