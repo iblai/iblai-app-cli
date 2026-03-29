@@ -24,6 +24,7 @@ pyinstaller `
   --hidden-import=iblai.commands.startapp `
   --hidden-import=iblai.commands.add `
   --hidden-import=iblai.commands.builds `
+  --hidden-import=iblai.commands.config `
   --hidden-import=iblai.generators `
   --hidden-import=iblai.generators.base `
   --hidden-import=iblai.generators.base_app `

@@ -10,6 +10,7 @@ from iblai.config import load_config
 from iblai.commands.startapp import startapp
 from iblai.commands.add import add
 from iblai.commands.builds import builds
+from iblai.commands.config import config
 
 # Load .env and .env.{DEV_STAGE} before Click parses options.
 # This injects values into os.environ so Click's envvar= resolves them.
@@ -27,7 +28,6 @@ def _show_welcome():
     table.add_row("", "")
     table.add_row("[bold]Create[/bold]", "")
     table.add_row("  iblai startapp agent", "Full app with AI chat + SSO auth")
-    table.add_row("  iblai startapp base", "Minimal app with auth only")
     table.add_row("", "")
     table.add_row("[bold]Add to existing app[/bold]", "")
     table.add_row("  iblai add auth", "SSO authentication")
@@ -47,7 +47,8 @@ def _show_welcome():
     table.add_row("[bold]Quick actions[/bold]", "")
     table.add_row("  iblai init", "Configure AI-assisted development")
     table.add_row("  iblai open", "Open local dev server in browser")
-    table.add_row("  iblai open docs", "Open documentation")
+    table.add_row("  iblai config show", "View current configuration")
+    table.add_row("  iblai config set KEY VAL", "Update .env.local")
     table.add_row("", "")
 
     console.print()
@@ -167,6 +168,7 @@ def open_cmd(target):
 cli.add_command(startapp)
 cli.add_command(add)
 cli.add_command(builds)
+cli.add_command(config)
 
 
 if __name__ == "__main__":
