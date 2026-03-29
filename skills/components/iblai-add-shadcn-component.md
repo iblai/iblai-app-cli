@@ -46,6 +46,17 @@ components to the correct location with the correct import paths.
 
 ---
 
+## Theme Integration
+
+**shadcn components automatically use ibl.ai brand colors.** The generated
+`globals.css` maps ibl.ai design tokens to shadcn CSS variables (OKLCH values).
+When you add a shadcn button, it renders in ibl.ai blue (#0058cc) — no manual
+theme work needed.
+
+For example, `className="bg-primary"` resolves to the ibl.ai brand blue,
+`className="text-muted-foreground"` resolves to the ibl.ai text-secondary color,
+and `className="border-border"` uses the ibl.ai border color.
+
 ## ibl.ai Brand Identity
 
 The ibl.ai SDK defines a complete design system. When adding shadcnspace
