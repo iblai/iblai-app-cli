@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **For app developers.** For CLI development, see [.iblai/CLAUDE.md](.iblai/CLAUDE.md).
+
 This file provides guidance for working with the example app and generated ibl.ai applications.
 
 ## MCP Server (Use First)
