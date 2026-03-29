@@ -1,0 +1,42 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AnalyticsOverview } from "@iblai/iblai-js/web-containers";
+
+function resolveTenantKey(raw: string | null): string {
+  if (!raw || raw === "[object Object]") return "";
+  try {
+    const p = JSON.parse(raw);
+    if (typeof p === "string") return p;
+    if (p?.key) return p.key;
+  } catch {}
+  return raw;
+}
+
+export default function AnalyticsPage() {
+  const [tenantKey, setTenantKey] = useState("");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const stored =
+      localStorage.getItem("current_tenant") ??
+      localStorage.getItem("tenant");
+    const resolved = resolveTenantKey(stored);
+    setTenantKey(resolved);
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div style={{ height: "100vh", width: "100vw", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>Loading analytics…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height: "100vh", width: "100vw", overflow: "auto" }}>
+      <AnalyticsOverview org={tenantKey} />
+    </div>
+  );
+}

@@ -115,10 +115,19 @@ class TestAddCommand:
         assert "add" in result.output
 
     def test_add_help_shows_subcommands(self, runner):
-        """iblai add --help lists all six subcommands."""
+        """iblai add --help lists all eight subcommands."""
         result = runner.invoke(cli, ["add", "--help"])
         assert result.exit_code == 0
-        for sub in ("auth", "chat", "profile", "notifications", "mcp", "builds"):
+        for sub in (
+            "auth",
+            "chat",
+            "profile",
+            "notifications",
+            "account",
+            "analytics",
+            "mcp",
+            "builds",
+        ):
             assert sub in result.output
 
     def test_add_auth_requires_nextjs(self, runner):

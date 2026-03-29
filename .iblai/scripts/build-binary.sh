@@ -51,6 +51,8 @@ pyinstaller \
   --hidden-import=iblai.generators.add_notifications \
   --hidden-import=iblai.generators.add_mcp \
   --hidden-import=iblai.generators.add_builds \
+  --hidden-import=iblai.generators.add_account \
+  --hidden-import=iblai.generators.add_analytics \
   --hidden-import=iblai.ai_helper \
   --hidden-import=iblai.project_detector \
   --hidden-import=iblai.package_manager \

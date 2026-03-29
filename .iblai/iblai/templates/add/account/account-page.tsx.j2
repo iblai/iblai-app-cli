@@ -1,0 +1,53 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Account } from "@iblai/iblai-js/web-containers/next";
+
+function resolveTenantKey(raw: string | null): string {
+  if (!raw || raw === "[object Object]") return "";
+  try {
+    const p = JSON.parse(raw);
+    if (typeof p === "string") return p;
+    if (p?.key) return p.key;
+  } catch {}
+  return raw;
+}
+
+export default function AccountPage() {
+  const [tenantKey, setTenantKey] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const stored =
+      localStorage.getItem("current_tenant") ??
+      localStorage.getItem("tenant");
+    const resolved = resolveTenantKey(stored);
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const tenants = JSON.parse(tenantsRaw);
+        const match = tenants.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div style={{ height: "100vh", width: "100vw", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>Loading account settings…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height: "100vh", width: "100vw", overflow: "auto" }}>
+      <Account tenant={tenantKey} isAdmin={isAdmin} />
+    </div>
+  );
+}
