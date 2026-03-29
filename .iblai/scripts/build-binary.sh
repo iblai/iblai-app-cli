@@ -23,6 +23,11 @@ if [ "$USE_VENV" = "1" ]; then
   source .venv-build/bin/activate
 fi
 
+# ---- Bake commit ID ----
+COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+echo "==> Baking commit ID: $COMMIT"
+sed -i "s/__commit__ = \"\"/__commit__ = \"$COMMIT\"/" "$ROOT_DIR/.iblai/iblai/__init__.py"
+
 # ---- Dependencies ----
 echo "==> Installing dependencies..."
 python -m pip install --upgrade pip -q
@@ -62,6 +67,10 @@ pyinstaller \
   --copy-metadata rich \
   --copy-metadata inquirer \
   .iblai/iblai/cli.py
+
+# ---- Restore __init__.py ----
+git checkout "$ROOT_DIR/.iblai/iblai/__init__.py" 2>/dev/null || \
+  sed -i "s/__commit__ = \"$COMMIT\"/__commit__ = \"\"/" "$ROOT_DIR/.iblai/iblai/__init__.py"
 
 # ---- Verify ----
 echo "==> Verifying binary..."
