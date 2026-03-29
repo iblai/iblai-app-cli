@@ -44,6 +44,11 @@ def _show_welcome():
     table.add_row("  iblai builds build", "Production build")
     table.add_row("  iblai builds generate-icons", "Generate app icons")
     table.add_row("", "")
+    table.add_row("[bold]Quick actions[/bold]", "")
+    table.add_row("  iblai init", "Configure AI-assisted development")
+    table.add_row("  iblai open", "Open local dev server in browser")
+    table.add_row("  iblai open docs", "Open documentation")
+    table.add_row("", "")
 
     console.print()
     console.print(
@@ -126,6 +131,36 @@ def init_cmd():
             title="iblai init",
         )
     )
+
+
+# ---------------------------------------------------------------------------
+# iblai open — open local dev server or docs in browser
+# ---------------------------------------------------------------------------
+
+
+@cli.command("open")
+@click.argument("target", default="app", required=False)
+def open_cmd(target):
+    """Open the local dev server or docs in your browser.
+
+    \b
+    Targets:
+      app   (default) Open http://localhost:3000
+      docs  Open the documentation on GitHub
+    """
+    import webbrowser
+
+    urls = {
+        "app": "http://localhost:3000",
+        "docs": "https://github.com/iblai/iblai-app-cli",
+    }
+    url = urls.get(target)
+    if not url:
+        console.print(f"[red]Unknown target: {target}[/red]")
+        console.print("Available targets: app, docs")
+        raise SystemExit(1)
+    console.print(f"[cyan]Opening {url}...[/cyan]")
+    webbrowser.open(url)
 
 
 # Register commands

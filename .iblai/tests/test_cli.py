@@ -130,6 +130,26 @@ class TestAddCommand:
         ):
             assert sub in result.output
 
+    def test_init_help(self, runner):
+        """iblai init --help shows the command."""
+        result = runner.invoke(cli, ["init", "--help"])
+        assert result.exit_code == 0
+        assert "AI-assisted" in result.output
+
+    def test_open_help(self, runner):
+        """iblai open --help shows targets."""
+        result = runner.invoke(cli, ["open", "--help"])
+        assert result.exit_code == 0
+        assert "app" in result.output
+        assert "docs" in result.output
+
+    def test_open_in_main_help(self, runner):
+        """iblai --help lists open and init commands."""
+        result = runner.invoke(cli, ["--help"])
+        assert result.exit_code == 0
+        assert "open" in result.output
+        assert "init" in result.output
+
     def test_add_auth_requires_nextjs(self, runner):
         """Running iblai add auth outside a Next.js project shows an error."""
         with runner.isolated_filesystem():
