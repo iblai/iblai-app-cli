@@ -42,6 +42,34 @@ class TestTauriCommandGroup:
             or "emulators" in result.output.lower()
         )
 
+    def test_screenshots_help(self, runner):
+        result = runner.invoke(cli, ["builds", "screenshots", "--help"])
+        assert result.exit_code == 0
+        assert "--pages" in result.output
+        assert "--url" in result.output
+        assert "Playwright" in result.output
+
+    def test_screenshots_generates_file(self, runner):
+        with runner.isolated_filesystem():
+            result = runner.invoke(cli, ["builds", "screenshots"])
+            assert result.exit_code == 0
+            assert Path("e2e/screenshots.spec.ts").exists()
+            content = Path("e2e/screenshots.spec.ts").read_text()
+            assert "test.describe" in content
+            assert "Apple Watch" in content
+            assert "iPhone" in content
+            assert "localhost:3000" in content
+
+    def test_screenshots_custom_pages(self, runner):
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                cli, ["builds", "screenshots", "--pages", "/", "--pages", "/profile"]
+            )
+            assert result.exit_code == 0
+            content = Path("e2e/screenshots.spec.ts").read_text()
+            assert '"home"' in content
+            assert '"profile"' in content
+
     def test_tauri_generate_icons_help(self, runner):
         result = runner.invoke(cli, ["builds", "generate-icons", "--help"])
         assert result.exit_code == 0
