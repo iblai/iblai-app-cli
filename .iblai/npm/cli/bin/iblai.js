@@ -3,6 +3,7 @@
 "use strict";
 
 const { execFileSync } = require("child_process");
+const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
@@ -32,26 +33,38 @@ function getBinaryPath() {
     process.exit(1);
   }
 
+  // Try npm-installed platform package first
   try {
     const pkgDir = path.dirname(
       require.resolve(`${entry.pkg}/package.json`),
     );
     return path.join(pkgDir, entry.bin);
   } catch {
-    console.error(
-      `Error: Platform package ${entry.pkg} is not installed.`,
-    );
-    console.error(
-      "\nThis usually means the optional dependency was not installed",
-    );
-    console.error("for your platform. Try reinstalling:");
-    console.error("  npm install -g @iblai/cli");
-    console.error(
-      "\nOr install the Python package directly:",
-    );
-    console.error("  pip install iblai-app-cli");
-    process.exit(1);
+    // Fall through to development fallback
   }
+
+  // Development fallback: check sibling directory
+  // When running via `node .iblai/npm/cli/bin/iblai.js` from the repo,
+  // the platform binary is at .iblai/npm/cli-<platform>/bin/<binary>
+  const platformDir = `cli-${key}`;
+  const siblingPath = path.join(__dirname, "..", "..", platformDir, entry.bin);
+  if (fs.existsSync(siblingPath)) {
+    return siblingPath;
+  }
+
+  console.error(
+    `Error: Platform package ${entry.pkg} is not installed.`,
+  );
+  console.error(
+    "\nThis usually means the optional dependency was not installed",
+  );
+  console.error("for your platform. Try reinstalling:");
+  console.error("  npm install -g @iblai/cli");
+  console.error(
+    "\nOr install the Python package directly:",
+  );
+  console.error("  pip install iblai-app-cli");
+  process.exit(1);
 }
 
 const binPath = getBinaryPath();
