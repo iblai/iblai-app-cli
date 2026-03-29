@@ -30,7 +30,17 @@ class TestTauriCommandGroup:
         assert "init" in result.output
         assert "generate-icons" in result.output
         assert "ci-workflow" in result.output
+        assert "devices" in result.output
+        assert "screenshots" in result.output
         assert "pnpm exec tauri" in result.output
+
+    def test_devices_help(self, runner):
+        result = runner.invoke(cli, ["builds", "devices", "--help"])
+        assert result.exit_code == 0
+        assert (
+            "simulators" in result.output.lower()
+            or "emulators" in result.output.lower()
+        )
 
     def test_tauri_generate_icons_help(self, runner):
         result = runner.invoke(cli, ["builds", "generate-icons", "--help"])
