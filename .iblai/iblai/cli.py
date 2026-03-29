@@ -5,7 +5,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from iblai import __version__
+from iblai import __version__, __repo__, get_commit
 from iblai.config import load_config
 from iblai.commands.startapp import startapp
 from iblai.commands.add import add
@@ -17,6 +17,17 @@ from iblai.commands.config import config
 load_config()
 
 console = Console()
+
+
+def _version_callback(ctx, param, value):
+    """Custom --version callback that shows repo URL and commit."""
+    if not value:
+        return
+    commit = get_commit()
+    console.print(f"iblai, version {__version__}")
+    console.print(f"Repo: {__repo__}")
+    console.print(f"Commit: {commit}")
+    ctx.exit()
 
 
 def _show_welcome():
@@ -49,8 +60,14 @@ def _show_welcome():
     table.add_row("[bold]Quick actions[/bold]", "")
     table.add_row("  iblai init", "Configure AI-assisted development")
     table.add_row("  iblai open", "Open local dev server in browser")
+    table.add_row("  iblai info", "Show version, repo, and commit")
     table.add_row("  iblai config show", "View current configuration")
     table.add_row("  iblai config set KEY VAL", "Update .env.local")
+    table.add_row("", "")
+    table.add_row("[bold]Repo[/bold]", __repo__)
+    table.add_row("  examples/iblai-agent-app/", "Reference implementation")
+    table.add_row("  skills/", "AI assistant skills")
+    table.add_row("  BRAND.md", "Brand identity guide")
     table.add_row("", "")
 
     console.print()
@@ -66,7 +83,14 @@ def _show_welcome():
 
 
 @click.group(invoke_without_command=True)
-@click.version_option(version=__version__, prog_name="iblai")
+@click.option(
+    "--version",
+    is_flag=True,
+    callback=_version_callback,
+    expose_value=False,
+    is_eager=True,
+    help="Show version, repo, and commit.",
+)
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """
@@ -78,6 +102,38 @@ def cli(ctx: click.Context) -> None:
     ctx.obj["console"] = console
     if ctx.invoked_subcommand is None:
         _show_welcome()
+
+
+# ---------------------------------------------------------------------------
+# iblai info — show version, repo, commit, environment details
+# ---------------------------------------------------------------------------
+
+
+@cli.command("info")
+def info_cmd():
+    """Show CLI version, repo, commit, and environment details."""
+    import platform
+    import sys
+
+    commit = get_commit()
+
+    table = Table(show_header=False, box=None, padding=(0, 2))
+    table.add_column(style="bold cyan", min_width=20)
+    table.add_column()
+
+    table.add_row("Version", __version__)
+    table.add_row("Commit", commit)
+    table.add_row("Repo", __repo__)
+    table.add_row(
+        "Python",
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+    )
+    table.add_row("Platform", f"{platform.system()} {platform.machine()}")
+    table.add_row("Executable", sys.executable)
+
+    console.print()
+    console.print(Panel(table, title="[bold]ibl.ai CLI[/bold]", border_style="blue"))
+    console.print()
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +211,7 @@ def open_cmd(target):
 
     urls = {
         "app": "http://localhost:3000",
-        "docs": "https://github.com/iblai/iblai-app-cli",
+        "docs": __repo__,
     }
     url = urls.get(target)
     if not url:

@@ -26,10 +26,20 @@ class TestCLI:
         assert "startapp" in result.output
 
     def test_cli_version(self, runner):
-        """Test that CLI version command works."""
+        """Test that CLI version command shows repo and commit."""
         result = runner.invoke(cli, ["--version"])
         assert result.exit_code == 0
         assert "version" in result.output.lower()
+        assert "github.com/iblai/iblai-app-cli" in result.output
+        assert "Commit:" in result.output
+
+    def test_cli_info(self, runner):
+        """Test that iblai info shows version, repo, commit, platform."""
+        result = runner.invoke(cli, ["info"])
+        assert result.exit_code == 0
+        assert "github.com/iblai/iblai-app-cli" in result.output
+        assert "Python" in result.output
+        assert "Platform" in result.output
 
     def test_startapp_help(self, runner):
         """Test startapp command help."""

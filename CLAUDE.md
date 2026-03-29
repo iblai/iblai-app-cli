@@ -160,6 +160,14 @@ Available in `skills/` (invoke with `/` in Claude Code, OpenCode, or Cursor):
 | `/iblai-cli-publish` | Release workflow: GitHub releases, npm, PyPI |
 | `/iblai-cli-templates` | Jinja2 template system: directories, context, conditionals |
 
+## CLI Repo
+
+```
+https://github.com/iblai/iblai-app-cli
+```
+
+Run `iblai info` for version, commit, and environment details.
+
 ## CLI Development
 
 For CLI development (Python package, generators, templates, tests), see [.iblai/CLAUDE.md](.iblai/CLAUDE.md).
