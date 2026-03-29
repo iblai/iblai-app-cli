@@ -91,7 +91,16 @@ function getCurrentTenant(): string {
       return typeof parsed === "string" ? parsed : parsed?.key ?? "";
     }
   } catch { /* ignore */ }
-  return localStorage.getItem("tenant") ?? "";
+  // Fall back to NEXT_PUBLIC_MAIN_TENANT_KEY from config.
+  // Without this, TenantProvider calls /api/custom-domains?domain=localhost
+  // which fails on local development.
+  const fromStorage = localStorage.getItem("tenant");
+  if (fromStorage) return fromStorage;
+  const fallback = config.mainTenantKey();
+  if (fallback) {
+    console.debug("[ibl.ai] No tenant in localStorage, using NEXT_PUBLIC_MAIN_TENANT_KEY:", fallback);
+  }
+  return fallback;
 }
 
 // ---------------------------------------------------------------------------
