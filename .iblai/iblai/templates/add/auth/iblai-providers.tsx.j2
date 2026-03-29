@@ -67,7 +67,25 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
 
   const tenantKey = useMemo(() => {
     if (typeof window === "undefined") return "";
-    return localStorage.getItem("tenant") ?? "";
+    // Check current_tenant first (may be JSON object from TenantProvider)
+    try {
+      const raw = localStorage.getItem("current_tenant");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const key = typeof parsed === "string" ? parsed : parsed?.key ?? "";
+        if (key) return key;
+      }
+    } catch { /* ignore */ }
+    // Fall back to tenant key, then NEXT_PUBLIC_MAIN_TENANT_KEY from config.
+    // Without this, TenantProvider calls /api/custom-domains?domain=localhost
+    // which fails on local development.
+    const fromStorage = localStorage.getItem("tenant");
+    if (fromStorage) return fromStorage;
+    const fallback = config.mainTenantKey();
+    if (fallback) {
+      console.debug("[ibl.ai] No tenant in localStorage, using NEXT_PUBLIC_MAIN_TENANT_KEY:", fallback);
+    }
+    return fallback;
   }, [ready]);
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
