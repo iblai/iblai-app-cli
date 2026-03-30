@@ -30,7 +30,7 @@ jobs:
 
       # Download all binary artifacts from the specified build run
       - name: Download linux-x64 binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: iblai-linux-x64
           path: .iblai/npm/cli-linux-x64/bin/
@@ -38,7 +38,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download linux-arm64 binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: iblai-linux-arm64
           path: .iblai/npm/cli-linux-arm64/bin/
@@ -46,7 +46,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download darwin-arm64 binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: iblai-darwin-arm64
           path: .iblai/npm/cli-darwin-arm64/bin/
@@ -54,7 +54,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download win32-x64 binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: iblai-win32-x64
           path: .iblai/npm/cli-win32-x64/bin/
@@ -62,7 +62,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download win32-arm64 binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: iblai-win32-arm64
           path: .iblai/npm/cli-win32-arm64/bin/
