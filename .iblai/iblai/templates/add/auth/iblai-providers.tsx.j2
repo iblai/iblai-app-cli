@@ -115,6 +115,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
         fallback={<div>Loading…</div>}
       >
         <TenantProvider
+          skip={isSsoRoute}
           currentTenant={tenantKey}
           requestedTenant={tenantKey}
           saveCurrentTenant={(t: any) => {
