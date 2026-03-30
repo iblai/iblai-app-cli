@@ -96,7 +96,7 @@ class AIHelper:
         Returns:
             Enhanced component code
         """
-        prompt = f"""You are an expert React developer working with Next.js 15 and TypeScript.
+        prompt = f"""You are an expert React developer working with Next.js 16 and TypeScript.
 
 Enhance the following component based on this request:
 {enhancement_request}
@@ -149,7 +149,7 @@ The user wants the following customization applied to this app:
 App context:
 - App name: {context.get("app_name")}
 - Platform: {context.get("platform_key")}
-- Uses Next.js 15 App Router, TypeScript, Tailwind CSS
+- Uses Next.js 16 App Router, TypeScript, Tailwind CSS
 - SDK: @iblai/iblai-js (imports from @iblai/iblai-js/data-layer, @iblai/iblai-js/web-containers, @iblai/iblai-js/web-utils)
 - Local UI components imported from @/components/ui/*
 
@@ -208,7 +208,7 @@ Context:
 - App name: {context.get("app_name")}
 - Platform key: {context.get("platform_key")}
 - Agent ID: {context.get("mentor_id", "N/A")}
-- Uses Next.js 15 App Router with TypeScript
+- Uses Next.js 16 App Router with TypeScript
 - Available SDK: @iblai/iblai-js (imports from @iblai/iblai-js/data-layer, @iblai/iblai-js/web-containers, @iblai/iblai-js/web-utils)
 - UI components from: @iblai/iblai-js/web-containers/components/ui/*
 - Hooks from: @iblai/iblai-js/web-utils (useAdvancedChat, useTenantContext, etc.)

@@ -202,7 +202,7 @@ initializeDataLayer(dmUrl, lmsUrl, storageService, httpErrorHandler)
 ### `@reduxjs/toolkit` must be deduplicated
 The SDK and your app must share ONE copy of `@reduxjs/toolkit`. Without dedup,
 RTK Query hooks inside SDK components can't find the Redux store (blank/empty data,
-no HTTP requests). The `next.config.mjs` in generated apps handles this automatically.
+no HTTP requests). The `next.config.ts` in generated apps handles this automatically.
 
 ### Components needing `TenantProvider`
 Components that call `useTenantContext()` internally (e.g., `Account`/`OrganizationTab`,

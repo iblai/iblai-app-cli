@@ -15,13 +15,13 @@ class TestAddBuildsGenerator:
             "name": "test-app",
             "version": "0.1.0",
             "scripts": {"dev": "next dev", "build": "next build"},
-            "dependencies": {"next": "15.5.14", "react": "19.1.0"},
+            "dependencies": {"next": "^16.2.1", "react": "^19.2.4"},
             "devDependencies": {},
         }
         (tmp_path / "package.json").write_text(json.dumps(pkg, indent=2))
 
-        # Create a next.config.mjs with Tauri stubs (like generated apps have)
-        (tmp_path / "next.config.mjs").write_text(
+        # Create a next.config.ts with Tauri stubs (like generated apps have)
+        (tmp_path / "next.config.ts").write_text(
             "const nextConfig = {\n"
             "  reactStrictMode: true,\n"
             "  webpack: (config) => {\n"
@@ -215,12 +215,12 @@ class TestAddBuildsGenerator:
         assert data["scripts"]["tauri:build:ios"] == "tauri ios build"
 
     def test_patches_next_config_removes_tauri_stubs(self, generated_dir):
-        content = (generated_dir / "next.config.mjs").read_text()
+        content = (generated_dir / "next.config.ts").read_text()
         assert '@tauri-apps/api/core"] = false' not in content
         assert '@tauri-apps/api/event"] = false' not in content
 
     def test_patches_next_config_adds_static_export(self, generated_dir):
-        content = (generated_dir / "next.config.mjs").read_text()
+        content = (generated_dir / "next.config.ts").read_text()
         assert 'output: "export"' in content
         assert "unoptimized: true" in content
 
@@ -312,7 +312,7 @@ class TestNextConfigTauriPatching:
     def test_removes_stubs_from_mjs(self, tmp_path):
         from iblai.next_config_patcher import patch_next_config_for_tauri
 
-        config = tmp_path / "next.config.mjs"
+        config = tmp_path / "next.config.ts"
         config.write_text(
             "const nextConfig = {\n"
             "  reactStrictMode: true,\n"
@@ -333,7 +333,7 @@ class TestNextConfigTauriPatching:
     def test_idempotent_patching(self, tmp_path):
         from iblai.next_config_patcher import patch_next_config_for_tauri
 
-        config = tmp_path / "next.config.mjs"
+        config = tmp_path / "next.config.ts"
         config.write_text(
             "const nextConfig = {\n"
             "  reactStrictMode: true,\n"

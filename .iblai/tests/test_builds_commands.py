@@ -179,7 +179,7 @@ class TestTauriInit:
     def test_init_creates_src_tauri(self, runner, tmp_path):
         pkg = {"name": "test-app", "version": "0.1.0"}
         (tmp_path / "package.json").write_text(json.dumps(pkg))
-        (tmp_path / "next.config.mjs").write_text(
+        (tmp_path / "next.config.ts").write_text(
             "const nextConfig = {};\nexport default nextConfig;\n"
         )
         original_dir = os.getcwd()

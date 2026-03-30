@@ -34,7 +34,7 @@ cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 │   ├── ai_helper.py          # AI enhancement (Anthropic/OpenAI)
 │   ├── project_detector.py   # Detect Next.js App Router projects
 │   ├── package_manager.py    # Detect pnpm/yarn/npm/bun from lockfiles
-│   ├── next_config_patcher.py # Regex-based next.config.mjs patching
+│   ├── next_config_patcher.py # Regex-based next.config.ts patching
 │   ├── commands/
 │   │   ├── startapp.py       # iblai startapp agent [options]
 │   │   ├── add.py            # iblai add auth|chat|profile|notifications|mcp|builds
@@ -101,7 +101,7 @@ BaseGenerator (base.py)
 | `platform_key` | str | All generators | .env.example, config.ts |
 | `mentor_id` | str | AgentAppGenerator | .env.example, config.ts, page.tsx |
 | `has_mentor_id` | bool | AgentAppGenerator | CLAUDE.md conditionals |
-| `builds` | bool | BaseAppGenerator | next.config.mjs, package.json, CLAUDE.md |
+| `builds` | bool | BaseAppGenerator | next.config.ts, package.json, CLAUDE.md |
 
 ## Binary Distribution
 

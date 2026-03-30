@@ -76,7 +76,7 @@ Every passthrough command runs:
 - Generates: 32x32, 128x128, 128x128@2x, icon.png, icon.ico, icon.icns, plus 6 MSIX icons
 
 **Patching** (for `iblai add builds` on existing projects):
-- `next.config.mjs` — removes `@tauri-apps/api` stubs, adds `output: "export"`
+- `next.config.ts` — removes `@tauri-apps/api` stubs, adds `output: "export"`
 - `package.json` — adds `@tauri-apps/api`, `@tauri-apps/cli`, tauri scripts
 
 ### CI Workflow Generation

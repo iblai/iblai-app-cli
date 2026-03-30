@@ -229,9 +229,9 @@ class TestBaseAppGenerator:
         """Key dependencies are pinned to ensure SDK component compatibility."""
         pkg = json.loads((generated_dir / "package.json").read_text())
         deps = pkg["dependencies"]
-        assert deps["next"] == "15.5.14"
-        assert deps["react"] == "19.1.0"
-        assert deps["react-dom"] == "19.1.0"
+        assert deps["next"] == "^16.2.1"
+        assert deps["react"] == "^19.2.4"
+        assert deps["react-dom"] == "^19.2.4"
         assert deps["@reduxjs/toolkit"] == "2.11.2"
         assert deps["react-redux"] == "9.2.0"
 
@@ -265,10 +265,10 @@ class TestBaseAppGenerator:
 
 
 class TestTauriNextConfig:
-    """Tests for tauri flag effect on next.config.mjs."""
+    """Tests for tauri flag effect on next.config.ts."""
 
     def test_tauri_flag_produces_static_export(self, tmp_path):
-        """When builds=True, next.config.mjs has output:'export' and no stubs."""
+        """When builds=True, next.config.ts has output:'export' and no stubs."""
         from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
@@ -278,13 +278,13 @@ class TestTauriNextConfig:
             builds=True,
         )
         gen.generate()
-        config = (tmp_path / "app" / "next.config.mjs").read_text()
+        config = (tmp_path / "app" / "next.config.ts").read_text()
         assert 'output: "export"' in config
-        assert "@tauri-apps/api/core'] = false" not in config
-        assert "@tauri-apps/api/event'] = false" not in config
+        assert '@tauri-apps/api/core"] = false' not in config
+        assert '@tauri-apps/api/event"] = false' not in config
 
     def test_no_tauri_flag_keeps_stubs(self, tmp_path):
-        """When builds=False, next.config.mjs has @tauri-apps stubs and no export."""
+        """When builds=False, next.config.ts has @tauri-apps stubs and no export."""
         from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
@@ -294,10 +294,10 @@ class TestTauriNextConfig:
             builds=False,
         )
         gen.generate()
-        config = (tmp_path / "app" / "next.config.mjs").read_text()
+        config = (tmp_path / "app" / "next.config.ts").read_text()
         assert 'output: "export"' not in config
-        assert "@tauri-apps/api/core'] = false" in config
-        assert "@tauri-apps/api/event'] = false" in config
+        assert '@tauri-apps/api/core"] = false' in config
+        assert '@tauri-apps/api/event"] = false' in config
 
     def test_tauri_flag_adds_tauri_deps_to_package_json(self, tmp_path):
         """When builds=True, package.json includes Tauri deps and scripts."""
