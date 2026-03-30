@@ -95,7 +95,7 @@ Commands:
 
 ### `iblai startapp base`
 
-Scaffolds a minimal Next.js 15 app with ibl.ai SSO authentication, Redux store, and providers — no chat UI, no sidebar, no agent routes. A blank canvas for building your own app with `iblai add` features or custom code.
+Scaffolds a minimal Next.js 16 app with ibl.ai SSO authentication, Redux store, and providers — no chat UI, no sidebar, no agent routes. A blank canvas for building your own app with `iblai add` features or custom code.
 
 ```bash
 iblai startapp base --platform acme
@@ -121,7 +121,7 @@ iblai add mcp            # Claude skills
 
 ### `iblai startapp agent`
 
-Scaffolds a complete Next.js 15 agent chat application with SSO authentication, Redux state management, and full ibl.ai SDK integration.
+Scaffolds a complete Next.js 16 agent chat application with SSO authentication, Redux state management, and full ibl.ai SDK integration.
 
 ```bash
 iblai startapp agent --platform acme --agent my-bot-123
@@ -353,7 +353,7 @@ NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
 
 ## What gets generated
 
-The `startapp agent` command creates a complete Next.js 15 application:
+The `startapp agent` command creates a complete Next.js 16 application:
 
 ### Application structure
 
@@ -388,7 +388,7 @@ The `startapp agent` command creates a complete Next.js 15 application:
 ├── store/                            # Redux store setup
 ├── public/env.js                     # Runtime environment config
 ├── package.json                      # Dependencies
-├── next.config.mjs                   # Next.js configuration
+├── next.config.ts                   # Next.js configuration
 ├── tailwind.config.ts                # Tailwind CSS configuration
 ├── tsconfig.json                     # TypeScript configuration
 └── .env.example                      # Environment variables template
@@ -398,7 +398,7 @@ The `startapp agent` command creates a complete Next.js 15 application:
 
 | Category | Technology |
 |----------|-----------|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | UI | React 19, Tailwind CSS, Radix UI |
 | State | Redux Toolkit + React-Redux |
 | Chat | WebSocket via `@iblai/iblai-js` SDK |

@@ -10,7 +10,7 @@ How the template system works in iblai-app-cli.
 .iblai/iblai/templates/
 ├── base/                   # Base template files (non-agent)
 │   ├── package.json.j2
-│   ├── next.config.mjs.j2
+│   ├── next.config.ts.j2
 │   ├── .env.example.j2
 │   ├── providers/index.tsx.j2
 │   ├── store/index.ts.j2
@@ -33,7 +33,7 @@ How the template system works in iblai-app-cli.
 │   ├── eslint.config.mjs.j2
 │   ├── tsconfig.json.j2
 │   ├── tailwind.config.ts.j2
-│   ├── postcss.config.mjs.j2
+│   ├── postcss.config.ts.j2
 │   ├── components.json.j2
 │   ├── declarations.d.ts          # static (not template)
 │   ├── app/layout.tsx.j2

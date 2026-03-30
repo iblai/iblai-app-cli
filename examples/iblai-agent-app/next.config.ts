@@ -1,0 +1,76 @@
+import type { NextConfig } from "next";
+import { createRequire } from "module";
+
+// Node.js 22+ exposes a global `localStorage` object, but without
+// --localstorage-file it is an empty `{}` missing getItem/setItem.
+// Polyfill it so SSR code that touches localStorage doesn't crash.
+if (
+  typeof window === "undefined" &&
+  typeof localStorage !== "undefined" &&
+  typeof localStorage.getItem !== "function"
+) {
+  const _store: Record<string, string> = {};
+  globalThis.localStorage = {
+    getItem: (k: string) => _store[k] ?? null,
+    setItem: (k: string, v: string) => {
+      _store[k] = String(v);
+    },
+    removeItem: (k: string) => {
+      delete _store[k];
+    },
+    clear: () => {
+      for (const k in _store) delete _store[k];
+    },
+    get length() {
+      return Object.keys(_store).length;
+    },
+    key: (i: number) => Object.keys(_store)[i] ?? null,
+  } as Storage;
+}
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Resolve a package to its root directory so webpack never loads
+ * duplicate copies (can happen in pnpm workspaces with differing peer deps).
+ */
+function dedup(packageName: string): string | undefined {
+  try {
+    const entry = require.resolve(packageName);
+    const marker = `node_modules/${packageName}`;
+    const idx = entry.lastIndexOf(marker);
+    if (idx !== -1) return entry.slice(0, idx + marker.length);
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  // Tauri: static export to ./out for desktop/mobile builds
+  output: "export",
+  images: {
+    unoptimized: true,
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },
+  webpack: (config) => {
+    // Ensure resolve.alias exists (may be undefined in some Next.js versions)
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+
+    // Deduplicate packages that the SDK may pull in with different versions.
+    const dataLayerDir = dedup("@iblai/data-layer");
+    if (dataLayerDir) config.resolve.alias["@iblai/data-layer"] = dataLayerDir;
+
+    const rtkDir = dedup("@reduxjs/toolkit");
+    if (rtkDir) config.resolve.alias["@reduxjs/toolkit"] = rtkDir;
+
+    const reactReduxDir = dedup("react-redux");
+    if (reactReduxDir) config.resolve.alias["react-redux"] = reactReduxDir;
+
+    return config;
+  },
+};
+
+export default nextConfig;

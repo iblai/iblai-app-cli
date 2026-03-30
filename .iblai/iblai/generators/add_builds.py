@@ -114,7 +114,7 @@ class AddBuildsGenerator:
     """Add Tauri v2 desktop shell to an existing Next.js project.
 
     Generates src-tauri/ with a minimal Tauri configuration, patches
-    next.config.mjs to remove @tauri-apps/api stubs and add conditional
+    next.config.ts to remove @tauri-apps/api stubs and add conditional
     static export for Tauri builds, and updates package.json with Tauri
     dependencies and scripts.
     """

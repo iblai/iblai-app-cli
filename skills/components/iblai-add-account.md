@@ -186,6 +186,6 @@ Integrations, and Advanced tabs will not be shown.
   `(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)` — the
   data-layer v1.2+ signature
 - **RTK dedup**: `@reduxjs/toolkit` is deduplicated via webpack aliases in
-  `next.config.mjs` — required for SDK components to find the Redux store
+  `next.config.ts` — required for SDK components to find the Redux store
 - **Management tab**: Only visible with RBAC permissions. Pass `enableRbac={true}`
   and `rbacPermissions` from the Redux store to enable fine-grained tab control

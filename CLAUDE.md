@@ -18,7 +18,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 
 ## Project Overview
 
-**ibl.ai App CLI** — scaffolds Next.js 15 apps with ibl.ai SSO authentication, Redux Toolkit store, Tauri v2 desktop/mobile shell, and pre-built SDK components.
+**ibl.ai App CLI** — scaffolds Next.js 16 apps with ibl.ai SSO authentication, Redux Toolkit store, Tauri v2 desktop/mobile shell, and pre-built SDK components.
 
 The example app at `examples/iblai-agent-app/` is a complete reference implementation with the agent template (full-screen ChatWidget via `<mentor-ai>` web component).
 
@@ -86,7 +86,7 @@ initializeDataLayer(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandle
 
 ### Redux Store (`store/index.ts`)
 
-`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.mjs`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined`.
+`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.ts`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined`.
 
 ### Pre-built Components (`components/iblai/`)
 
@@ -104,7 +104,7 @@ initializeDataLayer(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandle
 | `@iblai/iblai-web-mentor` | 2.0.1 |
 | `@iblai/iblai-api` | 4.166.0-ai |
 | `@reduxjs/toolkit` | 2.11.2 |
-| `next` | 15.5.14 |
+| `next` | 16.2.1 |
 
 ## Add Features
 

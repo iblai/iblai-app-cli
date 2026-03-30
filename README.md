@@ -243,7 +243,7 @@ The AI modifies text, colors, and styling but never changes imports, component i
 
 ### Vercel
 
-Generated apps are standard Next.js 15 projects and deploy to [Vercel](https://vercel.com) with zero configuration. Set the environment variables in your Vercel project settings.
+Generated apps are standard Next.js 16 projects and deploy to [Vercel](https://vercel.com) with zero configuration. Set the environment variables in your Vercel project settings.
 
 ### Docker
 
@@ -316,7 +316,7 @@ make -C .iblai help           # Show all available targets
 
 | Category | Technology |
 |----------|-----------|
-| **Framework** | Next.js 15 (App Router) |
+| **Framework** | Next.js 16 (App Router) |
 | **UI** | React 19, Tailwind CSS 4, shadcn/ui (Radix UI) |
 | **State** | Redux Toolkit + React-Redux |
 | **SDK** | `@iblai/iblai-js` (auth, chat, data layer, web components) |

@@ -72,7 +72,7 @@ class AddAuthGenerator:
 
 After generation, the command:
 1. Installs dependencies via `package_manager.py`
-2. Patches `next.config.mjs` via `next_config_patcher.py`
+2. Patches `next.config.ts` via `next_config_patcher.py`
 3. Patches `globals.css` (SDK styles import)
 4. Patches `.env.local` (environment variables)
 5. Patches Redux store (add API slices)
@@ -91,7 +91,7 @@ Detection order: `pnpm-lock.yaml` → `yarn.lock` → `bun.lock`/`bun.lockb` →
 
 ## Next Config Patcher (`next_config_patcher.py`)
 
-Regex-based patching for existing `next.config.mjs` (or `.ts`):
+Regex-based patching for existing `next.config.ts` (or `.ts`):
 
 ```python
 from iblai.next_config_patcher import (

@@ -16,7 +16,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 
 ## Project Overview
 
-**iblai-agent-app** — a Next.js 15 App Router project with ibl.ai SSO authentication, Redux Toolkit store, and pre-built SDK components.
+**iblai-agent-app** — a Next.js 16 App Router project with ibl.ai SSO authentication, Redux Toolkit store, and pre-built SDK components.
 
 - **Template**: agent (full-screen ChatWidget via `<mentor-ai>` web component)
 - **Agent ID**: configured via `NEXT_PUBLIC_DEFAULT_AGENT_ID`
@@ -80,7 +80,7 @@ mentorReducer     // Mentor/user/tenant API slices
 mentorMiddleware  // RTK Query middleware for all slices
 ```
 
-`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.mjs`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined` with zero HTTP requests.
+`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.ts`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined` with zero HTTP requests.
 
 ### Pre-built Components (`components/iblai/`)
 
@@ -115,7 +115,7 @@ Copy `.env.example` to `.env.local` and fill in your values.
 | `@iblai/iblai-web-mentor` | 2.0.1 |
 | `@iblai/iblai-api` | 4.166.0-ai |
 | `@reduxjs/toolkit` | 2.11.2 |
-| `next` | 15.5.14 |
+| `next` | 16.2.1 |
 
 These versions are pinned and tested together. Do not upgrade individually — the SDK has strict peer dependency requirements.
 
@@ -159,5 +159,19 @@ npx shadcn@latest add @shadcn-space/dashboard-shell-01
 ```
 
 Browse: https://shadcnspace.com/blocks
+
+## ibl.ai CLI Repo
+
+For detailed implementation examples and source templates:
+
+  https://github.com/iblai/iblai-app-cli
+
+Key paths in the repo:
+- `examples/iblai-agent-app/` — complete reference app with all features
+- `skills/` — AI assistant skills with step-by-step implementation guides
+- `BRAND.md` — ibl.ai brand identity and design tokens
+- `.iblai/iblai/templates/` — Jinja2 source templates for all generated files
+
+Find CLI version and commit: `iblai --version`
 
 THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.

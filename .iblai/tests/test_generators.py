@@ -125,7 +125,7 @@ class TestAgentAppGenerator:
         essential_files = [
             "package.json",
             "tsconfig.json",
-            "next.config.mjs",
+            "next.config.ts",
             "tailwind.config.ts",
             ".env.example",
             ".gitignore",
@@ -284,12 +284,12 @@ class TestAgentRouteGroups:
         assert (generated_dir / "e2e" / "journeys" / "chat.journey.spec.ts").exists()
 
     def test_next_version_bumped(self, generated_dir):
-        """Next.js version is bumped to 15.5.14."""
+        """Next.js version is bumped to 16.2.1."""
         import json
 
         pkg = json.loads((generated_dir / "package.json").read_text())
-        assert pkg["dependencies"]["next"] == "15.5.14"
-        assert pkg["devDependencies"]["eslint-config-next"] == "15.5.14"
+        assert pkg["dependencies"]["next"] == "^16.2.1"
+        assert pkg["devDependencies"]["eslint-config-next"] == "^16.2.1"
 
 
 class TestComponentsJsonGeneration:

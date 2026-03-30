@@ -23,7 +23,7 @@ mentorReducer     // Mentor/user/tenant API slices
 mentorMiddleware  // RTK Query middleware for all slices
 ```
 
-`@reduxjs/toolkit` is deduplicated via webpack aliases in `next.config.mjs` to
+`@reduxjs/toolkit` is deduplicated via webpack aliases in `next.config.ts` to
 prevent duplicate ReactReduxContext issues with SDK components.
 
 ### Pre-Generated Components (`components/iblai/`)

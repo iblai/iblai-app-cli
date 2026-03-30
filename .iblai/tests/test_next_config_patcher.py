@@ -80,10 +80,10 @@ class TestPatchNextConfig:
         assert "@tauri-apps/api/core" in content
         assert "@tauri-apps/api/event" in content
 
-    def test_patches_mjs_with_js_polyfill(self, tmp_path):
-        (tmp_path / "next.config.mjs").write_text(
-            "/** @type {import('next').NextConfig} */\n"
-            "const nextConfig = {\n"
+    def test_patches_ts_with_polyfill(self, tmp_path):
+        (tmp_path / "next.config.ts").write_text(
+            "import type { NextConfig } from 'next';\n"
+            "const nextConfig: NextConfig = {\n"
             "  webpack: (config) => {\n"
             "    return config;\n"
             "  },\n"
@@ -91,10 +91,8 @@ class TestPatchNextConfig:
             "export default nextConfig;\n"
         )
         patch_next_config(tmp_path)
-        content = (tmp_path / "next.config.mjs").read_text()
+        content = (tmp_path / "next.config.ts").read_text()
         assert "localStorage.getItem" in content
-        # .mjs should NOT have TypeScript type annotations
-        assert "Record<string, string>" not in content
 
     def test_patch_is_idempotent(self, tmp_path):
         (tmp_path / "next.config.ts").write_text(
