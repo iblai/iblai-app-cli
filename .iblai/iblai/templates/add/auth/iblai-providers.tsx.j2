@@ -16,7 +16,7 @@
  *   }
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
 import { usePathname } from "next/navigation";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
@@ -40,24 +40,30 @@ const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
 
 export function IblaiProviders({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [ready, setReady] = useState(false);
 
-  // Hydrate on mount: initialise the data layer once.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    // data-layer v1.2+ signature:
-    // (dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)
-    initializeDataLayer(
-      config.dmUrl(),
-      config.lmsUrl(),
-      config.lmsUrl(),  // legacyLmsUrl (same as lmsUrl for consolidated API)
-      storageService,
-      {
-        401: () => redirectToAuthSpa(undefined, undefined, true),
-      },
-    );
-    setReady(true);
-  }, []);
+  // initializeDataLayer MUST be called synchronously before any children
+  // render so that Config.lmsUrl / Config.dmUrl are set before RTK Query
+  // hooks (e.g. inside the Profile component) fire their first queries.
+  // useState initializer runs during the render cycle, not after it.
+  const [isInitialized] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      // data-layer v1.2+ signature:
+      // (dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)
+      initializeDataLayer(
+        config.dmUrl(),
+        config.lmsUrl(),
+        config.lmsUrl(),  // legacyLmsUrl (same as lmsUrl for consolidated API)
+        storageService,
+        {
+          401: () => redirectToAuthSpa(undefined, undefined, true),
+        },
+      );
+    } catch (e) {
+      console.error("[ibl.ai] initializeDataLayer failed:", e);
+    }
+    return true;
+  });
 
   const username = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -66,7 +72,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
       if (raw) return JSON.parse(raw).user_nicename ?? "";
     } catch { /* ignore */ }
     return "";
-  }, [ready]);
+  }, [isInitialized]);
 
   const tenantKey = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -89,11 +95,11 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
       console.debug("[ibl.ai] No tenant in localStorage, using NEXT_PUBLIC_MAIN_TENANT_KEY:", fallback);
     }
     return fallback;
-  }, [ready]);
+  }, [isInitialized]);
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
-  if (!ready) return null;
+  if (!isInitialized) return null;
 
   return (
     <ReduxProvider store={iblaiStore}>

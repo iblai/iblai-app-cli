@@ -63,6 +63,10 @@ def install_packages(root: Path, packages: List[str]) -> bool:
 
     Skips packages already in package.json. Returns True on success,
     False on failure (prints a warning but does not raise).
+
+    For npm, ``--legacy-peer-deps`` is added automatically to avoid
+    ERESOLVE errors from strict peer dependency conflicts (e.g. the
+    SDK may pin ``react@19.1.0`` while Next.js 16 ships ``react@19.2.x``).
     """
     to_install = _already_installed(root, packages)
     if not to_install:
@@ -70,6 +74,10 @@ def install_packages(root: Path, packages: List[str]) -> bool:
 
     pm = detect_package_manager(root)
     cmd = [pm, "add"] + to_install
+    # npm is strict about peer deps by default; --legacy-peer-deps avoids
+    # ERESOLVE failures when transitive peer ranges don't overlap.
+    if pm == "npm":
+        cmd.append("--legacy-peer-deps")
 
     console.print(f"[dim]Running: {' '.join(cmd)}[/dim]")
     try:
@@ -98,6 +106,8 @@ def install_dev_packages(root: Path, packages: List[str]) -> bool:
         cmd = [pm, "add", "--dev"] + to_install
     else:
         cmd = [pm, "add", "-D"] + to_install
+    if pm == "npm":
+        cmd.append("--legacy-peer-deps")
 
     console.print(f"[dim]Running: {' '.join(cmd)}[/dim]")
     try:
