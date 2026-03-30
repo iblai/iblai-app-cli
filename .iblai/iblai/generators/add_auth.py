@@ -20,8 +20,6 @@ AUTH_DEPS = [
     "react-redux",
     "sonner",
     "lucide-react",
-    "react-markdown",
-    "remark-gfm",
 ]
 
 # Default env vars for .env.local.
