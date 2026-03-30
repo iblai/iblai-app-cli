@@ -51,8 +51,84 @@ TAURI_STUBS = """\
     config.resolve.alias["@tauri-apps/api/core"] = false;
     config.resolve.alias["@tauri-apps/api/event"] = false;"""
 
+# ---------------------------------------------------------------------------
+# RTK dedup — prevents duplicate @reduxjs/toolkit / react-redux copies
+# ---------------------------------------------------------------------------
+
+DEDUP_IMPORT_TS = 'import { createRequire } from "module";\n'
+
+DEDUP_FUNCTION_TS = """\
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Resolve a package to its root directory so webpack never loads duplicate
+ * copies (can happen in npm/pnpm hoisting with differing peer deps).
+ * Without this, @reduxjs/toolkit may be duplicated and SDK components get
+ * a different ReactReduxContext — RTK Query hooks silently return undefined.
+ */
+function dedup(packageName: string): string | undefined {
+  try {
+    const entry = require.resolve(packageName);
+    const marker = `node_modules/${packageName}`;
+    const idx = entry.lastIndexOf(marker);
+    if (idx !== -1) return entry.slice(0, idx + marker.length);
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const resolveAliases: Record<string, string> = {};
+const dataLayerDir = dedup("@iblai/data-layer");
+if (dataLayerDir) resolveAliases["@iblai/data-layer"] = dataLayerDir;
+const rtkDir = dedup("@reduxjs/toolkit");
+if (rtkDir) resolveAliases["@reduxjs/toolkit"] = rtkDir;
+const reactReduxDir = dedup("react-redux");
+if (reactReduxDir) resolveAliases["react-redux"] = reactReduxDir;
+"""
+
+DEDUP_IMPORT_JS = 'import { createRequire } from "module";\n'
+
+DEDUP_FUNCTION_JS = """\
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Resolve a package to its root directory so webpack never loads duplicate
+ * copies (can happen in npm/pnpm hoisting with differing peer deps).
+ * Without this, @reduxjs/toolkit may be duplicated and SDK components get
+ * a different ReactReduxContext — RTK Query hooks silently return undefined.
+ */
+function dedup(packageName) {
+  try {
+    const entry = require.resolve(packageName);
+    const marker = `node_modules/${packageName}`;
+    const idx = entry.lastIndexOf(marker);
+    if (idx !== -1) return entry.slice(0, idx + marker.length);
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const resolveAliases = {};
+const dataLayerDir = dedup("@iblai/data-layer");
+if (dataLayerDir) resolveAliases["@iblai/data-layer"] = dataLayerDir;
+const rtkDir = dedup("@reduxjs/toolkit");
+if (rtkDir) resolveAliases["@reduxjs/toolkit"] = rtkDir;
+const reactReduxDir = dedup("react-redux");
+if (reactReduxDir) resolveAliases["react-redux"] = reactReduxDir;
+"""
+
+DEDUP_WEBPACK_LINE = """\
+    // ibl.ai: Deduplicate @reduxjs/toolkit + react-redux (shared Redux context)
+    Object.assign(config.resolve.alias, resolveAliases);"""
+
 MARKER_POLYFILL = "localStorage.getItem"
 MARKER_TAURI = "@tauri-apps/api/core"
+MARKER_TURBOPACK = "turbopack"
+MARKER_DEDUP = "resolveAliases"
 
 # ---------------------------------------------------------------------------
 # Default next.config.ts content (when none exists)
@@ -73,9 +149,43 @@ if (typeof window === "undefined" && typeof localStorage !== "undefined" && type
 }
 
 import type { NextConfig } from "next";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Resolve a package to its root directory so webpack never loads duplicate
+ * copies (can happen in npm/pnpm hoisting with differing peer deps).
+ * Without this, @reduxjs/toolkit may be duplicated and SDK components get
+ * a different ReactReduxContext — RTK Query hooks silently return undefined.
+ */
+function dedup(packageName: string): string | undefined {
+  try {
+    const entry = require.resolve(packageName);
+    const marker = `node_modules/${packageName}`;
+    const idx = entry.lastIndexOf(marker);
+    if (idx !== -1) return entry.slice(0, idx + marker.length);
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const resolveAliases: Record<string, string> = {};
+const dataLayerDir = dedup("@iblai/data-layer");
+if (dataLayerDir) resolveAliases["@iblai/data-layer"] = dataLayerDir;
+const rtkDir = dedup("@reduxjs/toolkit");
+if (rtkDir) resolveAliases["@reduxjs/toolkit"] = rtkDir;
+const reactReduxDir = dedup("react-redux");
+if (reactReduxDir) resolveAliases["react-redux"] = reactReduxDir;
 
 const nextConfig: NextConfig = {
+  turbopack: {},
   webpack: (config) => {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+    // Deduplicate @reduxjs/toolkit + react-redux (shared Redux context)
+    Object.assign(config.resolve.alias, resolveAliases);
     // Stub @tauri-apps/api imports (not needed for web-only apps)
     config.resolve.alias["@tauri-apps/api/core"] = false;
     config.resolve.alias["@tauri-apps/api/event"] = false;
@@ -103,7 +213,8 @@ def find_next_config(root: Path) -> Optional[Path]:
 
 def patch_next_config(root: Path) -> str:
     """
-    Patch or create the Next.js config with Tauri stubs + localStorage polyfill.
+    Patch or create the Next.js config with localStorage polyfill, RTK dedup,
+    turbopack config, and Tauri stubs.
 
     Returns the relative path of the config file that was created or patched.
     """
@@ -131,35 +242,103 @@ def patch_next_config(root: Path) -> str:
         else:
             content = polyfill + "\n" + content
 
-    # 2. Add Tauri stubs inside the webpack function
+    # 2. Ensure a webpack function exists in the config object.
+    #    We need it for Tauri stubs + RTK dedup aliases.
+    #    Look for an existing "webpack:" property; if absent, create one.
+    has_webpack = bool(re.search(r"webpack\s*:", content))
+    if not has_webpack:
+        export_match = re.search(r"^export\s+default", content, re.MULTILINE)
+        if export_match:
+            before_export = content[: export_match.start()]
+            last_brace = before_export.rfind("};")
+            if last_brace != -1:
+                webpack_prop = (
+                    "  webpack: (config) => {\n"
+                    + "    config.resolve = config.resolve || {};\n"
+                    + "    config.resolve.alias = config.resolve.alias || {};\n"
+                    + "    return config;\n"
+                    + "  },\n"
+                )
+                content = content[:last_brace] + webpack_prop + content[last_brace:]
+
+    # 3. Add Tauri stubs inside the webpack function (before "return config;")
     if MARKER_TAURI not in content:
-        # Look for "return config;" or "return nextConfig;" inside a webpack function
-        return_match = re.search(r"^(\s*return\s+\w+;\s*)$", content, re.MULTILINE)
+        return_match = re.search(r"^(\s*return\s+config;\s*)$", content, re.MULTILINE)
         if return_match:
             indent_line = return_match.group(0)
             content = content.replace(indent_line, TAURI_STUBS + "\n" + indent_line, 1)
-        else:
-            # No webpack function found — try to add one to the config object
-            # Look for the config object closing: "};", preceded by the config variable
-            config_var_match = re.search(r"const\s+(nextConfig|config)\b", content)
-            config_var = config_var_match.group(1) if config_var_match else "nextConfig"
 
-            # Find the last "};" before "export default"
-            export_match = re.search(r"^export\s+default", content, re.MULTILINE)
-            if export_match:
-                # Insert webpack property before the closing of the config object
-                # Find the "};" that comes right before the export
-                before_export = content[: export_match.start()]
-                last_brace = before_export.rfind("};")
-                if last_brace != -1:
-                    webpack_prop = (
-                        "  webpack: (config) => {\n"
-                        + TAURI_STUBS
+    # 4. Add RTK dedup (createRequire + dedup function + resolve aliases).
+    #    This prevents duplicate @reduxjs/toolkit copies which cause SDK
+    #    components to use a different ReactReduxContext — RTK Query hooks
+    #    silently return undefined.
+    if MARKER_DEDUP not in content:
+        dedup_import = DEDUP_IMPORT_TS if is_ts else DEDUP_IMPORT_JS
+        dedup_fn = DEDUP_FUNCTION_TS if is_ts else DEDUP_FUNCTION_JS
+
+        # 4a. Add createRequire import after the last import line
+        if "createRequire" not in content:
+            lines = content.split("\n")
+            last_import_idx = -1
+            for i, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith("import ") or stripped.startswith("} from "):
+                    last_import_idx = i
+            if last_import_idx >= 0:
+                lines.insert(last_import_idx + 1, dedup_import.rstrip())
+                content = "\n".join(lines)
+            else:
+                # No imports — insert after the polyfill block
+                polyfill_end = content.find("}\n")
+                if polyfill_end != -1:
+                    insert_pos = polyfill_end + 2
+                    content = (
+                        content[:insert_pos]
                         + "\n"
-                        + "    return config;\n"
-                        + "  },\n"
+                        + dedup_import
+                        + content[insert_pos:]
                     )
-                    content = content[:last_brace] + webpack_prop + content[last_brace:]
+
+        # 4b. Add the dedup function + resolveAliases before the config object
+        config_obj_match = re.search(
+            r"^const\s+(nextConfig|config)\s*(?::\s*\w+)?\s*=\s*\{",
+            content,
+            re.MULTILINE,
+        )
+        if config_obj_match:
+            content = (
+                content[: config_obj_match.start()]
+                + dedup_fn
+                + "\n"
+                + content[config_obj_match.start() :]
+            )
+
+        # 4c. Add Object.assign(config.resolve.alias, resolveAliases)
+        #     inside the webpack function, before "return config;"
+        if "Object.assign(config.resolve.alias" not in content:
+            return_match = re.search(
+                r"^(\s*return\s+config;\s*)$", content, re.MULTILINE
+            )
+            if return_match:
+                indent_line = return_match.group(0)
+                content = content.replace(
+                    indent_line,
+                    DEDUP_WEBPACK_LINE + "\n" + indent_line,
+                    1,
+                )
+
+    # 5. Add turbopack: {} — required by Next.js 16+ when webpack config is present.
+    #    Without this, Next.js 16 errors: "This build is using Turbopack, with a
+    #    `webpack` config and no `turbopack` config."
+    if MARKER_TURBOPACK not in content and "webpack" in content:
+        webpack_match = re.search(r"^(\s*)(webpack\s*:)", content, re.MULTILINE)
+        if webpack_match:
+            indent = webpack_match.group(1)
+            content = content.replace(
+                webpack_match.group(0),
+                f"{indent}turbopack: {{}},\n{webpack_match.group(0)}",
+                1,
+            )
 
     if content != original:
         config_path.write_text(content, encoding="utf-8")
