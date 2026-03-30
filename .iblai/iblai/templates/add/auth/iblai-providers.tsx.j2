@@ -45,9 +45,12 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
   // Hydrate on mount: initialise the data layer once.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // data-layer v1.2+ signature:
+    // (dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)
     initializeDataLayer(
       config.dmUrl(),
       config.lmsUrl(),
+      config.lmsUrl(),  // legacyLmsUrl (same as lmsUrl for consolidated API)
       storageService,
       {
         401: () => redirectToAuthSpa(undefined, undefined, true),
