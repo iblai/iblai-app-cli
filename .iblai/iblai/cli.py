@@ -1,5 +1,7 @@
 """Main CLI entry point for iblai command."""
 
+import os
+
 import click
 from rich.console import Console
 from rich.panel import Panel
@@ -91,8 +93,14 @@ def _show_welcome():
     is_eager=True,
     help="Show version, repo, and commit.",
 )
+@click.option(
+    "--no-update",
+    is_flag=True,
+    default=False,
+    help="Skip automatic update check.",
+)
 @click.pass_context
-def cli(ctx: click.Context) -> None:
+def cli(ctx: click.Context, no_update: bool) -> None:
     """
     ibl.ai CLI - Quickly scaffold ibl.ai applications.
 
@@ -100,6 +108,13 @@ def cli(ctx: click.Context) -> None:
     """
     ctx.ensure_object(dict)
     ctx.obj["console"] = console
+
+    # Auto-update check (before any subcommand runs)
+    if not no_update and not os.environ.get("IBLAI_NO_UPDATE"):
+        from iblai.updater import auto_update
+
+        auto_update()
+
     if ctx.invoked_subcommand is None:
         _show_welcome()
 
