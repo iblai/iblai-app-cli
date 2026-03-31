@@ -91,9 +91,10 @@ class TestAddAuthGenerator:
 
     def test_auth_generates_all_files(self, generated):
         _, created = generated
-        # 7 generated files + next.config (patched) + globals.css (patched)
-        # + .env.local + SDK symlink + vitest.config.ts + __tests__/source-paths.test.ts
-        assert len(created) == 13
+        # 7 generated files + lib/iblai/tenant.ts + next.config (patched)
+        # + globals.css (patched) + .env.local + SDK symlink
+        # + vitest.config.ts + __tests__/source-paths.test.ts
+        assert len(created) == 14
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -188,7 +189,7 @@ class TestAddChatGenerator:
     def test_chat_widget_uses_config(self, widget_content):
         assert "config.authUrl()" in widget_content
         assert "config.lmsUrl()" in widget_content
-        assert "config.mainTenantKey()" in widget_content
+        assert "resolveAppTenant" in widget_content
         assert "config.platformBaseDomain" in widget_content
 
 
@@ -471,6 +472,16 @@ class TestAddAuthAutoApply:
         assert len(lines) == 2
         assert "tailwindcss" in lines[0]
         assert "iblai-styles.css" in lines[1]
+
+    def test_auth_generates_tenant_module(self, generated):
+        project, _ = generated
+        tenant_file = project.lib_dir / "iblai" / "tenant.ts"
+        assert tenant_file.exists()
+        content = tenant_file.read_text()
+        assert "resolveAppTenant" in content
+        assert "checkTenantMismatch" in content
+        assert "app_tenant" in content
+        assert "PLACEHOLDER_TENANTS" in content
 
     def test_auth_generates_vitest_config(self, generated):
         project, _ = generated

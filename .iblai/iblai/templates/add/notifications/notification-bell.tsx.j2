@@ -16,6 +16,7 @@
 
 import { useMemo } from "react";
 import { NotificationDropdown } from "@iblai/iblai-js/web-containers";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 interface IblaiNotificationBellProps {
   /** Additional CSS class for the dropdown trigger. */
@@ -28,10 +29,7 @@ export function IblaiNotificationBell({
   className,
   onViewAll,
 }: IblaiNotificationBellProps) {
-  const tenantKey = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("tenant") ?? "";
-  }, []);
+  const tenantKey = useMemo(() => resolveAppTenant(), []);
 
   const userId = useMemo(() => {
     if (typeof window === "undefined") return "";

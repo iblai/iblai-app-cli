@@ -4,16 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Account } from "@iblai/iblai-js/web-containers/next";
 import config from "@/lib/iblai/config";
-
-function resolveTenantKey(raw: string | null): string {
-  if (!raw || raw === "[object Object]") return "";
-  try {
-    const p = JSON.parse(raw);
-    if (typeof p === "string") return p;
-    if (p?.key) return p.key;
-  } catch {}
-  return raw;
-}
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -32,10 +23,7 @@ export default function AccountPage() {
       }
     } catch {}
 
-    const stored =
-      localStorage.getItem("current_tenant") ??
-      localStorage.getItem("tenant");
-    const resolved = resolveTenantKey(stored) || config.mainTenantKey();
+    const resolved = resolveAppTenant();
     setTenantKey(resolved);
 
     try {

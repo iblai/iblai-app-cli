@@ -105,6 +105,11 @@ class AddAuthGenerator:
         self._write(styles_path, self._render("add/auth/iblai-styles.css.j2"))
         created.append(str(styles_path.relative_to(self.project.root)))
 
+        # 7b. Tenant resolution helper
+        tenant_path = self.project.lib_dir / "iblai" / "tenant.ts"
+        self._write(tenant_path, self._render("add/auth/tenant.ts.j2"))
+        created.append(str(tenant_path.relative_to(self.project.root)))
+
         # 8. Patch next.config.{ts,mjs,js} (Tauri stubs + localStorage polyfill)
         config_file = patch_next_config(self.project.root)
         created.append(f"{config_file} (patched)")

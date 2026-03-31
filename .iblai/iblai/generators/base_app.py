@@ -154,6 +154,7 @@ class BaseAppGenerator(BaseGenerator):
         self._write(
             "lib/iblai/auth-utils.ts", self._render("lib/iblai/auth-utils.ts.j2")
         )
+        self._write("lib/iblai/tenant.ts", self._render("auth/tenant.ts.j2"))
 
         # --- SDK symlink for @source directive ---
         # lib/iblai/sdk -> node_modules/@iblai/iblai-js/dist
