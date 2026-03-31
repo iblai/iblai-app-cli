@@ -10,7 +10,7 @@ from iblai.next_config_patcher import (
     patch_next_config,
     write_env_local,
 )
-from iblai.package_manager import install_packages
+from iblai.package_manager import install_dev_packages, install_packages
 from iblai.project_detector import ProjectInfo
 
 # Dependencies required for auth integration.
@@ -20,6 +20,12 @@ AUTH_DEPS = [
     "react-redux",
     "sonner",
     "lucide-react",
+    "tw-animate-css",
+]
+
+# Dev dependencies for SDK component styling.
+AUTH_DEV_DEPS = [
+    "tailwind-scrollbar",
 ]
 
 # Default env vars for .env.local.
@@ -113,5 +119,6 @@ class AddAuthGenerator:
 
         # 11. Install dependencies
         install_packages(self.project.root, AUTH_DEPS)
+        install_dev_packages(self.project.root, AUTH_DEV_DEPS)
 
         return created
