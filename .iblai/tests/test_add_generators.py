@@ -91,8 +91,9 @@ class TestAddAuthGenerator:
 
     def test_auth_generates_all_files(self, generated):
         _, created = generated
-        # 7 generated files + next.config (patched) + globals.css (patched) + .env.local
-        assert len(created) == 10
+        # 7 generated files + next.config (patched) + globals.css (patched)
+        # + .env.local + SDK symlink
+        assert len(created) == 11
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -448,6 +449,28 @@ class TestAddAuthAutoApply:
         # Should be a list starting with the package manager
         assert isinstance(call_args, list)
         assert "add" in call_args
+
+    def test_auth_creates_sdk_symlink(self, generated):
+        project, created = generated
+        sdk_link = project.lib_dir / "iblai" / "sdk"
+        assert sdk_link.is_symlink()
+        # Should be a relative symlink targeting node_modules/@iblai/iblai-js/dist
+        target = str(sdk_link.readlink())
+        assert "node_modules" in target
+        assert "@iblai" in target
+        assert "iblai-js" in target
+        assert "dist" in target
+        # Should be relative (not absolute)
+        assert not target.startswith("/")
+
+    def test_auth_globals_css_is_clean(self, generated):
+        """globals.css must contain only the two import lines, no vanilla boilerplate."""
+        project, _ = generated
+        content = (project.app_dir / "globals.css").read_text().strip()
+        lines = [l for l in content.split("\n") if l.strip()]
+        assert len(lines) == 2
+        assert "tailwindcss" in lines[0]
+        assert "iblai-styles.css" in lines[1]
 
 
 class TestAddChatAutoApply:

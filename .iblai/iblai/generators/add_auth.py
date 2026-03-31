@@ -1,5 +1,6 @@
 """Generator for adding ibl.ai auth to an existing Next.js project."""
 
+import os
 from pathlib import Path
 from typing import List
 
@@ -120,5 +121,18 @@ class AddAuthGenerator:
         # 11. Install dependencies
         install_packages(self.project.root, AUTH_DEPS)
         install_dev_packages(self.project.root, AUTH_DEV_DEPS)
+
+        # 12. Create SDK symlink: lib/iblai/sdk -> node_modules/@iblai/iblai-js/dist
+        #     This provides a stable path for the @source directive in iblai-styles.css
+        #     to scan SDK compiled JS for Tailwind class generation.
+        sdk_link = self.project.lib_dir / "iblai" / "sdk"
+        if not sdk_link.exists():
+            target = self.project.root / "node_modules" / "@iblai" / "iblai-js" / "dist"
+            rel_target = os.path.relpath(target, sdk_link.parent)
+            sdk_link.symlink_to(rel_target)
+        created.append(
+            f"{sdk_link.relative_to(self.project.root)} -> "
+            "node_modules/@iblai/iblai-js/dist (symlink)"
+        )
 
         return created

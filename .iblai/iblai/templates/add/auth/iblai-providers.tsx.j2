@@ -99,7 +99,13 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
-  if (!isInitialized) return null;
+  const LOADING = (
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-sm text-gray-400">Loading...</p>
+    </div>
+  );
+
+  if (!isInitialized) return LOADING;
 
   return (
     <ReduxProvider store={iblaiStore}>
@@ -112,7 +118,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
         storageService={storageService}
         middleware={PUBLIC_ROUTES}
         enableStorageSync
-        fallback={<div>Loading…</div>}
+        fallback={LOADING}
       >
         <TenantProvider
           skip={isSsoRoute}
@@ -131,7 +137,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           }}
           redirectToAuthSpa={redirectToAuthSpa}
           username={username}
-          fallback={<div>Loading…</div>}
+          fallback={LOADING}
         >
           {children}
         </TenantProvider>

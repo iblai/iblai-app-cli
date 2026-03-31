@@ -22,8 +22,10 @@
 /* SDK base styles — injects ~130 CSS variables + utility classes onto :root */
 @import '@iblai/iblai-js/web-containers/styles';
 
-/* Scan SDK compiled JS so Tailwind generates classes used inside SDK components */
-@source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
+/* Scan SDK compiled JS so Tailwind generates classes used inside SDK components.
+ * lib/iblai/sdk is a symlink to node_modules/@iblai/iblai-js/dist (created by
+ * iblai add auth or iblai startapp). */
+@source "../lib/iblai/sdk/web-containers/source";
 
 @custom-variant dark (&:is(.dark *));
 

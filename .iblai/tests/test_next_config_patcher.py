@@ -127,7 +127,7 @@ class TestPatchNextConfig:
 class TestPatchGlobalsCss:
     """Tests for patch_globals_css()."""
 
-    def test_adds_import_to_globals_css(self, tmp_path):
+    def test_replaces_content_with_two_imports(self, tmp_path):
         app_dir = tmp_path / "app"
         app_dir.mkdir()
         (app_dir / "globals.css").write_text('@import "tailwindcss";\n')
@@ -135,19 +135,39 @@ class TestPatchGlobalsCss:
         assert result is not None
         content = (app_dir / "globals.css").read_text()
         assert "@import './iblai-styles.css';" in content
+        assert '@import "tailwindcss";' in content
 
-    def test_import_placed_after_existing_imports(self, tmp_path):
+    def test_strips_vanilla_boilerplate(self, tmp_path):
+        """Vanilla Next.js 16 globals.css content must be replaced entirely."""
         app_dir = tmp_path / "app"
         app_dir.mkdir()
-        (app_dir / "globals.css").write_text(
-            '@import "tailwindcss";\n@import "other.css";\n\nbody { margin: 0; }\n'
+        vanilla = (
+            '@import "tailwindcss";\n\n'
+            ":root {\n  --background: #ffffff;\n  --foreground: #171717;\n}\n\n"
+            "@theme inline {\n  --color-background: var(--background);\n}\n\n"
+            "@media (prefers-color-scheme: dark) {\n  :root {\n"
+            "    --background: #0a0a0a;\n  }\n}\n\n"
+            "body {\n  font-family: Arial;\n}\n"
         )
+        (app_dir / "globals.css").write_text(vanilla)
         patch_globals_css(tmp_path, app_dir)
         content = (app_dir / "globals.css").read_text()
-        lines = content.split("\n")
-        import_idx = next(i for i, l in enumerate(lines) if "iblai-styles" in l)
-        # Should be after the last @import line (index 1)
-        assert import_idx == 2
+        assert (
+            content.strip() == "@import \"tailwindcss\";\n@import './iblai-styles.css';"
+        )
+        # Vanilla boilerplate must be gone
+        assert "#171717" not in content
+        assert "@theme inline" not in content
+        assert "prefers-color-scheme" not in content
+        assert "font-family" not in content
+
+    def test_preserves_tailwind_quote_style(self, tmp_path):
+        app_dir = tmp_path / "app"
+        app_dir.mkdir()
+        (app_dir / "globals.css").write_text("@import 'tailwindcss';\nbody {}\n")
+        patch_globals_css(tmp_path, app_dir)
+        content = (app_dir / "globals.css").read_text()
+        assert "@import 'tailwindcss';" in content
 
     def test_idempotent(self, tmp_path):
         app_dir = tmp_path / "app"
