@@ -252,3 +252,10 @@ class BaseAppGenerator(BaseGenerator):
             "e2e/journeys/chat.journey.spec.ts",
             self._render("e2e/journeys/chat.journey.spec.ts.j2"),
         )
+
+        # --- Vitest unit tests ---
+        self._write("vitest.config.ts", self._render("vitest.config.ts.j2"))
+        self._write(
+            "__tests__/source-paths.test.ts",
+            self._render("__tests__/source-paths.test.ts.j2"),
+        )

@@ -284,12 +284,35 @@ class TestAgentRouteGroups:
         assert (generated_dir / "e2e" / "journeys" / "chat.journey.spec.ts").exists()
 
     def test_next_version_bumped(self, generated_dir):
-        """Next.js version is bumped to 16.2.1."""
         import json
 
         pkg = json.loads((generated_dir / "package.json").read_text())
         assert pkg["dependencies"]["next"] == "^16.2.1"
         assert pkg["devDependencies"]["eslint-config-next"] == "^16.2.1"
+
+    def test_generates_vitest_config(self, generated_dir):
+        assert (generated_dir / "vitest.config.ts").exists()
+
+    def test_generates_source_paths_test(self, generated_dir):
+        test_file = generated_dir / "__tests__" / "source-paths.test.ts"
+        assert test_file.exists()
+        content = test_file.read_text()
+        assert "@source" in content
+        assert "lib/iblai/sdk" in content
+
+    def test_generates_sdk_symlink(self, generated_dir):
+        sdk_link = generated_dir / "lib" / "iblai" / "sdk"
+        assert sdk_link.is_symlink()
+        target = str(sdk_link.readlink())
+        assert not target.startswith("/")
+        assert "node_modules" in target
+
+    def test_vitest_in_package_json(self, generated_dir):
+        import json
+
+        pkg = json.loads((generated_dir / "package.json").read_text())
+        assert "vitest" in pkg["devDependencies"]
+        assert pkg["scripts"]["test"] == "vitest run"
 
 
 class TestComponentsJsonGeneration:

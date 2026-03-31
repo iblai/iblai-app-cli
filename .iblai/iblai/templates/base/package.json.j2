@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
     "test:e2e:headed": "cross-env HEADED=true playwright test --config e2e/playwright.config.ts"{% if builds %},
@@ -64,7 +66,8 @@
     "postcss": "^8",
     "tailwind-scrollbar": "^4.0.0",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5"{% if builds %},
+    "typescript": "^5",
+    "vitest": "^3.2.1"{% if builds %},
     "@tauri-apps/cli": "^2.5.0"{% endif %}
 
   },

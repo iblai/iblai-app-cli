@@ -92,8 +92,8 @@ class TestAddAuthGenerator:
     def test_auth_generates_all_files(self, generated):
         _, created = generated
         # 7 generated files + next.config (patched) + globals.css (patched)
-        # + .env.local + SDK symlink
-        assert len(created) == 11
+        # + .env.local + SDK symlink + vitest.config.ts + __tests__/source-paths.test.ts
+        assert len(created) == 13
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -471,6 +471,21 @@ class TestAddAuthAutoApply:
         assert len(lines) == 2
         assert "tailwindcss" in lines[0]
         assert "iblai-styles.css" in lines[1]
+
+    def test_auth_generates_vitest_config(self, generated):
+        project, _ = generated
+        assert (project.root / "vitest.config.ts").exists()
+        content = (project.root / "vitest.config.ts").read_text()
+        assert "vitest/config" in content
+
+    def test_auth_generates_source_paths_test(self, generated):
+        project, _ = generated
+        test_file = project.root / "__tests__" / "source-paths.test.ts"
+        assert test_file.exists()
+        content = test_file.read_text()
+        assert "@source" in content
+        assert "lib/iblai/sdk" in content
+        assert "web-containers/source" in content
 
 
 class TestAddChatAutoApply:

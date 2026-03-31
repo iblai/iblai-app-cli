@@ -24,9 +24,10 @@ AUTH_DEPS = [
     "tw-animate-css",
 ]
 
-# Dev dependencies for SDK component styling.
+# Dev dependencies for SDK component styling + testing.
 AUTH_DEV_DEPS = [
     "tailwind-scrollbar",
+    "vitest",
 ]
 
 # Default env vars for .env.local.
@@ -134,5 +135,24 @@ class AddAuthGenerator:
             f"{sdk_link.relative_to(self.project.root)} -> "
             "node_modules/@iblai/iblai-js/dist (symlink)"
         )
+
+        # 13. Generate vitest config + source path test (if not already present)
+        vitest_config = self.project.root / "vitest.config.ts"
+        if not vitest_config.exists():
+            self._write(
+                vitest_config,
+                self.env.get_template("shared/vitest.config.ts.j2").render({}),
+            )
+            created.append("vitest.config.ts")
+
+        test_file = self.project.root / "__tests__" / "source-paths.test.ts"
+        if not test_file.exists():
+            self._write(
+                test_file,
+                self.env.get_template(
+                    "shared/__tests__/source-paths.test.ts.j2"
+                ).render({}),
+            )
+            created.append("__tests__/source-paths.test.ts")
 
         return created
