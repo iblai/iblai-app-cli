@@ -579,3 +579,56 @@ class TestAddToBaseTemplateApp:
 
         created = AddNotificationsGenerator(project).generate()
         assert len(created) == 1
+
+    def test_account_generates_on_base_template(self, project):
+        from iblai.generators.add_account import AddAccountGenerator
+
+        created = AddAccountGenerator(project).generate()
+        assert len(created) == 1
+        page = project.app_dir / "(app)" / "account" / "page.tsx"
+        assert page.exists()
+        content = page.read_text()
+        assert "Account" in content
+        assert "tenants={tenants}" in content
+        assert "authURL={config.authUrl()}" in content
+
+    def test_analytics_generates_on_base_template(self, project):
+        from iblai.generators.add_analytics import AddAnalyticsGenerator
+
+        created = AddAnalyticsGenerator(project).generate()
+        assert len(created) == 1
+        page = project.app_dir / "(app)" / "analytics" / "page.tsx"
+        assert page.exists()
+        content = page.read_text()
+        assert "AnalyticsOverview" in content
+        assert "tenantKey={tenantKey}" in content
+        assert 'mentorId=""' in content
+
+
+class TestAddTemplatesRender:
+    """Verify all add/ templates render through Jinja2 without errors."""
+
+    @pytest.fixture
+    def env(self):
+        from jinja2 import Environment, FileSystemLoader
+        from pathlib import Path
+
+        tpl_dir = Path(__file__).parent.parent / "iblai" / "templates"
+        return Environment(
+            loader=FileSystemLoader(str(tpl_dir)),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+
+    @pytest.fixture
+    def add_templates(self, env):
+        from pathlib import Path
+
+        tpl_dir = Path(__file__).parent.parent / "iblai" / "templates"
+        return sorted(str(f.relative_to(tpl_dir)) for f in tpl_dir.rglob("add/**/*.j2"))
+
+    def test_all_add_templates_render(self, env, add_templates):
+        """Every add/ template must render without Jinja2 errors."""
+        for tpl_path in add_templates:
+            result = env.get_template(tpl_path).render({})
+            assert len(result) > 0, f"Template {tpl_path} rendered empty"
