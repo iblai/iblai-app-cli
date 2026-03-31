@@ -285,6 +285,8 @@ class TestAddMcpGenerator:
         data = json.loads((project.root / ".mcp.json").read_text())
         assert "mcpServers" in data
         assert "iblai-js-mcp" in data["mcpServers"]
+        assert "playwright" in data["mcpServers"]
+        assert "shadcn" in data["mcpServers"]
 
     def test_mcp_config_uses_npx(self, generated):
         project, _ = generated
@@ -292,6 +294,21 @@ class TestAddMcpGenerator:
         server = data["mcpServers"]["iblai-js-mcp"]
         assert server["command"] == "npx"
         assert "@iblai/mcp" in server["args"]
+
+    def test_mcp_config_playwright_server(self, generated):
+        project, _ = generated
+        data = json.loads((project.root / ".mcp.json").read_text())
+        server = data["mcpServers"]["playwright"]
+        assert server["command"] == "npx"
+        assert "@playwright/mcp@latest" in server["args"]
+
+    def test_mcp_config_shadcn_server(self, generated):
+        project, _ = generated
+        data = json.loads((project.root / ".mcp.json").read_text())
+        server = data["mcpServers"]["shadcn"]
+        assert server["command"] == "npx"
+        assert "shadcn@latest" in server["args"]
+        assert "mcp" in server["args"]
 
     def test_mcp_generates_claude_skills(self, generated):
         project, _ = generated

@@ -16,7 +16,15 @@ MCP_CONFIG = {
         "iblai-js-mcp": {
             "command": "npx",
             "args": ["@iblai/mcp"],
-        }
+        },
+        "playwright": {
+            "command": "npx",
+            "args": ["@playwright/mcp@latest"],
+        },
+        "shadcn": {
+            "command": "npx",
+            "args": ["shadcn@latest", "mcp"],
+        },
     }
 }
 

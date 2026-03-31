@@ -38,14 +38,36 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
 
   const tenantKey = useMemo(() => {
     if (typeof window === "undefined") return "";
-    return localStorage.getItem("tenant") ?? "";
+    const stored =
+      localStorage.getItem("current_tenant") ??
+      localStorage.getItem("tenant");
+    if (!stored) return config.mainTenantKey();
+    try {
+      const parsed = JSON.parse(stored);
+      return typeof parsed === "string" ? parsed : parsed?.key ?? "";
+    } catch {
+      return stored;
+    }
   }, []);
+
+  const isAdmin = useMemo(() => {
+    if (typeof window === "undefined" || !tenantKey) return false;
+    try {
+      const raw = localStorage.getItem("tenants");
+      if (!raw) return false;
+      const tenants = JSON.parse(raw);
+      const match = tenants.find((t: any) => t.key === tenantKey);
+      return !!match?.is_admin;
+    } catch {
+      return false;
+    }
+  }, [tenantKey]);
 
   return (
     <UserProfileDropdown
       username={username}
       tenantKey={tenantKey}
-      userIsAdmin={false}
+      userIsAdmin={isAdmin}
       showProfileTab
       showAccountTab={false}
       showTenantSwitcher={false}
