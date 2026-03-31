@@ -129,6 +129,17 @@ MARKER_POLYFILL = "localStorage.getItem"
 MARKER_TAURI = "@tauri-apps/api/core"
 MARKER_TURBOPACK = "turbopack"
 MARKER_DEDUP = "resolveAliases"
+MARKER_IMAGES = "remotePatterns"
+
+# ---------------------------------------------------------------------------
+# next/image remote patterns — allows SDK components (e.g. Account) to load
+# external images like org logos from api.iblai.app via next/image.
+# ---------------------------------------------------------------------------
+
+IMAGES_CONFIG = """\
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },"""
 
 # ---------------------------------------------------------------------------
 # Default next.config.ts content (when none exists)
@@ -180,6 +191,9 @@ const reactReduxDir = dedup("react-redux");
 if (reactReduxDir) resolveAliases["react-redux"] = reactReduxDir;
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },
   turbopack: {},
   webpack: (config) => {
     config.resolve = config.resolve || {};
@@ -339,6 +353,38 @@ def patch_next_config(root: Path) -> str:
                 f"{indent}turbopack: {{}},\n{webpack_match.group(0)}",
                 1,
             )
+
+    # 6. Add images.remotePatterns — allows next/image to load external images
+    #    (e.g., org logos from api.iblai.app used by the Account component).
+    if MARKER_IMAGES not in content:
+        # Insert before turbopack or webpack property
+        turbo_match = re.search(r"^(\s*)(turbopack\s*:)", content, re.MULTILINE)
+        if turbo_match:
+            content = content.replace(
+                turbo_match.group(0),
+                IMAGES_CONFIG + "\n" + turbo_match.group(0),
+                1,
+            )
+        else:
+            webpack_match = re.search(r"^(\s*)(webpack\s*:)", content, re.MULTILINE)
+            if webpack_match:
+                content = content.replace(
+                    webpack_match.group(0),
+                    IMAGES_CONFIG + "\n" + webpack_match.group(0),
+                    1,
+                )
+            else:
+                # No turbopack or webpack — insert after opening brace of config
+                config_obj_match = re.search(
+                    r"(const\s+\w+\s*(?::\s*\w+)?\s*=\s*\{)",
+                    content,
+                )
+                if config_obj_match:
+                    content = content.replace(
+                        config_obj_match.group(0),
+                        config_obj_match.group(0) + "\n" + IMAGES_CONFIG,
+                        1,
+                    )
 
     if content != original:
         config_path.write_text(content, encoding="utf-8")

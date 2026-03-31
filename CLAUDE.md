@@ -100,7 +100,7 @@ initializeDataLayer(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandle
 
 | Package | Version |
 |---------|---------|
-| `@iblai/iblai-js` | 1.1.1 |
+| `@iblai/iblai-js` | 1.1.9 |
 | `@iblai/iblai-web-mentor` | 2.0.1 |
 | `@iblai/iblai-api` | 4.166.0-ai |
 | `@reduxjs/toolkit` | 2.11.2 |
