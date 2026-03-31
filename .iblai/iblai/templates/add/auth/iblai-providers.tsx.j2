@@ -25,6 +25,7 @@ import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
 import { iblaiStore } from "@/store/iblai-store";
 import { LocalStorageService } from "@/lib/iblai/storage-service";
 import config from "@/lib/iblai/config";
+import { resolveAppTenant, checkTenantMismatch } from "@/lib/iblai/tenant";
 import {
   redirectToAuthSpa,
   hasNonExpiredAuthToken,
@@ -74,32 +75,18 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
     return "";
   }, [isInitialized]);
 
-  const tenantKey = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    // Check current_tenant first (may be JSON object from TenantProvider)
-    try {
-      const raw = localStorage.getItem("current_tenant");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const key = typeof parsed === "string" ? parsed : parsed?.key ?? "";
-        if (key) return key;
-      }
-    } catch { /* ignore */ }
-    // Fall back to tenant key, then NEXT_PUBLIC_MAIN_TENANT_KEY from config.
-    // Without this, TenantProvider calls /api/custom-domains?domain=localhost
-    // which fails on local development.
-    const fromStorage = localStorage.getItem("tenant");
-    if (fromStorage) return fromStorage;
-    const fallback = config.mainTenantKey();
-    if (fallback) {
-      console.debug("[ibl.ai] No tenant in localStorage, using NEXT_PUBLIC_MAIN_TENANT_KEY:", fallback);
-    }
-    return fallback;
-  }, [isInitialized]);
+  // Tenant resolution: .env -> app_tenant -> localStorage tenant
+  const tenantKey = useMemo(() => resolveAppTenant(), [isInitialized]);
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
-  if (!isInitialized) return null;
+  const LOADING = (
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-sm text-gray-400">Loading...</p>
+    </div>
+  );
+
+  if (!isInitialized) return LOADING;
 
   return (
     <ReduxProvider store={iblaiStore}>
@@ -112,7 +99,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
         storageService={storageService}
         middleware={PUBLIC_ROUTES}
         enableStorageSync
-        fallback={<div>Loading…</div>}
+        fallback={LOADING}
       >
         <TenantProvider
           skip={isSsoRoute}
@@ -122,6 +109,10 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
             const key = typeof t === "string" ? t : t?.key ?? String(t);
             localStorage.setItem("current_tenant", key);
             localStorage.setItem("tenant", key);
+
+            // If the SDK resolved a different tenant than what the app
+            // expects, redirect to re-login for the correct tenant.
+            checkTenantMismatch();
           }}
           saveUserTenants={(t: unknown) =>
             localStorage.setItem("tenants", JSON.stringify(t))
@@ -131,7 +122,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           }}
           redirectToAuthSpa={redirectToAuthSpa}
           username={username}
-          fallback={<div>Loading…</div>}
+          fallback={LOADING}
         >
           {children}
         </TenantProvider>

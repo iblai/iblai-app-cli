@@ -1,5 +1,6 @@
 """Generator for adding ibl.ai auth to an existing Next.js project."""
 
+import os
 from pathlib import Path
 from typing import List
 
@@ -10,7 +11,7 @@ from iblai.next_config_patcher import (
     patch_next_config,
     write_env_local,
 )
-from iblai.package_manager import install_packages
+from iblai.package_manager import install_dev_packages, install_packages
 from iblai.project_detector import ProjectInfo
 
 # Dependencies required for auth integration.
@@ -20,6 +21,13 @@ AUTH_DEPS = [
     "react-redux",
     "sonner",
     "lucide-react",
+    "tw-animate-css",
+]
+
+# Dev dependencies for SDK component styling + testing.
+AUTH_DEV_DEPS = [
+    "tailwind-scrollbar",
+    "vitest",
 ]
 
 # Default env vars for .env.local.
@@ -97,6 +105,11 @@ class AddAuthGenerator:
         self._write(styles_path, self._render("add/auth/iblai-styles.css.j2"))
         created.append(str(styles_path.relative_to(self.project.root)))
 
+        # 7b. Tenant resolution helper
+        tenant_path = self.project.lib_dir / "iblai" / "tenant.ts"
+        self._write(tenant_path, self._render("add/auth/tenant.ts.j2"))
+        created.append(str(tenant_path.relative_to(self.project.root)))
+
         # 8. Patch next.config.{ts,mjs,js} (Tauri stubs + localStorage polyfill)
         config_file = patch_next_config(self.project.root)
         created.append(f"{config_file} (patched)")
@@ -113,5 +126,38 @@ class AddAuthGenerator:
 
         # 11. Install dependencies
         install_packages(self.project.root, AUTH_DEPS)
+        install_dev_packages(self.project.root, AUTH_DEV_DEPS)
+
+        # 12. Create SDK symlink: lib/iblai/sdk -> node_modules/@iblai/iblai-js/dist
+        #     This provides a stable path for the @source directive in iblai-styles.css
+        #     to scan SDK compiled JS for Tailwind class generation.
+        sdk_link = self.project.lib_dir / "iblai" / "sdk"
+        if not sdk_link.exists():
+            target = self.project.root / "node_modules" / "@iblai" / "iblai-js" / "dist"
+            rel_target = os.path.relpath(target, sdk_link.parent)
+            sdk_link.symlink_to(rel_target)
+        created.append(
+            f"{sdk_link.relative_to(self.project.root)} -> "
+            "node_modules/@iblai/iblai-js/dist (symlink)"
+        )
+
+        # 13. Generate vitest config + source path test (if not already present)
+        vitest_config = self.project.root / "vitest.config.ts"
+        if not vitest_config.exists():
+            self._write(
+                vitest_config,
+                self.env.get_template("shared/vitest.config.ts.j2").render({}),
+            )
+            created.append("vitest.config.ts")
+
+        test_file = self.project.root / "__tests__" / "source-paths.test.ts"
+        if not test_file.exists():
+            self._write(
+                test_file,
+                self.env.get_template(
+                    "shared/__tests__/source-paths.test.ts.j2"
+                ).render({}),
+            )
+            created.append("__tests__/source-paths.test.ts")
 
         return created

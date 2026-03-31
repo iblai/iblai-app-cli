@@ -22,7 +22,7 @@ import config from "@/lib/iblai/config";
 interface ChatWidgetProps {
   /** The mentor unique_id to chat with. */
   mentorId: string;
-  /** Override the tenant key (defaults to localStorage / config value). */
+  /** Override the tenant key (defaults to NEXT_PUBLIC_MAIN_TENANT_KEY). */
   tenantKey?: string;
   /** Override the MentorAI platform URL (defaults to https://mentorai.{domain}). */
   mentorUrl?: string;
@@ -89,23 +89,12 @@ export function ChatWidget({
     };
   }, []);
 
+  // Always read the tenant from .env (NEXT_PUBLIC_MAIN_TENANT_KEY) — not
+  // from localStorage. The env value is the source of truth for which
+  // platform the chat widget connects to.
   const resolvedTenant = useMemo(() => {
     if (tenantKey) return tenantKey;
-    if (typeof window === "undefined") return "";
-    for (const key of ["current_tenant", "tenant"]) {
-      const stored = localStorage.getItem(key);
-      if (stored && stored !== "[object Object]") {
-        try {
-          const parsed = JSON.parse(stored);
-          if (typeof parsed === "string") return parsed;
-          if (parsed?.key) return parsed.key;
-        } catch {
-          return stored;
-        }
-      }
-    }
     return config.mainTenantKey();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantKey]);
 
   const resolvedWidth = typeof width === "number" ? `${width}px` : width;

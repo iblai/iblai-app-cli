@@ -129,6 +129,17 @@ MARKER_POLYFILL = "localStorage.getItem"
 MARKER_TAURI = "@tauri-apps/api/core"
 MARKER_TURBOPACK = "turbopack"
 MARKER_DEDUP = "resolveAliases"
+MARKER_IMAGES = "remotePatterns"
+
+# ---------------------------------------------------------------------------
+# next/image remote patterns — allows SDK components (e.g. Account) to load
+# external images like org logos from api.iblai.app via next/image.
+# ---------------------------------------------------------------------------
+
+IMAGES_CONFIG = """\
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },"""
 
 # ---------------------------------------------------------------------------
 # Default next.config.ts content (when none exists)
@@ -180,6 +191,9 @@ const reactReduxDir = dedup("react-redux");
 if (reactReduxDir) resolveAliases["react-redux"] = reactReduxDir;
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },
   turbopack: {},
   webpack: (config) => {
     config.resolve = config.resolve || {};
@@ -340,6 +354,38 @@ def patch_next_config(root: Path) -> str:
                 1,
             )
 
+    # 6. Add images.remotePatterns — allows next/image to load external images
+    #    (e.g., org logos from api.iblai.app used by the Account component).
+    if MARKER_IMAGES not in content:
+        # Insert before turbopack or webpack property
+        turbo_match = re.search(r"^(\s*)(turbopack\s*:)", content, re.MULTILINE)
+        if turbo_match:
+            content = content.replace(
+                turbo_match.group(0),
+                IMAGES_CONFIG + "\n" + turbo_match.group(0),
+                1,
+            )
+        else:
+            webpack_match = re.search(r"^(\s*)(webpack\s*:)", content, re.MULTILINE)
+            if webpack_match:
+                content = content.replace(
+                    webpack_match.group(0),
+                    IMAGES_CONFIG + "\n" + webpack_match.group(0),
+                    1,
+                )
+            else:
+                # No turbopack or webpack — insert after opening brace of config
+                config_obj_match = re.search(
+                    r"(const\s+\w+\s*(?::\s*\w+)?\s*=\s*\{)",
+                    content,
+                )
+                if config_obj_match:
+                    content = content.replace(
+                        config_obj_match.group(0),
+                        config_obj_match.group(0) + "\n" + IMAGES_CONFIG,
+                        1,
+                    )
+
     if content != original:
         config_path.write_text(content, encoding="utf-8")
 
@@ -348,7 +394,17 @@ def patch_next_config(root: Path) -> str:
 
 def patch_globals_css(root: Path, app_dir: Path) -> Optional[str]:
     """
-    Prepend ``@import './iblai-styles.css';`` to globals.css if not present.
+    Replace globals.css content with Tailwind import + iblai-styles import.
+
+    The vanilla Next.js 16 globals.css has ``:root``, ``@theme inline``,
+    ``@media (prefers-color-scheme: dark)``, and ``body`` blocks that
+    conflict with the ibl.ai design system (overrides ``--foreground``
+    from oklch gray to hex near-black, dual dark mode strategies, etc.).
+
+    Instead of surgically removing each block, we replace the entire file
+    with just the two import lines.  All styling is self-contained in
+    ``iblai-styles.css`` which has the full ``@theme inline``, ``:root``,
+    ``.dark``, ``@layer base``, and utility classes.
 
     Returns the relative path of the patched file, or None if not found.
     """
@@ -356,17 +412,22 @@ def patch_globals_css(root: Path, app_dir: Path) -> Optional[str]:
         css_path = app_dir / name
         if css_path.exists():
             content = css_path.read_text(encoding="utf-8")
-            import_line = "@import './iblai-styles.css';"
-            if import_line not in content and "iblai-styles.css" not in content:
-                # Insert after existing @import lines, or at the very top
-                # Find the last @import line
-                lines = content.split("\n")
-                insert_idx = 0
-                for i, line in enumerate(lines):
-                    if line.strip().startswith("@import"):
-                        insert_idx = i + 1
-                lines.insert(insert_idx, import_line)
-                css_path.write_text("\n".join(lines), encoding="utf-8")
+
+            # Already patched — skip
+            if "iblai-styles.css" in content and content.strip().count("\n") <= 2:
+                return str(css_path.relative_to(root))
+
+            # Find the tailwind import line to preserve its quote style
+            tw_import = '@import "tailwindcss";'
+            for line in content.split("\n"):
+                stripped = line.strip()
+                if "tailwindcss" in stripped and stripped.startswith("@import"):
+                    tw_import = stripped
+                    break
+
+            # Replace entire file
+            new_content = f"{tw_import}\n@import './iblai-styles.css';\n"
+            css_path.write_text(new_content, encoding="utf-8")
             return str(css_path.relative_to(root))
     return None
 

@@ -1,5 +1,6 @@
 """Generator for the 'base' template — minimal Next.js app with ibl.ai auth."""
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -153,6 +154,19 @@ class BaseAppGenerator(BaseGenerator):
         self._write(
             "lib/iblai/auth-utils.ts", self._render("lib/iblai/auth-utils.ts.j2")
         )
+        self._write("lib/iblai/tenant.ts", self._render("auth/tenant.ts.j2"))
+
+        # --- SDK symlink for @source directive ---
+        # lib/iblai/sdk -> node_modules/@iblai/iblai-js/dist
+        # Provides a stable path for Tailwind's @source directive in globals.css
+        # to scan SDK compiled JS for class name generation.
+        # The symlink is dangling until `pnpm install` runs — that's fine.
+        sdk_link = self.output_dir / "lib" / "iblai" / "sdk"
+        if not sdk_link.exists():
+            target = self.output_dir / "node_modules" / "@iblai" / "iblai-js" / "dist"
+            rel_target = os.path.relpath(target, sdk_link.parent)
+            sdk_link.parent.mkdir(parents=True, exist_ok=True)
+            sdk_link.symlink_to(rel_target)
 
         # --- Hooks ---
         self._write("hooks/use-user.ts", self._render("hooks/use-user.ts.j2"))
@@ -168,7 +182,6 @@ class BaseAppGenerator(BaseGenerator):
         #   .claude/skills/<name>.md                   (symlink for Claude Code)
         #   .opencode/skills/<name>/SKILL.md           (symlink for OpenCode)
         #   .cursor/rules/<name>.md                    (symlink for Cursor)
-        import os
         import shutil
 
         skills_src = self.template_dir / "skills"
@@ -239,4 +252,11 @@ class BaseAppGenerator(BaseGenerator):
         self._write(
             "e2e/journeys/chat.journey.spec.ts",
             self._render("e2e/journeys/chat.journey.spec.ts.j2"),
+        )
+
+        # --- Vitest unit tests ---
+        self._write("vitest.config.ts", self._render("vitest.config.ts.j2"))
+        self._write(
+            "__tests__/source-paths.test.ts",
+            self._render("__tests__/source-paths.test.ts.j2"),
         )

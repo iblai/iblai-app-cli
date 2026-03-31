@@ -18,6 +18,7 @@
 import { useMemo } from "react";
 import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
 import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 import { handleLogout, redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 
 interface ProfileDropdownProps {
@@ -36,16 +37,26 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
     }
   }, []);
 
-  const tenantKey = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("tenant") ?? "";
-  }, []);
+  const tenantKey = useMemo(() => resolveAppTenant(), []);
+
+  const isAdmin = useMemo(() => {
+    if (typeof window === "undefined" || !tenantKey) return false;
+    try {
+      const raw = localStorage.getItem("tenants");
+      if (!raw) return false;
+      const tenants = JSON.parse(raw);
+      const match = tenants.find((t: any) => t.key === tenantKey);
+      return !!match?.is_admin;
+    } catch {
+      return false;
+    }
+  }, [tenantKey]);
 
   return (
     <UserProfileDropdown
       username={username}
       tenantKey={tenantKey}
-      userIsAdmin={false}
+      userIsAdmin={isAdmin}
       showProfileTab
       showAccountTab={false}
       showTenantSwitcher={false}

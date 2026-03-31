@@ -60,6 +60,7 @@ pyinstaller \
   --hidden-import=iblai.generators.add_account \
   --hidden-import=iblai.generators.add_analytics \
   --hidden-import=iblai.ai_helper \
+  --hidden-import=iblai.updater \
   --hidden-import=iblai.project_detector \
   --hidden-import=iblai.package_manager \
   --hidden-import=iblai.next_config_patcher \

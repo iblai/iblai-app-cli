@@ -89,7 +89,7 @@ class TestBaseAppGenerator:
         assert "handleTenantSwitch" in providers
         assert "saveCurrentTenant" in providers
         assert "saveUserTenants" in providers
-        assert "getCurrentTenant" in providers
+        assert "resolveAppTenant" in providers
         # MentorProvider not included
         assert "<MentorProvider" not in providers
         # initializeDataLayer called with 5 args (data-layer v1.2+ signature)

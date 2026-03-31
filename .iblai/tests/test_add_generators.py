@@ -91,8 +91,10 @@ class TestAddAuthGenerator:
 
     def test_auth_generates_all_files(self, generated):
         _, created = generated
-        # 7 generated files + next.config (patched) + globals.css (patched) + .env.local
-        assert len(created) == 10
+        # 7 generated files + lib/iblai/tenant.ts + next.config (patched)
+        # + globals.css (patched) + .env.local + SDK symlink
+        # + vitest.config.ts + __tests__/source-paths.test.ts
+        assert len(created) == 14
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -187,7 +189,7 @@ class TestAddChatGenerator:
     def test_chat_widget_uses_config(self, widget_content):
         assert "config.authUrl()" in widget_content
         assert "config.lmsUrl()" in widget_content
-        assert "config.mainTenantKey()" in widget_content
+        assert "resolveAppTenant" in widget_content
         assert "config.platformBaseDomain" in widget_content
 
 
@@ -285,6 +287,8 @@ class TestAddMcpGenerator:
         data = json.loads((project.root / ".mcp.json").read_text())
         assert "mcpServers" in data
         assert "iblai-js-mcp" in data["mcpServers"]
+        assert "playwright" in data["mcpServers"]
+        assert "shadcn" in data["mcpServers"]
 
     def test_mcp_config_uses_npx(self, generated):
         project, _ = generated
@@ -292,6 +296,21 @@ class TestAddMcpGenerator:
         server = data["mcpServers"]["iblai-js-mcp"]
         assert server["command"] == "npx"
         assert "@iblai/mcp" in server["args"]
+
+    def test_mcp_config_playwright_server(self, generated):
+        project, _ = generated
+        data = json.loads((project.root / ".mcp.json").read_text())
+        server = data["mcpServers"]["playwright"]
+        assert server["command"] == "npx"
+        assert "@playwright/mcp@latest" in server["args"]
+
+    def test_mcp_config_shadcn_server(self, generated):
+        project, _ = generated
+        data = json.loads((project.root / ".mcp.json").read_text())
+        server = data["mcpServers"]["shadcn"]
+        assert server["command"] == "npx"
+        assert "shadcn@latest" in server["args"]
+        assert "mcp" in server["args"]
 
     def test_mcp_generates_claude_skills(self, generated):
         project, _ = generated
@@ -432,6 +451,53 @@ class TestAddAuthAutoApply:
         assert isinstance(call_args, list)
         assert "add" in call_args
 
+    def test_auth_creates_sdk_symlink(self, generated):
+        project, created = generated
+        sdk_link = project.lib_dir / "iblai" / "sdk"
+        assert sdk_link.is_symlink()
+        # Should be a relative symlink targeting node_modules/@iblai/iblai-js/dist
+        target = str(sdk_link.readlink())
+        assert "node_modules" in target
+        assert "@iblai" in target
+        assert "iblai-js" in target
+        assert "dist" in target
+        # Should be relative (not absolute)
+        assert not target.startswith("/")
+
+    def test_auth_globals_css_is_clean(self, generated):
+        """globals.css must contain only the two import lines, no vanilla boilerplate."""
+        project, _ = generated
+        content = (project.app_dir / "globals.css").read_text().strip()
+        lines = [l for l in content.split("\n") if l.strip()]
+        assert len(lines) == 2
+        assert "tailwindcss" in lines[0]
+        assert "iblai-styles.css" in lines[1]
+
+    def test_auth_generates_tenant_module(self, generated):
+        project, _ = generated
+        tenant_file = project.lib_dir / "iblai" / "tenant.ts"
+        assert tenant_file.exists()
+        content = tenant_file.read_text()
+        assert "resolveAppTenant" in content
+        assert "checkTenantMismatch" in content
+        assert "app_tenant" in content
+        assert "PLACEHOLDER_TENANTS" in content
+
+    def test_auth_generates_vitest_config(self, generated):
+        project, _ = generated
+        assert (project.root / "vitest.config.ts").exists()
+        content = (project.root / "vitest.config.ts").read_text()
+        assert "vitest/config" in content
+
+    def test_auth_generates_source_paths_test(self, generated):
+        project, _ = generated
+        test_file = project.root / "__tests__" / "source-paths.test.ts"
+        assert test_file.exists()
+        content = test_file.read_text()
+        assert "@source" in content
+        assert "lib/iblai/sdk" in content
+        assert "web-containers/source" in content
+
 
 class TestAddChatAutoApply:
     """Verify chat generator installs @iblai/iblai-web-mentor."""
@@ -562,3 +628,56 @@ class TestAddToBaseTemplateApp:
 
         created = AddNotificationsGenerator(project).generate()
         assert len(created) == 1
+
+    def test_account_generates_on_base_template(self, project):
+        from iblai.generators.add_account import AddAccountGenerator
+
+        created = AddAccountGenerator(project).generate()
+        assert len(created) == 1
+        page = project.app_dir / "(app)" / "account" / "page.tsx"
+        assert page.exists()
+        content = page.read_text()
+        assert "Account" in content
+        assert "tenants={tenants}" in content
+        assert "authURL={config.authUrl()}" in content
+
+    def test_analytics_generates_on_base_template(self, project):
+        from iblai.generators.add_analytics import AddAnalyticsGenerator
+
+        created = AddAnalyticsGenerator(project).generate()
+        assert len(created) == 1
+        page = project.app_dir / "(app)" / "analytics" / "page.tsx"
+        assert page.exists()
+        content = page.read_text()
+        assert "AnalyticsOverview" in content
+        assert "tenantKey={tenantKey}" in content
+        assert 'mentorId=""' in content
+
+
+class TestAddTemplatesRender:
+    """Verify all add/ templates render through Jinja2 without errors."""
+
+    @pytest.fixture
+    def env(self):
+        from jinja2 import Environment, FileSystemLoader
+        from pathlib import Path
+
+        tpl_dir = Path(__file__).parent.parent / "iblai" / "templates"
+        return Environment(
+            loader=FileSystemLoader(str(tpl_dir)),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+
+    @pytest.fixture
+    def add_templates(self, env):
+        from pathlib import Path
+
+        tpl_dir = Path(__file__).parent.parent / "iblai" / "templates"
+        return sorted(str(f.relative_to(tpl_dir)) for f in tpl_dir.rglob("add/**/*.j2"))
+
+    def test_all_add_templates_render(self, env, add_templates):
+        """Every add/ template must render without Jinja2 errors."""
+        for tpl_path in add_templates:
+            result = env.get_template(tpl_path).render({})
+            assert len(result) > 0, f"Template {tpl_path} rendered empty"
