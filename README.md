@@ -14,6 +14,8 @@ Interactive CLI for building apps on the [ibl.ai](https://ibl.ai) platform. Scaf
 
 </div>
 
+> **Note:** This CLI generates apps that run against the hosted [iblai.app](https://iblai.app) environment. If you'd like a license to the full platform codebase to self-host, run locally, or deploy on your own infrastructure, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
+
 ---
 
 ## Prerequisites
