@@ -5,11 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-03-22
+## [1.0.0] - 2026-03-22
 
 ### Added
 
-- `iblai startapp base` template -- minimal Next.js app with ibl.ai SSO auth, Redux store, and providers. No chat UI, no sidebar, no agent routes. A blank canvas for custom development with pinned dependency versions. Uses shared templates (`templates/shared/`) with the agent template for common files (tsconfig, postcss, gitignore, SSO callback, providers, etc.) and template-specific files (`templates/base/`) for the simplified package.json, store, providers, config, and home page.
 - `iblai add` command group for integrating ibl.ai features into existing Next.js apps:
   - `iblai add auth`: SSO authentication -- generates SSO callback page, config, storage service, auth utilities, Redux store, provider wrapper, and SDK styles (7 files).
   - `iblai add chat`: AI chat widget -- full-featured component with WebSocket streaming, markdown rendering (react-markdown + remark-gfm), session management with localStorage persistence, conversation starters, copy-to-clipboard, scroll management, and agent-template-matching styling.

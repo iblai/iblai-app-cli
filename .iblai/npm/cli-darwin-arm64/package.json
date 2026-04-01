@@ -1,6 +1,6 @@
 {
   "name": "@iblai/cli-darwin-arm64",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "macOS Apple Silicon binary for @iblai/cli",
   "license": "MIT",
   "repository": {
