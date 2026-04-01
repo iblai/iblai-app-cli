@@ -1,6 +1,6 @@
 """ibl.ai CLI - Command-line tool to scaffold ibl.ai applications."""
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 __author__ = "ibl.ai"
 __email__ = "support@ibl.ai"
 __repo__ = "https://github.com/iblai/iblai-app-cli"
