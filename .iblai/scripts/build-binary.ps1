@@ -45,6 +45,8 @@ pyinstaller `
   --hidden-import=iblai.generators.add_account `
   --hidden-import=iblai.generators.add_analytics `
   --hidden-import=iblai.ai_helper `
+  --hidden-import=iblai.gallery `
+  --hidden-import=iblai.commands.update_gallery `
   --hidden-import=iblai.updater `
   --hidden-import=iblai.project_detector `
   --hidden-import=iblai.package_manager `

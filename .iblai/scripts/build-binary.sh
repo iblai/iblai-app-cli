@@ -26,7 +26,13 @@ fi
 # ---- Bake commit ID ----
 COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 echo "==> Baking commit ID: $COMMIT"
-sed -i "s/__commit__ = \"\"/__commit__ = \"$COMMIT\"/" "$ROOT_DIR/.iblai/iblai/__init__.py"
+INIT_PY="$ROOT_DIR/.iblai/iblai/__init__.py"
+# macOS sed requires -i '', GNU sed requires -i without arg.
+if [[ "$OSTYPE" == darwin* ]]; then
+  sed -i '' "s/__commit__ = \"\"/__commit__ = \"$COMMIT\"/" "$INIT_PY"
+else
+  sed -i "s/__commit__ = \"\"/__commit__ = \"$COMMIT\"/" "$INIT_PY"
+fi
 
 # ---- Dependencies ----
 echo "==> Installing dependencies..."
@@ -60,6 +66,8 @@ pyinstaller \
   --hidden-import=iblai.generators.add_account \
   --hidden-import=iblai.generators.add_analytics \
   --hidden-import=iblai.ai_helper \
+  --hidden-import=iblai.gallery \
+  --hidden-import=iblai.commands.update_gallery \
   --hidden-import=iblai.updater \
   --hidden-import=iblai.project_detector \
   --hidden-import=iblai.package_manager \
@@ -70,8 +78,13 @@ pyinstaller \
   .iblai/iblai/cli.py
 
 # ---- Restore __init__.py ----
-git checkout "$ROOT_DIR/.iblai/iblai/__init__.py" 2>/dev/null || \
-  sed -i "s/__commit__ = \"$COMMIT\"/__commit__ = \"\"/" "$ROOT_DIR/.iblai/iblai/__init__.py"
+if ! git checkout "$INIT_PY" 2>/dev/null; then
+  if [[ "$OSTYPE" == darwin* ]]; then
+    sed -i '' "s/__commit__ = \"$COMMIT\"/__commit__ = \"\"/" "$INIT_PY"
+  else
+    sed -i "s/__commit__ = \"$COMMIT\"/__commit__ = \"\"/" "$INIT_PY"
+  fi
+fi
 
 # ---- Verify ----
 echo "==> Verifying binary..."
