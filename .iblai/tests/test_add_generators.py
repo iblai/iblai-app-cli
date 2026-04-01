@@ -328,11 +328,11 @@ class TestAddMcpGenerator:
             "iblai-add-auth.md",
             "iblai-add-chat.md",
             "iblai-add-component.md",
-            "iblai-add-notifications.md",
+            "iblai-add-notification.md",
             "iblai-add-profile.md",
             "iblai-add-test.md",
             "iblai-build-windows-msix.md",
-            "iblai-generate-icons.md",
+            "iblai-iconography.md",
             "iblai-add-shadcn-component.md",
             "iblai-setup.md",
         }

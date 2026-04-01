@@ -115,7 +115,7 @@ Add features later:
 ```bash
 iblai add chat           # AI chat widget
 iblai add profile        # User profile dropdown
-iblai add notifications  # Notification bell
+iblai add notification  # Notification bell
 iblai add mcp            # Claude skills
 ```
 
@@ -268,7 +268,7 @@ Already have a Next.js app? Use `iblai add` to integrate ibl.ai features without
 iblai add auth           # SSO authentication + Redux store + providers
 iblai add chat           # AI chat widget with WebSocket streaming
 iblai add profile        # User profile dropdown
-iblai add notifications  # Notification bell with unread badge
+iblai add notification  # Notification bell with unread badge
 iblai add mcp            # MCP config + Claude skills for AI-assisted development
 ```
 
@@ -312,7 +312,7 @@ import { IblaiProfileDropdown } from "@/components/iblai/profile-dropdown";
 <IblaiProfileDropdown />
 ```
 
-### `iblai add notifications`
+### `iblai add notification`
 
 Adds a notification bell with unread count badge.
 
@@ -332,7 +332,7 @@ Adds `.mcp.json` and Claude skill files for AI-assisted development:
 | `iblai-add-auth.md` | `/iblai-add-auth` | Step-by-step auth integration |
 | `iblai-add-chat.md` | `/iblai-add-chat` | Step-by-step chat integration |
 | `iblai-add-profile.md` | `/iblai-add-profile` | Step-by-step profile integration |
-| `iblai-add-notifications.md` | `/iblai-add-notifications` | Step-by-step notifications integration |
+| `iblai-add-notification.md` | `/iblai-add-notification` | Step-by-step notifications integration |
 
 ### Prerequisites
 

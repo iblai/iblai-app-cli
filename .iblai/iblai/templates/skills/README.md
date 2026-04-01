@@ -20,7 +20,7 @@ Invoke them with `/` in your AI assistant.
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |
 | `/iblai-add-analytics` | Analytics dashboard |
-| `/iblai-add-notifications` | Notification bell + center page |
+| `/iblai-add-notification` | Notification bell + center page |
 | `/iblai-add-component` | Generic guide for any SDK component |
 | `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
 
@@ -29,7 +29,7 @@ Invoke them with `/` in your AI assistant.
 | Skill | Description |
 |-------|-------------|
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
-| `/iblai-generate-icons` | Generate all Tauri icon sizes from a source image |
+| `/iblai-iconography` | Generate all Tauri icon sizes from a source image |
 
 ### Testing
 

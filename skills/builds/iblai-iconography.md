@@ -10,7 +10,7 @@ and macOS builds from a single source image.
 ```bash
 # Option A: iblai CLI (generates ALL icons including MSIX)
 # Requires ImageMagick (convert)
-iblai builds generate-icons path/to/logo.png
+iblai builds iconography path/to/logo.png
 
 # Option B: Tauri's built-in (standard Tauri icons only, no MSIX)
 # Requires @tauri-apps/cli + Rust toolchain
@@ -32,7 +32,7 @@ Both commands write icons to `src-tauri/icons/`, overwriting existing files.
 
 ## ImageMagick Installation
 
-Required for `iblai builds generate-icons`. Not needed for `iblai builds icon`.
+Required for `iblai builds iconography`. Not needed for `iblai builds icon`.
 
 | Platform | Command |
 |----------|---------|
@@ -42,7 +42,7 @@ Required for `iblai builds generate-icons`. Not needed for `iblai builds icon`.
 | Fedora/RHEL | `sudo dnf install ImageMagick` |
 | Windows | `winget install ImageMagick.ImageMagick` |
 
-If ImageMagick is not installed, `iblai builds generate-icons` automatically
+If ImageMagick is not installed, `iblai builds iconography` automatically
 falls back to `pnpm exec tauri icon`.
 
 ---
@@ -75,9 +75,9 @@ All icons are written to `src-tauri/icons/`:
 
 ---
 
-## Comparison: generate-icons vs tauri icon
+## Comparison: iconography vs tauri icon
 
-| Feature | `iblai builds generate-icons` | `iblai builds icon` |
+| Feature | `iblai builds iconography` | `iblai builds icon` |
 |---------|------------------------------|-------------------|
 | Tauri bundle icons (PNG, ICO, ICNS) | Yes | Yes |
 | MSIX icons (StoreLogo, Square*, Wide*) | Yes | No |
@@ -87,7 +87,7 @@ All icons are written to `src-tauri/icons/`:
 | Transparent background | Always | Depends on source |
 | Non-square handling | Centers on transparent canvas | Resizes/crops |
 
-**Recommendation**: Use `iblai builds generate-icons` if you plan to build
+**Recommendation**: Use `iblai builds iconography` if you plan to build
 MSIX packages (Windows Store / enterprise). Use `iblai builds icon` if you
 only need standard desktop builds (NSIS, MSI, DMG, AppImage).
 
@@ -99,7 +99,7 @@ Generated apps ship with ibl.ai logo icons as defaults. Replace them
 with your own logo at any time:
 
 ```bash
-iblai builds generate-icons my-company-logo.png
+iblai builds iconography my-company-logo.png
 ```
 
 ---
@@ -109,7 +109,7 @@ iblai builds generate-icons my-company-logo.png
 Simply re-run the command with the new source image:
 
 ```bash
-iblai builds generate-icons path/to/new-logo.png
+iblai builds iconography path/to/new-logo.png
 ```
 
 All icons in `src-tauri/icons/` are overwritten. Commit the updated icons.
@@ -121,7 +121,7 @@ All icons in `src-tauri/icons/` are overwritten. Commit the updated icons.
 ### "Icon is not RGBA"
 
 Tauri requires RGBA PNGs (with alpha channel for transparency).
-The `generate-icons` command always produces RGBA output. If using
+The `iconography` command always produces RGBA output. If using
 a different tool, verify your PNGs:
 
 ```bash

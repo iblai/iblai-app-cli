@@ -124,7 +124,7 @@ Then use the `iblai builds` commands:
 ```bash
 iblai builds dev                       # Dev mode (Next.js + native shell)
 iblai builds build                     # Production build for current platform
-iblai builds generate-icons logo.png   # Generate all icon sizes
+iblai builds iconography logo.png   # Generate all icon sizes
 iblai builds ci-workflow --all         # Generate CI build workflows
 ```
 
@@ -144,7 +144,7 @@ Cherry-pick exactly the features you need. Each component can be added independe
 iblai add auth            # Start here -- required by other components
 iblai add chat            # AI chat widget
 iblai add profile         # User profile dropdown
-iblai add notifications   # Notification bell with unread badge
+iblai add notification   # Notification bell with unread badge
 iblai add analytics       # Analytics dashboard
 iblai add account         # Organization/account settings
 iblai add mcp             # MCP server config + AI assistant skills
@@ -160,7 +160,7 @@ iblai add builds          # Tauri v2 desktop/mobile shell
 | **profile** | `iblai add profile` | User profile dropdown with avatar, profile link, and logout action. |
 | **account** | `iblai add account` | Organization and account settings page. |
 | **analytics** | `iblai add analytics` | Analytics dashboard for viewing platform metrics. |
-| **notifications** | `iblai add notifications` | Real-time notification bell with unread count badge. |
+| **notifications** | `iblai add notification` | Real-time notification bell with unread count badge. |
 | **builds** | `iblai add builds` | Tauri v2 desktop/mobile shell with icon generation and CI workflow scaffolding. |
 | **mcp** | `iblai add mcp` | MCP server configuration plus Claude Code, OpenCode, and Cursor skill files. |
 
@@ -212,12 +212,12 @@ This generates `.mcp.json` and skill files for Claude Code, OpenCode, and Cursor
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |
 | `/iblai-add-analytics` | Analytics dashboard |
-| `/iblai-add-notifications` | Notification bell + center page |
+| `/iblai-add-notification` | Notification bell + center page |
 | `/iblai-add-component` | Generic guide for any SDK component |
 | `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
-| `/iblai-generate-icons` | Generate all Tauri icon sizes from a source image |
+| `/iblai-iconography` | Generate all Tauri icon sizes from a source image |
 
 ### AI-Customized Scaffolding
 

@@ -155,7 +155,7 @@ class TestBaseAppGenerator:
         assert "iblai-add-profile.md" in skills
         assert "iblai-add-account.md" in skills
         assert "iblai-add-analytics.md" in skills
-        assert "iblai-add-notifications.md" in skills
+        assert "iblai-add-notification.md" in skills
         assert "iblai-add-component.md" in skills
         assert "iblai-add-test.md" in skills
         # startup skills removed — app is already generated when skills are present
@@ -169,7 +169,7 @@ class TestBaseAppGenerator:
         assert len(skill_dirs) == 12
         assert "iblai-setup" in skill_dirs
         assert "iblai-add-analytics" in skill_dirs
-        assert "iblai-add-notifications" in skill_dirs
+        assert "iblai-add-notification" in skill_dirs
         assert "iblai-add-component" in skill_dirs
         assert "iblai-add-profile" in skill_dirs
         assert "iblai-add-account" in skill_dirs

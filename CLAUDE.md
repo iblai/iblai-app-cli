@@ -47,7 +47,7 @@ pnpm test:e2e:ui        # Interactive Playwright UI
 # Tauri desktop/mobile
 iblai builds dev                     # Dev mode (Next.js + native shell)
 iblai builds build                   # Production build for current platform
-iblai builds generate-icons logo.png # Generate all icon sizes
+iblai builds iconography logo.png # Generate all icon sizes
 iblai builds ci-workflow --all       # Generate CI build workflows
 
 # iOS
@@ -112,7 +112,7 @@ initializeDataLayer(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandle
 iblai add auth           # SSO authentication + Redux store + providers
 iblai add chat           # AI chat widget (<mentor-ai> web component)
 iblai add profile        # User profile dropdown
-iblai add notifications  # Notification bell with unread badge
+iblai add notification  # Notification bell with unread badge
 iblai add mcp            # MCP server config + Claude/OpenCode/Cursor skills
 iblai add builds         # Tauri v2 desktop/mobile shell
 ```
@@ -142,12 +142,12 @@ Available in `skills/` (invoke with `/` in Claude Code, OpenCode, or Cursor):
 | `/iblai-add-profile` | Profile dropdown + full settings page |
 | `/iblai-add-account` | Organization/account settings |
 | `/iblai-add-analytics` | Analytics dashboard |
-| `/iblai-add-notifications` | Notification bell + center page |
+| `/iblai-add-notification` | Notification bell + center page |
 | `/iblai-add-component` | Generic guide for any SDK component |
 | `/iblai-add-shadcn-component` | Add shadcnspace blocks with brand consistency |
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
-| `/iblai-generate-icons` | Generate all icon sizes from a source image |
+| `/iblai-iconography` | Generate all icon sizes from a source image |
 
 ### CLI Dev Skills (6)
 
