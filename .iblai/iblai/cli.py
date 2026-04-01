@@ -13,6 +13,7 @@ from iblai.commands.startapp import startapp
 from iblai.commands.add import add
 from iblai.commands.builds import builds
 from iblai.commands.config import config
+from iblai.commands.update_gallery import update_gallery
 
 # Load .env and .env.{DEV_STAGE} before Click parses options.
 # This injects values into os.environ so Click's envvar= resolves them.
@@ -65,6 +66,7 @@ def _show_welcome():
     table.add_row("  iblai info", "Show version, repo, and commit")
     table.add_row("  iblai config show", "View current configuration")
     table.add_row("  iblai config set KEY VAL", "Update .env.local")
+    table.add_row("  iblai update-gallery skills/", "Regenerate component gallery")
     table.add_row("", "")
     table.add_row("[bold]Repo[/bold]", __repo__)
     table.add_row("  examples/iblai-agent-app/", "Reference implementation")
@@ -242,6 +244,7 @@ cli.add_command(startapp)
 cli.add_command(add)
 cli.add_command(builds)
 cli.add_command(config)
+cli.add_command(update_gallery)
 
 
 if __name__ == "__main__":
