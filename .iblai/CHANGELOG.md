@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `iblai add auth`: SSO authentication -- generates SSO callback page, config, storage service, auth utilities, Redux store, provider wrapper, and SDK styles (7 files).
   - `iblai add chat`: AI chat widget -- full-featured component with WebSocket streaming, markdown rendering (react-markdown + remark-gfm), session management with localStorage persistence, conversation starters, copy-to-clipboard, scroll management, and agent-template-matching styling.
   - `iblai add profile`: User profile dropdown using the SDK's `UserProfileDropdown` component with tenant switching and logout.
-  - `iblai add notifications`: Notification bell with unread count badge using the SDK's `NotificationDropdown` component.
+  - `iblai add notification`: Notification bell with unread count badge using the SDK's `NotificationDropdown` component.
   - `iblai add mcp`: MCP server configuration (`.mcp.json`) and 5 Claude skill files for AI-assisted integration (`.claude/skills/`).
 - Project detector (`project_detector.py`) that identifies Next.js App Router projects, detects `src/` directory layout, and checks for existing TypeScript, Redux, and `@iblai/iblai-js` dependencies.
 - 5 Claude skills for AI-assisted integration:
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `/iblai-add-auth` -- Step-by-step auth integration with MCP tool calls
   - `/iblai-add-chat` -- Chat widget integration
   - `/iblai-add-profile` -- Profile dropdown integration
-  - `/iblai-add-notifications` -- Notification bell integration
+  - `/iblai-add-notification` -- Notification bell integration
 - `iblai-styles.css` template that imports SDK base styles (`@iblai/iblai-js/web-containers/styles`) and scans SDK components for Tailwind class generation.
 - Consolidated API URL support via `NEXT_PUBLIC_API_BASE_URL` (e.g., `https://api.iblai.org` derives `/lms`, `/dm`, `/axd` path prefixes). Falls back to subdomain pattern via `NEXT_PUBLIC_PLATFORM_BASE_DOMAIN`.
 - shadcnspace UI block support. Generated apps include a `components.json` file that configures the [shadcn/ui CLI](https://ui.shadcn.com/docs/cli), enabling developers to add production-ready UI blocks from [shadcnspace](https://shadcnspace.com) with a single command:

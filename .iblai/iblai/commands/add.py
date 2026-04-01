@@ -190,7 +190,7 @@ def profile():
 
 
 @add.command()
-def notifications():
+def notification():
     """Add a notification bell to your project."""
     project = _require_nextjs()
 
@@ -217,7 +217,7 @@ def notifications():
             '  [dim]import { IblaiNotificationBell } from "@/components/iblai/notification-bell";[/dim]\n'
             "  [dim]<IblaiNotificationBell />[/dim]",
             border_style="green",
-            title="iblai add notifications",
+            title="iblai add notification",
         )
     )
 
@@ -332,7 +332,7 @@ def mcp():
             "  /iblai-add-auth           Add SSO auth step-by-step\n"
             "  /iblai-add-chat           Add AI chat widget step-by-step\n"
             "  /iblai-add-profile        Add profile dropdown step-by-step\n"
-            "  /iblai-add-notifications  Add notification bell step-by-step\n"
+            "  /iblai-add-notification   Add notification bell step-by-step\n"
             "  /iblai-setup              Full setup from scratch",
             border_style="green",
             title="iblai add mcp",

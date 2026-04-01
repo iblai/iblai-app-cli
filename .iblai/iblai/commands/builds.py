@@ -131,7 +131,7 @@ Package manager detection (by lockfile):
 
 iblai-managed commands:
   iblai builds init                     Add Tauri to current project
-  iblai builds generate-icons <source>  Generate all icon sizes from source image
+  iblai builds iconography <source>     Generate all icon sizes from source image
   iblai builds ci-workflow              Generate GitHub Actions workflows
 
 All other arguments are forwarded to tauri:
@@ -155,8 +155,8 @@ Windows MSIX:
   pnpm tauri:build:msix:arm64        Build MSIX package (arm64)
 
 App store tools:
-  iblai builds devices               List available simulators and emulators
-  iblai builds screenshots [--pages] Generate Playwright screenshot script
+  iblai builds device                List available simulators and emulators
+  iblai builds screenshot [--pages]  Generate Playwright screenshot script
   pnpm tauri:setup:cert              Create dev certificate for signing (requires admin)
 """
 
@@ -227,7 +227,7 @@ def init():
             + "\n\n"
             "[bold]Next steps:[/bold]\n"
             "  1. Install dependencies: pnpm install\n"
-            "  2. Generate icons: iblai builds generate-icons path/to/logo.png\n"
+            "  2. Generate icons: iblai builds iconography path/to/logo.png\n"
             "  3. Start development: iblai builds dev\n"
             "  4. Build for distribution: iblai builds build\n\n"
             "[bold]CI/CD:[/bold]\n"
@@ -240,7 +240,7 @@ def init():
     )
 
 
-@builds.command("generate-icons")
+@builds.command("iconography")
 @click.argument("source", type=click.Path(exists=True))
 def generate_icons(source):
     """Generate all Tauri icon sizes from a source image.
@@ -251,8 +251,8 @@ def generate_icons(source):
 
     \b
     Example:
-        iblai builds generate-icons logo.png
-        iblai builds generate-icons docs/my-icon.png
+        iblai builds iconography logo.png
+        iblai builds iconography docs/my-icon.png
     """
     import shutil
     import subprocess
@@ -304,10 +304,12 @@ def generate_icons(source):
                 "-gravity",
                 "center",
                 "-background",
-                "transparent",
+                "none",
                 "-extent",
                 size,
-                str(dest),
+                "-alpha",
+                "on",
+                f"PNG32:{dest}",
             ],
             check=True,
         )
@@ -318,6 +320,8 @@ def generate_icons(source):
         [
             convert_cmd,
             source,
+            "-alpha",
+            "on",
             "(",
             "-clone",
             "0",
@@ -326,7 +330,7 @@ def generate_icons(source):
             "-gravity",
             "center",
             "-background",
-            "transparent",
+            "none",
             "-extent",
             "16x16",
             ")",
@@ -338,7 +342,7 @@ def generate_icons(source):
             "-gravity",
             "center",
             "-background",
-            "transparent",
+            "none",
             "-extent",
             "32x32",
             ")",
@@ -350,7 +354,7 @@ def generate_icons(source):
             "-gravity",
             "center",
             "-background",
-            "transparent",
+            "none",
             "-extent",
             "48x48",
             ")",
@@ -362,7 +366,7 @@ def generate_icons(source):
             "-gravity",
             "center",
             "-background",
-            "transparent",
+            "none",
             "-extent",
             "256x256",
             ")",
@@ -433,11 +437,11 @@ def ci_workflow(desktop, gen_ios, gen_msix, gen_all):
 
 
 # ---------------------------------------------------------------------------
-# iblai builds devices — list available simulators/emulators/devices
+# iblai builds device — list available simulators/emulators/devices
 # ---------------------------------------------------------------------------
 
 
-@builds.command("devices")
+@builds.command("device")
 def devices():
     """List available iOS simulators, Android emulators, and physical devices."""
     import json
@@ -617,7 +621,7 @@ def devices():
 
 
 # ---------------------------------------------------------------------------
-# iblai builds screenshots — generate Playwright screenshot script
+# iblai builds screenshot — generate Playwright screenshot script
 # ---------------------------------------------------------------------------
 
 
@@ -664,7 +668,7 @@ for (const [device, viewport] of Object.entries(VIEWPORTS)) {{
 """
 
 
-@builds.command("screenshots")
+@builds.command("screenshot")
 @click.option(
     "--pages",
     multiple=True,
@@ -691,9 +695,9 @@ def screenshots(pages, url, output_dir):
 
     \b
     Examples:
-      iblai builds screenshots
-      iblai builds screenshots --pages / /profile /notifications
-      iblai builds screenshots --url https://staging.myapp.com
+      iblai builds screenshot
+      iblai builds screenshot --pages / /profile /notifications
+      iblai builds screenshot --url https://staging.myapp.com
     """
     e2e_dir = Path("e2e")
     e2e_dir.mkdir(parents=True, exist_ok=True)
@@ -736,6 +740,6 @@ def screenshots(pages, url, output_dir):
             f"  SCREENSHOT_BASE_URL=https://staging.example.com \\\n"
             f"    pnpm exec playwright test {output_file}",
             border_style="green",
-            title="iblai builds screenshots",
+            title="iblai builds screenshot",
         )
     )

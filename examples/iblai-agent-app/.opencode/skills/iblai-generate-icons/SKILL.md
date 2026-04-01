@@ -1,1 +1,0 @@
-../../../skills/builds/iblai-generate-icons.md

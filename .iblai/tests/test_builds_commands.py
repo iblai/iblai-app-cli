@@ -28,30 +28,30 @@ class TestTauriCommandGroup:
         result = runner.invoke(cli, ["builds"])
         assert result.exit_code == 0
         assert "init" in result.output
-        assert "generate-icons" in result.output
+        assert "iconography" in result.output
         assert "ci-workflow" in result.output
-        assert "devices" in result.output
-        assert "screenshots" in result.output
+        assert "device" in result.output
+        assert "screenshot" in result.output
         assert "pnpm exec tauri" in result.output
 
-    def test_devices_help(self, runner):
-        result = runner.invoke(cli, ["builds", "devices", "--help"])
+    def test_device_help(self, runner):
+        result = runner.invoke(cli, ["builds", "device", "--help"])
         assert result.exit_code == 0
         assert (
             "simulators" in result.output.lower()
             or "emulators" in result.output.lower()
         )
 
-    def test_screenshots_help(self, runner):
-        result = runner.invoke(cli, ["builds", "screenshots", "--help"])
+    def test_screenshot_help(self, runner):
+        result = runner.invoke(cli, ["builds", "screenshot", "--help"])
         assert result.exit_code == 0
         assert "--pages" in result.output
         assert "--url" in result.output
         assert "Playwright" in result.output
 
-    def test_screenshots_generates_file(self, runner):
+    def test_screenshot_generates_file(self, runner):
         with runner.isolated_filesystem():
-            result = runner.invoke(cli, ["builds", "screenshots"])
+            result = runner.invoke(cli, ["builds", "screenshot"])
             assert result.exit_code == 0
             assert Path("e2e/screenshots.spec.ts").exists()
             content = Path("e2e/screenshots.spec.ts").read_text()
@@ -60,18 +60,18 @@ class TestTauriCommandGroup:
             assert "iPhone" in content
             assert "localhost:3000" in content
 
-    def test_screenshots_custom_pages(self, runner):
+    def test_screenshot_custom_pages(self, runner):
         with runner.isolated_filesystem():
             result = runner.invoke(
-                cli, ["builds", "screenshots", "--pages", "/", "--pages", "/profile"]
+                cli, ["builds", "screenshot", "--pages", "/", "--pages", "/profile"]
             )
             assert result.exit_code == 0
             content = Path("e2e/screenshots.spec.ts").read_text()
             assert '"home"' in content
             assert '"profile"' in content
 
-    def test_tauri_generate_icons_help(self, runner):
-        result = runner.invoke(cli, ["builds", "generate-icons", "--help"])
+    def test_tauri_iconography_help(self, runner):
+        result = runner.invoke(cli, ["builds", "iconography", "--help"])
         assert result.exit_code == 0
         assert "ImageMagick" in result.output
         assert "source" in result.output.lower()

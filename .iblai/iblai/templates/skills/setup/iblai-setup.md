@@ -121,7 +121,7 @@ Use the dedicated skills to add full-page SDK components:
 | Personal profile editor | `/iblai-add-profile-page` | `Profile` |
 | Organization settings | `/iblai-add-account-page` | `Account` |
 | Analytics dashboard | `/iblai-add-analytics-page` | `AnalyticsOverview` |
-| Notification center | `/iblai-add-notifications-page` | `NotificationDisplay` |
+| Notification center | `/iblai-add-notification-page` | `NotificationDisplay` |
 | Any other SDK component | `/iblai-add-component` | Any from `@iblai/iblai-js/web-containers` |
 
 ---

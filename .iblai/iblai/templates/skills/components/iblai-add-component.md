@@ -227,7 +227,7 @@ For components with their own dedicated skills, use those instead:
 | Profile (dropdown + settings page) | `/iblai-add-profile` |
 | Account (org settings) | `/iblai-add-account` |
 | Analytics dashboard | `/iblai-add-analytics` |
-| Notifications (bell + center page) | `/iblai-add-notifications` |
+| Notifications (bell + center page) | `/iblai-add-notification` |
 | Chat widget | `/iblai-add-chat` |
 
 ---

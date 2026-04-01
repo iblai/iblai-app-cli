@@ -46,7 +46,7 @@ cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 │   │   ├── add_auth.py       # iblai add auth generator
 │   │   ├── add_chat.py       # iblai add chat generator
 │   │   ├── add_profile.py    # iblai add profile generator
-│   │   ├── add_notifications.py # iblai add notifications generator
+│   │   ├── add_notifications.py # iblai add notification generator
 │   │   ├── add_mcp.py        # iblai add mcp generator
 │   │   └── add_builds.py     # iblai add builds generator + icon creation
 │   └── templates/
