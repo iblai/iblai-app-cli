@@ -118,7 +118,8 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
             localStorage.setItem("tenants", JSON.stringify(t))
           }
           handleTenantSwitch={async () => {
-            redirectToAuthSpa(undefined, undefined, true, true);
+            const tenant = resolveAppTenant();
+            redirectToAuthSpa(undefined, tenant, false, true);
           }}
           redirectToAuthSpa={redirectToAuthSpa}
           username={username}

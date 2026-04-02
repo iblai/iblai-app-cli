@@ -67,9 +67,13 @@ export function checkTenantMismatch(): boolean {
   const sdkTenant = localStorage.getItem("tenant") ?? "";
 
   if (appTenant && sdkTenant && sdkTenant !== appTenant) {
-    const redirectUrl = encodeURIComponent(window.location.href);
-    window.location.href =
-      `https://login.iblai.app/login?redirect-to=${redirectUrl}&tenant=${appTenant}`;
+    const origin = window.location.origin;
+    const params = new URLSearchParams({
+      "redirect-to": origin,
+      app: "custom",
+      tenant: appTenant,
+    });
+    window.location.href = `${config.authUrl()}/login?${params.toString()}`;
     return true;
   }
   return false;
