@@ -45,6 +45,14 @@ export async function redirectToAuthSpa(
 
   const authUrl = `${AUTH_URL}/login?${params.toString()}`;
 
-  // Redirect
+  // On Tauri mobile, window.location.href is blocked by the Android WebView
+  // for external URLs. Use the navigate_to command to bypass the filter.
+  if (typeof window !== "undefined" && "__TAURI__" in window) {
+    const { invoke } = await import("@tauri-apps/api/core");
+    try {
+      await invoke("navigate_to", { url: authUrl });
+      return;
+    } catch { /* fall through */ }
+  }
   window.location.href = authUrl;
 }
