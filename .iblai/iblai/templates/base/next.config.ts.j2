@@ -67,6 +67,8 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
+  // Allow Tauri and auth origins during development
+  allowedDevOrigins: ["tauri://localhost", "https://login.iblai.app"],
 {% else %}
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],

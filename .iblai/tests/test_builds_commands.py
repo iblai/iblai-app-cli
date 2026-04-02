@@ -156,11 +156,11 @@ class TestTauriPrerequisites:
     @patch("iblai.commands.builds._has_rust", return_value=True)
     @patch("iblai.commands.builds.subprocess.run")
     def test_passthrough_missing_tauri_cli_exits(self, mock_run, mock_rust, runner):
-        """If @tauri-apps/cli is not installed, print helpful message."""
+        """If tauri CLI is not installed and auto-install fails, print helpful message."""
         mock_run.return_value = type("R", (), {"returncode": 1})()
         result = runner.invoke(cli, ["builds", "dev"], catch_exceptions=False)
         assert result.exit_code != 0
-        assert "@tauri-apps/cli not found" in result.output
+        assert "Tauri CLI not found" in result.output
 
 
 class TestTauriInit:

@@ -66,6 +66,8 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
+  // Allow Tauri and auth origins during development
+  allowedDevOrigins: ["tauri://localhost", "https://login.iblai.app"],
   turbopack: {},
   webpack: (config) => {
     config.resolve = config.resolve || {};

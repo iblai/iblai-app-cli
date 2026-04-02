@@ -294,6 +294,7 @@ class AddBuildsGenerator:
         # Add scripts
         scripts = data.setdefault("scripts", {})
         tauri_scripts = {
+            "tauri": "tauri",
             "tauri:dev": "tauri dev",
             "tauri:build": "tauri build",
             "tauri:build:debug": "next build && tauri build --debug",
