@@ -66,7 +66,7 @@ def add():
 
 
 @add.command()
-@click.option("--platform", "-p", help="Platform/tenant key", type=str, default=None)
+@click.option("--platform", "-p", help="Platform/tenant key", type=str, default=None, envvar=["IBLAI_PLATFORM_KEY", "PLATFORM"])
 def auth(platform: Optional[str]):
     """Add ibl.ai SSO authentication to your project."""
     project = _require_nextjs()

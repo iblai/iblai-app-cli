@@ -23,7 +23,7 @@ console = Console()
     "-p",
     help="Platform key (tenant identifier) for the app",
     type=str,
-    envvar="IBLAI_PLATFORM_KEY",
+    envvar=["IBLAI_PLATFORM_KEY", "PLATFORM"],
 )
 @click.option(
     "--agent",

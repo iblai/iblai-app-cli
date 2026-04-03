@@ -528,7 +528,9 @@ TAURI_EXPORT_CONFIG = """\
   images: {
     unoptimized: true,
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
-  },"""
+  },
+  // Allow Tauri and auth origins during development
+  allowedDevOrigins: ["tauri://localhost", "https://login.iblai.app"],"""
 
 
 def patch_next_config_for_tauri(root: Path) -> Optional[str]:

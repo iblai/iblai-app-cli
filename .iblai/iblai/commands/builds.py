@@ -49,6 +49,29 @@ def _require_rust():
     sys.exit(1)
 
 
+def _install_cargo_tauri():
+    """Install cargo-tauri via cargo-binstall (fast) or cargo install (slow)."""
+    console.print("[cyan]Installing tauri-cli via cargo...[/cyan]")
+    # Try cargo-binstall first (pre-built binary, much faster)
+    binstall = shutil.which("cargo-binstall")
+    if binstall:
+        result = subprocess.run(
+            ["cargo", "binstall", "tauri-cli", "--no-confirm"],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            console.print("[green]tauri-cli installed via cargo-binstall[/green]")
+            return True
+    # Fallback: cargo install (compiles from source)
+    result = subprocess.run(
+        ["cargo", "install", "tauri-cli", "--locked"],
+    )
+    if result.returncode == 0:
+        console.print("[green]tauri-cli installed via cargo install[/green]")
+        return True
+    return False
+
+
 def _detect_exec_prefix() -> List[str]:
     """Detect the package-manager exec prefix for running ``tauri``.
 
@@ -66,13 +89,43 @@ def _detect_exec_prefix() -> List[str]:
 
 
 def _tauri_cmd(*args: str) -> List[str]:
-    """Build the full command to run tauri with the detected package manager."""
+    """Build the full command to run tauri.
+
+    Prefers ``cargo tauri`` (installed globally via cargo-tauri),
+    falling back to the JS package manager (pnpm exec / bunx / npx).
+    """
+    if shutil.which("cargo"):
+        try:
+            result = subprocess.run(
+                ["cargo", "tauri", "--version"],
+                capture_output=True, text=True, timeout=15,
+            )
+            if result.returncode == 0:
+                return ["cargo", "tauri", *args]
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
     return [*_detect_exec_prefix(), "tauri", *args]
 
 
 def _require_tauri_cli():
-    """Verify @tauri-apps/cli is installed and runnable. Exit if not."""
-    cmd = _tauri_cmd("--version")
+    """Ensure a tauri CLI is available. Auto-installs via cargo if possible."""
+    # Check cargo tauri first
+    if shutil.which("cargo"):
+        try:
+            result = subprocess.run(
+                ["cargo", "tauri", "--version"],
+                capture_output=True, text=True, timeout=15,
+            )
+            if result.returncode == 0:
+                return
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+        # Rust available but no cargo-tauri — install it
+        if _install_cargo_tauri():
+            return
+
+    # Fallback: check JS package manager
+    cmd = [*_detect_exec_prefix(), "tauri", "--version"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
         if result.returncode == 0:
@@ -80,19 +133,14 @@ def _require_tauri_cli():
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
 
-    pm = _detect_exec_prefix()[0]  # pnpm / bunx / npx
-    install_hint = {
-        "pnpm": "pnpm install",
-        "bunx": "bun install",
-        "npx": "npm install",
-    }.get(pm, "npm install")
-
     console.print(
         Panel(
-            "[bold red]@tauri-apps/cli not found[/bold red]\n\n"
-            "The Tauri CLI npm package is not installed.\n\n"
-            f"[bold]Install it:[/bold]\n"
-            f"  {install_hint}\n\n"
+            "[bold red]Tauri CLI not found[/bold red]\n\n"
+            "Install the Tauri CLI:\n\n"
+            "[bold]Option A (recommended):[/bold]\n"
+            "  cargo install tauri-cli --locked\n\n"
+            "[bold]Option B:[/bold]\n"
+            "  pnpm install  (if @tauri-apps/cli is in devDependencies)\n\n"
             "If this is a new project, run [cyan]iblai builds init[/cyan] first,\n"
             "then install dependencies.",
             title="Missing Dependency",

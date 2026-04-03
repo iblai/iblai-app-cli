@@ -56,6 +56,12 @@ class BaseAppGenerator(BaseGenerator):
             "app_name": self.app_name,
             "platform_key": self.platform_key,
             "builds": self.builds,
+            # Derived from DOMAIN shorthand or os.environ, with iblai.app defaults
+            "api_base_url": os.environ.get("NEXT_PUBLIC_API_BASE_URL", "https://api.iblai.app"),
+            "auth_url": os.environ.get("NEXT_PUBLIC_AUTH_URL", "https://login.iblai.app"),
+            "ws_url": os.environ.get("NEXT_PUBLIC_BASE_WS_URL", "wss://asgi.data.iblai.app"),
+            "platform_base_domain": os.environ.get("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.app"),
+            "iblai_api_key": os.environ.get("IBLAI_API_KEY", ""),
         }
 
     def _render(self, template_path: str) -> str:
