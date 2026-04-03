@@ -11,7 +11,12 @@ console = Console()
 
 # Known environment variables with their default values.
 # These match the generated config.ts and .env.example templates.
+# Shorthand vars (DOMAIN, PLATFORM, TOKEN) derive NEXT_PUBLIC_* values.
 KNOWN_VARS = {
+    "DOMAIN": "",
+    "PLATFORM": "",
+    "TOKEN": "",
+    "IBLAI_API_KEY": "",
     "NEXT_PUBLIC_API_BASE_URL": "https://api.iblai.app",
     "NEXT_PUBLIC_AUTH_URL": "https://login.iblai.app",
     "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.app",

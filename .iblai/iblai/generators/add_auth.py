@@ -31,12 +31,23 @@ AUTH_DEV_DEPS = [
 ]
 
 # Default env vars for .env.local.
-AUTH_ENV_VARS = {
+# Values are read from os.environ (set by config.load_config / DOMAIN shorthand)
+# with iblai.app fallbacks.
+_DEFAULT_ENV_VARS = {
     "NEXT_PUBLIC_API_BASE_URL": "https://api.iblai.app",
     "NEXT_PUBLIC_AUTH_URL": "https://login.iblai.app",
     "NEXT_PUBLIC_BASE_WS_URL": "wss://asgi.data.iblai.app",
     "NEXT_PUBLIC_PLATFORM_BASE_DOMAIN": "iblai.app",
 }
+
+
+def _auth_env_vars() -> dict:
+    """Build env vars dict from os.environ with iblai.app defaults."""
+    env = {k: os.environ.get(k, v) for k, v in _DEFAULT_ENV_VARS.items()}
+    token = os.environ.get("IBLAI_API_KEY")
+    if token:
+        env["IBLAI_API_KEY"] = token
+    return env
 
 
 class AddAuthGenerator:
@@ -120,7 +131,7 @@ class AddAuthGenerator:
             created.append(f"{css_file} (patched)")
 
         # 10. Write .env.local
-        env_vars = {**AUTH_ENV_VARS, "NEXT_PUBLIC_MAIN_TENANT_KEY": self.platform_key}
+        env_vars = {**_auth_env_vars(), "NEXT_PUBLIC_MAIN_TENANT_KEY": self.platform_key}
         write_env_local(self.project.root, env_vars)
         created.append(".env.local")
 
