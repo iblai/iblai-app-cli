@@ -1,7 +1,7 @@
 """Configuration loading from .env files with stage-based overrides.
 
 Resolution priority (highest wins):
-    CLI flags > System env vars > .env.{DEV_STAGE} > .env.local > .env
+    CLI flags > System env vars > iblai.env > .env.{DEV_STAGE} > .env.local > .env
 
 Values from .env files are injected into os.environ so that Click's
 built-in envvar= mechanism picks them up automatically. Existing
@@ -55,7 +55,7 @@ def load_config(
     Load configuration from .env files.
 
     Reads dot-env files in this order (later files override earlier):
-        .env → .env.local → .env.development → .env.{stage}
+        .env → .env.local → .env.development → .env.{stage} → iblai.env
 
     Then derives NEXT_PUBLIC_* vars from DOMAIN/PLATFORM/TOKEN shorthands.
     Loaded values are injected into os.environ without overwriting existing
@@ -93,13 +93,19 @@ def load_config(
         if stage_path.is_file():
             config.update(dotenv_values(stage_path))
 
-    # 4. Inject into os.environ so Click's envvar= picks them up.
+    # 4. Load iblai.env (highest priority among dot-env files)
+    iblai_env = base_dir / "iblai.env"
+    if iblai_env.is_file():
+        config.update(dotenv_values(iblai_env))
+
+    # 5. Inject into os.environ so Click's envvar= picks them up.
+    #    iblai.env values win over .env.local because they were loaded last.
     #    Never overwrite existing system env vars — they take precedence.
     for key, value in config.items():
         if value is not None and key not in os.environ:
             os.environ[key] = value
 
-    # 5. Derive NEXT_PUBLIC_* from DOMAIN/PLATFORM/TOKEN shorthands.
+    # 6. Derive NEXT_PUBLIC_* from DOMAIN/PLATFORM/TOKEN shorthands.
     _derive_env_vars()
 
     return config
