@@ -43,15 +43,6 @@ if (typeof window === "undefined" && typeof localStorage !== "undefined" && type
 """
 
 # ---------------------------------------------------------------------------
-# Tauri stub aliases
-# ---------------------------------------------------------------------------
-
-TAURI_STUBS = """\
-    // ibl.ai: Stub @tauri-apps/api imports (not needed for web-only apps)
-    config.resolve.alias["@tauri-apps/api/core"] = false;
-    config.resolve.alias["@tauri-apps/api/event"] = false;"""
-
-# ---------------------------------------------------------------------------
 # RTK dedup — prevents duplicate @reduxjs/toolkit / react-redux copies
 # ---------------------------------------------------------------------------
 
@@ -126,7 +117,6 @@ DEDUP_WEBPACK_LINE = """\
     Object.assign(config.resolve.alias, resolveAliases);"""
 
 MARKER_POLYFILL = "localStorage.getItem"
-MARKER_TAURI = "@tauri-apps/api/core"
 MARKER_TURBOPACK = "turbopack"
 MARKER_DEDUP = "resolveAliases"
 MARKER_IMAGES = "remotePatterns"
@@ -200,9 +190,6 @@ const nextConfig: NextConfig = {
     config.resolve.alias = config.resolve.alias || {};
     // Deduplicate @reduxjs/toolkit + react-redux (shared Redux context)
     Object.assign(config.resolve.alias, resolveAliases);
-    // Stub @tauri-apps/api imports (not needed for web-only apps)
-    config.resolve.alias["@tauri-apps/api/core"] = false;
-    config.resolve.alias["@tauri-apps/api/event"] = false;
     return config;
   },
 };
@@ -228,7 +215,7 @@ def find_next_config(root: Path) -> Optional[Path]:
 def patch_next_config(root: Path) -> str:
     """
     Patch or create the Next.js config with localStorage polyfill, RTK dedup,
-    turbopack config, and Tauri stubs.
+    turbopack config, and images config.
 
     Returns the relative path of the config file that was created or patched.
     """
@@ -275,14 +262,7 @@ def patch_next_config(root: Path) -> str:
                 )
                 content = content[:last_brace] + webpack_prop + content[last_brace:]
 
-    # 3. Add Tauri stubs inside the webpack function (before "return config;")
-    if MARKER_TAURI not in content:
-        return_match = re.search(r"^(\s*return\s+config;\s*)$", content, re.MULTILINE)
-        if return_match:
-            indent_line = return_match.group(0)
-            content = content.replace(indent_line, TAURI_STUBS + "\n" + indent_line, 1)
-
-    # 4. Add RTK dedup (createRequire + dedup function + resolve aliases).
+    # 3. Add RTK dedup (createRequire + dedup function + resolve aliases).
     #    This prevents duplicate @reduxjs/toolkit copies which cause SDK
     #    components to use a different ReactReduxContext — RTK Query hooks
     #    silently return undefined.
@@ -341,30 +321,20 @@ def patch_next_config(root: Path) -> str:
                     1,
                 )
 
-    # 5. Add turbopack config — required by Next.js 16+ when webpack config is
-    #    present.  Includes resolveAlias to stub @tauri-apps/api imports for
-    #    web-only apps (mirrors the webpack `false` aliases).
+    # 4. Add turbopack config — required by Next.js 16+ when webpack config is
+    #    present.
     if MARKER_TURBOPACK not in content and "webpack" in content:
         webpack_match = re.search(r"^(\s*)(webpack\s*:)", content, re.MULTILINE)
         if webpack_match:
             indent = webpack_match.group(1)
-            turbo_block = (
-                f"{indent}turbopack: {{\n"
-                f"{indent}  resolveAlias: {{\n"
-                f'{indent}    "@tauri-apps/api/core": '
-                f'{{ browser: "./lib/iblai/tauri-stub.js" }},\n'
-                f'{indent}    "@tauri-apps/api/event": '
-                f'{{ browser: "./lib/iblai/tauri-stub.js" }},\n'
-                f"{indent}  }},\n"
-                f"{indent}}},\n"
-            )
+            turbo_block = f"{indent}turbopack: {{}},\n"
             content = content.replace(
                 webpack_match.group(0),
                 turbo_block + webpack_match.group(0),
                 1,
             )
 
-    # 6. Add images.remotePatterns — allows next/image to load external images
+    # 5. Add images.remotePatterns — allows next/image to load external images
     #    (e.g., org logos from api.iblai.app used by the Account component).
     if MARKER_IMAGES not in content:
         # Insert before turbopack or webpack property
@@ -557,31 +527,7 @@ def patch_next_config_for_tauri(root: Path) -> Optional[str]:
     content = config_path.read_text(encoding="utf-8")
     original = content
 
-    # 1. Remove @tauri-apps/api stubs (they were only for web-only apps)
-    #    These lines set the alias to `false` to suppress import errors.
-    #    With Tauri installed, the real package is available.
-    stub_patterns = [
-        r"\s*//.*Stub.*@tauri-apps.*\n",
-        r"\s*//.*IBL\.ai:.*Stub.*@tauri-apps.*\n",
-        r"\s*//.*@tauri-apps/api is installed.*\n",
-        r"\s*config\.resolve\.alias\[.*@tauri-apps/api/core.*\]\s*=\s*false;\n",
-        r"\s*config\.resolve\.alias\[.*@tauri-apps/api/event.*\]\s*=\s*false;\n",
-    ]
-    for pat in stub_patterns:
-        content = re.sub(pat, "", content)
-
-    # 1b. Remove turbopack tauri-stub resolveAlias (no longer needed with Tauri)
-    #     Replace the full turbopack block with an empty one.
-    turbo_stub_re = re.compile(
-        r"(\s*)turbopack:\s*\{[^}]*resolveAlias:\s*\{[^}]*tauri-stub[^}]*\}[^}]*,?\s*\},?\s*\},?",
-        re.DOTALL,
-    )
-    m = turbo_stub_re.search(content)
-    if m:
-        indent = m.group(1)
-        content = content[: m.start()] + f"{indent}turbopack: {{}}," + content[m.end() :]
-
-    # 2. Add conditional export config for Tauri builds
+    # 1. Add conditional export config for Tauri builds
     if MARKER_TAURI_EXPORT not in content:
         # Insert after "reactStrictMode: true," or at the start of the config object
         strict_match = re.search(r"(reactStrictMode:\s*true,)", content)

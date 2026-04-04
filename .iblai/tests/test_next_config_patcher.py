@@ -43,7 +43,8 @@ class TestPatchNextConfig:
         assert result == "next.config.ts"
         content = (tmp_path / "next.config.ts").read_text()
         assert "localStorage.getItem" in content
-        assert "@tauri-apps/api/core" in content
+        assert "turbopack" in content
+        assert "@tauri-apps/api" not in content
         assert "NextConfig" in content
         assert "export default nextConfig" in content
 
@@ -65,7 +66,7 @@ class TestPatchNextConfig:
         import_pos = content.index("import type")
         assert polyfill_pos < import_pos
 
-    def test_patches_existing_ts_adds_tauri_stubs(self, tmp_path):
+    def test_patches_existing_ts_adds_turbopack(self, tmp_path):
         (tmp_path / "next.config.ts").write_text(
             'import type { NextConfig } from "next";\n\n'
             "const nextConfig: NextConfig = {\n"
@@ -77,8 +78,8 @@ class TestPatchNextConfig:
         )
         patch_next_config(tmp_path)
         content = (tmp_path / "next.config.ts").read_text()
-        assert "@tauri-apps/api/core" in content
-        assert "@tauri-apps/api/event" in content
+        assert "turbopack" in content
+        assert "@tauri-apps/api" not in content
 
     def test_patches_ts_with_polyfill(self, tmp_path):
         (tmp_path / "next.config.ts").write_text(
@@ -120,8 +121,8 @@ class TestPatchNextConfig:
         )
         patch_next_config(tmp_path)
         content = (tmp_path / "next.config.ts").read_text()
-        assert "@tauri-apps/api/core" in content
         assert "webpack" in content
+        assert "turbopack" in content
 
 
 class TestPatchGlobalsCss:

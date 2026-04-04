@@ -20,14 +20,12 @@ class TestAddBuildsGenerator:
         }
         (tmp_path / "package.json").write_text(json.dumps(pkg, indent=2))
 
-        # Create a next.config.ts with Tauri stubs (like generated apps have)
+        # Create a next.config.ts (like generated apps have)
         (tmp_path / "next.config.ts").write_text(
             "const nextConfig = {\n"
             "  reactStrictMode: true,\n"
+            "  turbopack: {},\n"
             "  webpack: (config) => {\n"
-            "    // Stub out @tauri-apps/api imports\n"
-            '    config.resolve.alias["@tauri-apps/api/core"] = false;\n'
-            '    config.resolve.alias["@tauri-apps/api/event"] = false;\n'
             "    return config;\n"
             "  },\n"
             "};\n"
@@ -214,10 +212,11 @@ class TestAddBuildsGenerator:
         assert data["scripts"]["tauri:dev:ios"] == "tauri ios dev"
         assert data["scripts"]["tauri:build:ios"] == "tauri ios build"
 
-    def test_patches_next_config_removes_tauri_stubs(self, generated_dir):
+    def test_next_config_has_no_tauri_stubs(self, generated_dir):
         content = (generated_dir / "next.config.ts").read_text()
         assert '@tauri-apps/api/core"] = false' not in content
         assert '@tauri-apps/api/event"] = false' not in content
+        assert "tauri-stub" not in content
 
     def test_patches_next_config_adds_static_export(self, generated_dir):
         content = (generated_dir / "next.config.ts").read_text()
@@ -309,16 +308,15 @@ class TestTauriCIWorkflows:
 class TestNextConfigTauriPatching:
     """Tests for patch_next_config_for_tauri()."""
 
-    def test_removes_stubs_from_mjs(self, tmp_path):
+    def test_adds_export_to_config(self, tmp_path):
         from iblai.next_config_patcher import patch_next_config_for_tauri
 
         config = tmp_path / "next.config.ts"
         config.write_text(
             "const nextConfig = {\n"
             "  reactStrictMode: true,\n"
+            "  turbopack: {},\n"
             "  webpack: (config) => {\n"
-            '    config.resolve.alias["@tauri-apps/api/core"] = false;\n'
-            '    config.resolve.alias["@tauri-apps/api/event"] = false;\n'
             "    return config;\n"
             "  },\n"
             "};\n"
@@ -327,8 +325,8 @@ class TestNextConfigTauriPatching:
         result = patch_next_config_for_tauri(tmp_path)
         assert result is not None
         content = config.read_text()
-        assert '@tauri-apps/api/core"] = false' not in content
         assert 'output: "export"' in content
+        assert "tauri-stub" not in content
 
     def test_idempotent_patching(self, tmp_path):
         from iblai.next_config_patcher import patch_next_config_for_tauri

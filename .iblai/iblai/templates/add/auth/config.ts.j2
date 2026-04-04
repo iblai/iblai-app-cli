@@ -66,6 +66,7 @@ const config = {
     getEnv("NEXT_PUBLIC_BASE_WS_URL", `wss://asgi.data.${domain()}`),
 
   mainTenantKey: () => getEnv("NEXT_PUBLIC_MAIN_TENANT_KEY", ""),
+  platformBaseDomain: () => domain(),
 };
 
 export default config;
