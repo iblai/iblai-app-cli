@@ -93,8 +93,8 @@ class TestAddAuthGenerator:
         _, created = generated
         # 7 generated files + lib/iblai/tenant.ts + next.config (patched)
         # + globals.css (patched) + .env.local + SDK symlink
-        # + lib/iblai/tauri-stub.js + vitest.config.ts + __tests__/source-paths.test.ts
-        assert len(created) == 15
+        # + vitest.config.ts + __tests__/source-paths.test.ts
+        assert len(created) == 14
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -429,8 +429,9 @@ class TestAddAuthAutoApply:
     def test_auth_patches_next_config(self, generated):
         project, _ = generated
         content = (project.root / "next.config.ts").read_text()
-        assert "@tauri-apps/api/core" in content
+        assert "turbopack" in content
         assert "localStorage.getItem" in content
+        assert "@tauri-apps/api" not in content
 
     def test_auth_patches_globals_css(self, generated):
         project, _ = generated

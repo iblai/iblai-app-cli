@@ -1,7 +1,6 @@
 """Generator for adding ibl.ai auth to an existing Next.js project."""
 
 import os
-import shutil
 from pathlib import Path
 from typing import List
 
@@ -122,7 +121,7 @@ class AddAuthGenerator:
         self._write(tenant_path, self._render("add/auth/tenant.ts.j2"))
         created.append(str(tenant_path.relative_to(self.project.root)))
 
-        # 8. Patch next.config.{ts,mjs,js} (Tauri stubs + localStorage polyfill)
+        # 8. Patch next.config.{ts,mjs,js} (localStorage polyfill + RTK dedup)
         config_file = patch_next_config(self.project.root)
         created.append(f"{config_file} (patched)")
 
@@ -152,20 +151,6 @@ class AddAuthGenerator:
             f"{sdk_link.relative_to(self.project.root)} -> "
             "node_modules/@iblai/iblai-js/dist (symlink)"
         )
-
-        # 12b. Copy Tauri API stub for turbopack resolveAlias (web-only apps)
-        stub_path = self.project.lib_dir / "iblai" / "tauri-stub.js"
-        if not stub_path.exists():
-            shared_stub = (
-                Path(__file__).parent.parent
-                / "templates"
-                / "shared"
-                / "lib"
-                / "iblai"
-                / "tauri-stub.js"
-            )
-            shutil.copy2(shared_stub, stub_path)
-        created.append(str(stub_path.relative_to(self.project.root)))
 
         # 13. Generate vitest config + source path test (if not already present)
         vitest_config = self.project.root / "vitest.config.ts"

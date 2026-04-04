@@ -75,16 +75,7 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: ["https://login.iblai.app"],
 {% endif %}
-{% if not builds %}
-  turbopack: {
-    resolveAlias: {
-      "@tauri-apps/api/core": { browser: "./lib/iblai/tauri-stub.js" },
-      "@tauri-apps/api/event": { browser: "./lib/iblai/tauri-stub.js" },
-    },
-  },
-{% else %}
   turbopack: {},
-{% endif %}
   webpack: (config) => {
     config.resolve = config.resolve || {};
     config.resolve.alias = config.resolve.alias || {};
