@@ -1,5 +1,6 @@
 """Generator for adding ibl.ai chat widget to an existing Next.js project."""
 
+import shutil
 from pathlib import Path
 from typing import List
 
@@ -44,7 +45,15 @@ class AddChatGenerator:
         self._write(widget_path, self._render("add/chat/chat-widget.tsx.j2"))
         created.append(str(widget_path.relative_to(self.project.root)))
 
-        # 2. Install @iblai/iblai-web-mentor
+        # 2. Module declaration for @iblai/iblai-web-mentor (no shipped types)
+        types_path = self.project.root / "types" / "iblai-web-mentor.d.ts"
+        if not types_path.exists():
+            src = self.template_dir / "add" / "chat" / "iblai-web-mentor.d.ts"
+            types_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, types_path)
+            created.append(str(types_path.relative_to(self.project.root)))
+
+        # 3. Install @iblai/iblai-web-mentor
         install_packages(self.project.root, CHAT_DEPS)
 
         return created

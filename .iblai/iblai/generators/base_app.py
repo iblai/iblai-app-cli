@@ -1,6 +1,7 @@
 """Generator for the 'base' template — minimal Next.js app with ibl.ai auth."""
 
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -162,6 +163,20 @@ class BaseAppGenerator(BaseGenerator):
         )
         self._write("lib/iblai/tenant.ts", self._render("auth/tenant.ts.j2"))
 
+        # Tauri API stub for turbopack resolveAlias (web-only apps)
+        stub_path = self.output_dir / "lib" / "iblai" / "tauri-stub.js"
+        if not stub_path.exists():
+            shared_stub = (
+                Path(__file__).parent.parent
+                / "templates"
+                / "shared"
+                / "lib"
+                / "iblai"
+                / "tauri-stub.js"
+            )
+            stub_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(shared_stub, stub_path)
+
         # --- SDK symlink for @source directive ---
         # lib/iblai/sdk -> node_modules/@iblai/iblai-js/dist
         # Provides a stable path for Tailwind's @source directive in globals.css
@@ -188,8 +203,6 @@ class BaseAppGenerator(BaseGenerator):
         #   .claude/skills/<name>.md                   (symlink for Claude Code)
         #   .opencode/skills/<name>/SKILL.md           (symlink for OpenCode)
         #   .cursor/rules/<name>.md                    (symlink for Cursor)
-        import shutil
-
         skills_src = self.template_dir / "skills"
         if skills_src.is_dir():
             skills_dest = self.output_dir / "skills"

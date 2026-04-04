@@ -341,16 +341,26 @@ def patch_next_config(root: Path) -> str:
                     1,
                 )
 
-    # 5. Add turbopack: {} — required by Next.js 16+ when webpack config is present.
-    #    Without this, Next.js 16 errors: "This build is using Turbopack, with a
-    #    `webpack` config and no `turbopack` config."
+    # 5. Add turbopack config — required by Next.js 16+ when webpack config is
+    #    present.  Includes resolveAlias to stub @tauri-apps/api imports for
+    #    web-only apps (mirrors the webpack `false` aliases).
     if MARKER_TURBOPACK not in content and "webpack" in content:
         webpack_match = re.search(r"^(\s*)(webpack\s*:)", content, re.MULTILINE)
         if webpack_match:
             indent = webpack_match.group(1)
+            turbo_block = (
+                f"{indent}turbopack: {{\n"
+                f"{indent}  resolveAlias: {{\n"
+                f'{indent}    "@tauri-apps/api/core": '
+                f'{{ browser: "./lib/iblai/tauri-stub.js" }},\n'
+                f'{indent}    "@tauri-apps/api/event": '
+                f'{{ browser: "./lib/iblai/tauri-stub.js" }},\n'
+                f"{indent}  }},\n"
+                f"{indent}}},\n"
+            )
             content = content.replace(
                 webpack_match.group(0),
-                f"{indent}turbopack: {{}},\n{webpack_match.group(0)}",
+                turbo_block + webpack_match.group(0),
                 1,
             )
 
@@ -559,6 +569,17 @@ def patch_next_config_for_tauri(root: Path) -> Optional[str]:
     ]
     for pat in stub_patterns:
         content = re.sub(pat, "", content)
+
+    # 1b. Remove turbopack tauri-stub resolveAlias (no longer needed with Tauri)
+    #     Replace the full turbopack block with an empty one.
+    turbo_stub_re = re.compile(
+        r"(\s*)turbopack:\s*\{[^}]*resolveAlias:\s*\{[^}]*tauri-stub[^}]*\}[^}]*,?\s*\},?\s*\},?",
+        re.DOTALL,
+    )
+    m = turbo_stub_re.search(content)
+    if m:
+        indent = m.group(1)
+        content = content[: m.start()] + f"{indent}turbopack: {{}}," + content[m.end() :]
 
     # 2. Add conditional export config for Tauri builds
     if MARKER_TAURI_EXPORT not in content:

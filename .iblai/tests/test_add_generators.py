@@ -93,8 +93,8 @@ class TestAddAuthGenerator:
         _, created = generated
         # 7 generated files + lib/iblai/tenant.ts + next.config (patched)
         # + globals.css (patched) + .env.local + SDK symlink
-        # + vitest.config.ts + __tests__/source-paths.test.ts
-        assert len(created) == 14
+        # + lib/iblai/tauri-stub.js + vitest.config.ts + __tests__/source-paths.test.ts
+        assert len(created) == 15
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -614,8 +614,9 @@ class TestAddToBaseTemplateApp:
         from iblai.generators.add_chat import AddChatGenerator
 
         created = AddChatGenerator(project).generate()
-        assert len(created) == 1
+        assert len(created) == 2
         assert (project.components_dir / "iblai" / "chat-widget.tsx").exists()
+        assert (project.root / "types" / "iblai-web-mentor.d.ts").exists()
 
     def test_profile_generates_on_base_template(self, project):
         from iblai.generators.add_profile import AddProfileGenerator

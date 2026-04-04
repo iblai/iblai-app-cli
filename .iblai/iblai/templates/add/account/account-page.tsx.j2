@@ -55,6 +55,7 @@ export default function AccountPage() {
         username={username}
         isAdmin={isAdmin}
         authURL={config.authUrl()}
+        {/* Uses config helper, not a raw env var — resolves the correct domain */}
         currentPlatformBaseDomain={config.platformBaseDomain()}
         currentSPA="agent"
         onInviteClick={() => {}}
