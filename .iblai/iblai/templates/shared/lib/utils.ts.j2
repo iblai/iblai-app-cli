@@ -17,6 +17,7 @@ export async function redirectToAuthSpa(
 ): Promise<void> {
   const AUTH_URL = config.authUrl();
   const AGENT_URL = config.agentUrl();
+  const tenant = platformKey || config.mainTenantKey();
 
   // Clear local storage on logout
   if (logout) {
@@ -35,8 +36,8 @@ export async function redirectToAuthSpa(
     "redirect-to": redirectTo || AGENT_URL,
   });
 
-  if (platformKey) {
-    params.set("tenant", platformKey);
+  if (tenant) {
+    params.set("tenant", tenant);
   }
 
   if (logout) {

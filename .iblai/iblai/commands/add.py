@@ -341,6 +341,32 @@ def mcp():
 
 
 @add.command()
+def homepage():
+    """Replace the default Next.js home page with ibl.ai branding."""
+    project = _require_nextjs()
+
+    from iblai.generators.add_homepage import AddHomepageGenerator
+
+    gen = AddHomepageGenerator(project)
+    created = gen.generate()
+
+    if not created:
+        console.print("[yellow]No home page found to replace.[/yellow]")
+        return
+
+    console.print()
+    console.print(
+        Panel.fit(
+            "[bold green]Home page updated[/bold green]\n\n"
+            "[bold]Applied:[/bold]\n"
+            + "\n".join(f"  [cyan]{f}[/cyan]" for f in created),
+            border_style="green",
+            title="iblai add homepage",
+        )
+    )
+
+
+@add.command()
 def builds():
     """Add desktop/mobile build support (Tauri v2)."""
     from pathlib import Path
