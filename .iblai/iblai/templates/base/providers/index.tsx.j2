@@ -45,24 +45,6 @@ const storageService = LocalStorageService.getInstance();
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Navigate to a URL. On Tauri mobile, window.location.href is blocked by
- * the Android WebView for external URLs. This uses the navigate_to Tauri
- * command which calls Webview::navigate() (WebView.loadUrl()), bypassing
- * the system filter.
- */
-function navigateTo(url: string) {
-  if ("__TAURI__" in window) {
-    import("@tauri-apps/api/core").then(({ invoke }) => {
-      invoke("navigate_to", { url }).catch(() => {
-        window.location.href = url;
-      });
-    });
-  } else {
-    window.location.href = url;
-  }
-}
-
 function redirectToAuthSpa(
   redirectTo?: string,
   platformKey?: string,
@@ -74,12 +56,11 @@ function redirectToAuthSpa(
   if (saveRedirect) localStorage.setItem("redirect-to", path);
 
   // Build URL manually to avoid URLSearchParams percent-encoding
-  // app= first so auth helpers can detect the login page
   let authUrl = `${config.authUrl()}/login?app=agent&redirect-to=${origin}`;
   if (platformKey) authUrl += `&tenant=${encodeURIComponent(platformKey)}`;
   if (logout) authUrl += `&logout=1`;
 
-  navigateTo(authUrl);
+  window.location.href = authUrl;
 }
 
 function hasNonExpiredAuthToken(): boolean {
