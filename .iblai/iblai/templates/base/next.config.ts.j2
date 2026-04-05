@@ -82,12 +82,6 @@ const nextConfig: NextConfig = {
 
     // Apply shared dedup aliases
     Object.assign(config.resolve.alias, resolveAliases);
-{% if not builds %}
-
-    // Stub out @tauri-apps/api imports — not needed in web-only apps.
-    config.resolve.alias["@tauri-apps/api/core"] = false;
-    config.resolve.alias["@tauri-apps/api/event"] = false;
-{% endif %}
 
     return config;
   },

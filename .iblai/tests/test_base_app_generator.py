@@ -283,8 +283,8 @@ class TestTauriNextConfig:
         assert '@tauri-apps/api/core"] = false' not in config
         assert '@tauri-apps/api/event"] = false' not in config
 
-    def test_no_tauri_flag_keeps_stubs(self, tmp_path):
-        """When builds=False, next.config.ts has @tauri-apps stubs and no export."""
+    def test_no_tauri_flag_no_stubs_or_export(self, tmp_path):
+        """When builds=False, next.config.ts has no stubs and no export."""
         from iblai.generators.base_app import BaseAppGenerator
 
         gen = BaseAppGenerator(
@@ -296,8 +296,8 @@ class TestTauriNextConfig:
         gen.generate()
         config = (tmp_path / "app" / "next.config.ts").read_text()
         assert 'output: "export"' not in config
-        assert '@tauri-apps/api/core"] = false' in config
-        assert '@tauri-apps/api/event"] = false' in config
+        assert '@tauri-apps/api/core"] = false' not in config
+        assert '@tauri-apps/api/event"] = false' not in config
 
     def test_tauri_flag_adds_tauri_deps_to_package_json(self, tmp_path):
         """When builds=True, package.json includes Tauri deps and scripts."""
@@ -316,8 +316,8 @@ class TestTauriNextConfig:
         assert "@tauri-apps/cli" in pkg["devDependencies"]
         assert "tauri:dev" in pkg["scripts"]
 
-    def test_no_tauri_flag_excludes_tauri_deps(self, tmp_path):
-        """When builds=False, package.json has no Tauri deps."""
+    def test_no_tauri_flag_includes_api_excludes_cli(self, tmp_path):
+        """When builds=False, package.json has @tauri-apps/api but no CLI/scripts."""
         import json
         from iblai.generators.base_app import BaseAppGenerator
 
@@ -329,7 +329,7 @@ class TestTauriNextConfig:
         )
         gen.generate()
         pkg = json.loads((tmp_path / "app" / "package.json").read_text())
-        assert "@tauri-apps/api" not in pkg.get("dependencies", {})
+        assert "@tauri-apps/api" in pkg.get("dependencies", {})
         assert "@tauri-apps/cli" not in pkg.get("devDependencies", {})
         assert "tauri:dev" not in pkg.get("scripts", {})
 
