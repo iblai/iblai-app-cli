@@ -1,1 +1,1 @@
-../skills/components/iblai-add-chat.md
+../../skills/components/iblai-add-chat.md

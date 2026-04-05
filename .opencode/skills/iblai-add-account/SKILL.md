@@ -1,1 +1,1 @@
-../../skills/components/iblai-add-account.md
+../../../skills/components/iblai-add-account.md

@@ -1,1 +1,1 @@
-../.iblai/skills/builds/iblai-cli-build-binary.md
+../../.iblai/skills/builds/iblai-cli-build-binary.md

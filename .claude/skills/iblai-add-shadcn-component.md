@@ -1,1 +1,1 @@
-../skills/components/iblai-add-shadcn-component.md
+../../skills/components/iblai-add-shadcn-component.md
