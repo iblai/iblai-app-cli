@@ -125,7 +125,7 @@ These versions are pinned and tested together. Do not upgrade individually — t
 iblai add auth           # SSO authentication + Redux store + providers
 iblai add chat           # AI chat widget (<mentor-ai> web component)
 iblai add profile        # User profile dropdown
-iblai add notification   # Notification bell with unread badge
+iblai add notification  # Notification bell with unread badge
 iblai add mcp            # MCP server config + Claude/OpenCode skills
 iblai add builds          # Tauri v2 desktop/mobile shell
 ```
@@ -148,6 +148,7 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
 | `/iblai-iconography` | Generate all Tauri icon sizes from a source image |
+| `/iblai-deslop` | Audit and harden codebases for production readiness |
 
 ## UI Blocks (shadcnspace)
 

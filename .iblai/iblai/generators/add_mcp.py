@@ -83,9 +83,14 @@ class AddMcpGenerator:
                 shutil.copy2(skill_file, dest_file)
                 created.append(f"skills/{rel_path}")
 
-                # Only symlink top-level skill files (category/name.md),
-                # not nested support files (category/references/foo.md)
-                if len(parts) != 2:
+                # Only symlink skill entry points, not nested support files.
+                # Flat: category/name.md (depth 2)
+                # Bundle: category/name/name.md (depth 3, stem matches parent)
+                is_flat = len(parts) == 2
+                is_bundle = (
+                    len(parts) == 3 and skill_file.stem == parts[-2]
+                )
+                if not (is_flat or is_bundle):
                     continue
 
                 skill_name = skill_file.stem

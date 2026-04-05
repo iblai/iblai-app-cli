@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
 import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
 import { config } from "@/lib/config";
+import { resolveAppTenant, checkTenantMismatch } from "@/lib/iblai/tenant";
 
 // ---------------------------------------------------------------------------
 // LocalStorageService for initializeDataLayer
@@ -44,6 +45,24 @@ const storageService = LocalStorageService.getInstance();
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Navigate to a URL. On Tauri mobile, window.location.href is blocked by
+ * the Android WebView for external URLs. This uses the navigate_to Tauri
+ * command which calls Webview::navigate() (WebView.loadUrl()), bypassing
+ * the system filter.
+ */
+function navigateTo(url: string) {
+  if ("__TAURI__" in window) {
+    import("@tauri-apps/api/core").then(({ invoke }) => {
+      invoke("navigate_to", { url }).catch(() => {
+        window.location.href = url;
+      });
+    });
+  } else {
+    window.location.href = url;
+  }
+}
+
 function redirectToAuthSpa(
   redirectTo?: string,
   platformKey?: string,
@@ -60,7 +79,7 @@ function redirectToAuthSpa(
   if (platformKey) authUrl += `&tenant=${encodeURIComponent(platformKey)}`;
   if (logout) authUrl += `&logout=1`;
 
-  window.location.href = authUrl;
+  navigateTo(authUrl);
 }
 
 function hasNonExpiredAuthToken(): boolean {
@@ -82,26 +101,8 @@ const LOADING = (
   </div>
 );
 
-function getCurrentTenant(): string {
-  if (typeof window === "undefined") return "";
-  try {
-    const raw = localStorage.getItem("current_tenant");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return typeof parsed === "string" ? parsed : parsed?.key ?? "";
-    }
-  } catch { /* ignore */ }
-  // Fall back to NEXT_PUBLIC_MAIN_TENANT_KEY from config.
-  // Without this, TenantProvider calls /api/custom-domains?domain=localhost
-  // which fails on local development.
-  const fromStorage = localStorage.getItem("tenant");
-  if (fromStorage) return fromStorage;
-  const fallback = config.mainTenantKey();
-  if (fallback) {
-    console.debug("[ibl.ai] No tenant in localStorage, using NEXT_PUBLIC_MAIN_TENANT_KEY:", fallback);
-  }
-  return fallback;
-}
+// Tenant resolution: .env -> app_tenant -> localStorage tenant
+// See lib/iblai/tenant.ts for the full priority logic.
 
 // ---------------------------------------------------------------------------
 // Provider component
@@ -144,7 +145,7 @@ export function Providers({ children }: { children: ReactNode }) {
     return "";
   }, [isInitialized]);
 
-  const currentTenant = useMemo(() => getCurrentTenant(), [isInitialized]);
+  const currentTenant = useMemo(() => resolveAppTenant(), [isInitialized]);
 
   const handleTenantSwitch = useCallback(
     async (tenant: string, saveRedirect: boolean, useCustomDomain?: boolean) => {
@@ -163,6 +164,10 @@ export function Providers({ children }: { children: ReactNode }) {
     (tenant: { key: string; is_admin: boolean; org: string; platform_name: string }) => {
       localStorage.setItem("current_tenant", JSON.stringify(tenant));
       localStorage.setItem("tenant", tenant.key);
+
+      // If the SDK resolved a different tenant than what the app expects,
+      // redirect to re-login for the correct tenant.
+      checkTenantMismatch();
     },
     [],
   );

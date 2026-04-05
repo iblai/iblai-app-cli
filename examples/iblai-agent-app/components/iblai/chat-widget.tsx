@@ -18,6 +18,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 interface ChatWidgetProps {
   /** The mentor unique_id to chat with. */
@@ -89,12 +90,10 @@ export function ChatWidget({
     };
   }, []);
 
-  // Always read the tenant from .env (NEXT_PUBLIC_MAIN_TENANT_KEY) — not
-  // from localStorage. The env value is the source of truth for which
-  // platform the chat widget connects to.
+  // Tenant priority: explicit prop -> .env -> app_tenant -> localStorage tenant
   const resolvedTenant = useMemo(() => {
     if (tenantKey) return tenantKey;
-    return config.mainTenantKey();
+    return resolveAppTenant();
   }, [tenantKey]);
 
   const resolvedWidth = typeof width === "number" ? `${width}px` : width;
