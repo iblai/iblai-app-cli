@@ -1,1 +1,1 @@
-../../.iblai/skills/commands/iblai-cli-add-command.md
+../../../.iblai/skills/commands/iblai-cli-add-command.md

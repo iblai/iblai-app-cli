@@ -61,7 +61,7 @@ echo "==> Creating root tool symlinks..."
 rm -rf "$ROOT_DIR/.claude/skills" "$ROOT_DIR/.opencode/skills" "$ROOT_DIR/.cursor/rules"
 mkdir -p "$ROOT_DIR/.claude/skills" "$ROOT_DIR/.opencode/skills" "$ROOT_DIR/.cursor/rules"
 
-# App skills (from root skills/)
+# App skills — flat files (category/name.md)
 for f in "$ROOT_DIR"/skills/{setup,components,builds,testing}/*.md; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
@@ -69,10 +69,26 @@ for f in "$ROOT_DIR"/skills/{setup,components,builds,testing}/*.md; do
   stem="${name%.md}"
   category=$(basename "$(dirname "$f")")
 
-  ln -s "../skills/$category/$name" "$ROOT_DIR/.claude/skills/$name"
+  ln -s "../../skills/$category/$name" "$ROOT_DIR/.claude/skills/$name"
   mkdir -p "$ROOT_DIR/.opencode/skills/$stem"
-  ln -s "../../skills/$category/$name" "$ROOT_DIR/.opencode/skills/$stem/SKILL.md"
-  ln -s "../skills/$category/$name" "$ROOT_DIR/.cursor/rules/$name"
+  ln -s "../../../skills/$category/$name" "$ROOT_DIR/.opencode/skills/$stem/SKILL.md"
+  ln -s "../../skills/$category/$name" "$ROOT_DIR/.cursor/rules/$name"
+done
+
+# App skills — bundles (category/name/name.md)
+for d in "$ROOT_DIR"/skills/{code-quality}/*; do
+  [ -d "$d" ] || continue
+  stem=$(basename "$d")
+  name="$stem.md"
+  entry="$d/$name"
+  [ -f "$entry" ] || continue
+  category=$(basename "$(dirname "$d")")
+  rel="$category/$stem/$name"
+
+  ln -s "../../skills/$rel" "$ROOT_DIR/.claude/skills/$name"
+  mkdir -p "$ROOT_DIR/.opencode/skills/$stem"
+  ln -s "../../../skills/$rel" "$ROOT_DIR/.opencode/skills/$stem/SKILL.md"
+  ln -s "../../skills/$rel" "$ROOT_DIR/.cursor/rules/$name"
 done
 
 # CLI dev skills (from .iblai/skills/)
@@ -83,10 +99,10 @@ for f in "$ROOT_DIR"/.iblai/skills/{commands,builds,internals}/*.md; do
   stem="${name%.md}"
   category=$(basename "$(dirname "$f")")
 
-  ln -s "../.iblai/skills/$category/$name" "$ROOT_DIR/.claude/skills/$name"
+  ln -s "../../.iblai/skills/$category/$name" "$ROOT_DIR/.claude/skills/$name"
   mkdir -p "$ROOT_DIR/.opencode/skills/$stem"
-  ln -s "../../.iblai/skills/$category/$name" "$ROOT_DIR/.opencode/skills/$stem/SKILL.md"
-  ln -s "../.iblai/skills/$category/$name" "$ROOT_DIR/.cursor/rules/$name"
+  ln -s "../../../.iblai/skills/$category/$name" "$ROOT_DIR/.opencode/skills/$stem/SKILL.md"
+  ln -s "../../.iblai/skills/$category/$name" "$ROOT_DIR/.cursor/rules/$name"
 done
 
 # --- Summary ---
