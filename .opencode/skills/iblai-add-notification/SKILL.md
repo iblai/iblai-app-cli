@@ -1,1 +1,1 @@
-../../../skills/components/iblai-add-notification.md
+../../skills/components/iblai-add-notification.md

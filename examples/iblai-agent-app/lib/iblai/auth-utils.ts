@@ -9,6 +9,7 @@
  */
 
 import { config } from "@/lib/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 export { redirectToAuthSpa } from "@/lib/utils";
 
@@ -24,7 +25,7 @@ export function hasNonExpiredAuthToken(): boolean {
 
 /** Clear state and redirect to the Auth SPA logout page. */
 export function handleLogout() {
-  const tenant = localStorage.getItem("tenant") ?? "";
+  const tenant = resolveAppTenant();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   localStorage.clear();
   window.location.href = `${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`;

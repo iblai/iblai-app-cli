@@ -7,8 +7,9 @@
 /* SDK: custom base styles (CSS variables, no Tailwind utilities) */
 @import '@iblai/iblai-js/web-containers/styles';
 
-/* SDK: scan compiled components so Tailwind generates their utility classes */
-@source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
+/* SDK: scan compiled components so Tailwind generates their utility classes.
+ * lib/iblai/sdk is a symlink to node_modules/@iblai/iblai-js/dist. */
+@source "../lib/iblai/sdk/web-containers/source";
 
 @custom-variant dark (&:is(.dark *));
 

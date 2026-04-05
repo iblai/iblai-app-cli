@@ -1,1 +1,1 @@
-../../../skills/builds/iblai-iconography.md
+../../skills/builds/iblai-iconography.md

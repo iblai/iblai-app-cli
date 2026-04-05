@@ -207,12 +207,24 @@ class BaseAppGenerator(BaseGenerator):
 
                 # Relative path within skills/ (e.g., "components/iblai-add-auth.md")
                 rel_path = skill_file.relative_to(skills_src)
-                skill_name = skill_file.stem
+                parts = rel_path.parts
 
                 # Copy actual file preserving subdirectory structure
                 dest_file = skills_dest / rel_path
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(skill_file, dest_file)
+
+                # Only symlink skill entry points, not nested support files.
+                # Flat: category/name.md (depth 2)
+                # Bundle: category/name/name.md (depth 3, stem matches parent)
+                is_flat = len(parts) == 2
+                is_bundle = (
+                    len(parts) == 3 and skill_file.stem == parts[-2]
+                )
+                if not (is_flat or is_bundle):
+                    continue
+
+                skill_name = skill_file.stem
 
                 # Symlink for Claude Code (flat)
                 os.symlink(
@@ -233,6 +245,15 @@ class BaseAppGenerator(BaseGenerator):
                     f"../../skills/{rel_path}",
                     str(cursor_dest / skill_file.name),
                 )
+
+            # Copy non-markdown support files (scripts, licenses, etc.)
+            for support_file in sorted(skills_src.rglob("*")):
+                if support_file.is_dir() or support_file.suffix == ".md":
+                    continue
+                rel_path = support_file.relative_to(skills_src)
+                dest_file = skills_dest / rel_path
+                dest_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(support_file, dest_file)
 
         # --- Screenshots (docs/screenshots/) — shared by all skills ---
         screenshots_src = self.template_dir / "screenshots"
