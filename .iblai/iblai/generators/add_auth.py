@@ -22,6 +22,7 @@ AUTH_DEPS = [
     "sonner",
     "lucide-react",
     "tw-animate-css",
+    "@tauri-apps/api",
 ]
 
 # Dev dependencies for SDK component styling + testing.
