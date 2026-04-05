@@ -75,13 +75,20 @@ class AddMcpGenerator:
 
                 # Relative path within skills/ (e.g., "components/iblai-add-auth.md")
                 rel_path = skill_file.relative_to(self.skills_source_dir)
-                skill_name = skill_file.stem
+                parts = rel_path.parts
 
                 # Copy actual file preserving subdirectory structure
                 dest_file = skills_dest / rel_path
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(skill_file, dest_file)
                 created.append(f"skills/{rel_path}")
+
+                # Only symlink top-level skill files (category/name.md),
+                # not nested support files (category/references/foo.md)
+                if len(parts) != 2:
+                    continue
+
+                skill_name = skill_file.stem
 
                 # Symlink for Claude Code (flat)
                 claude_link = claude_dest / skill_file.name
@@ -99,6 +106,16 @@ class AddMcpGenerator:
                 cursor_link = cursor_dest / skill_file.name
                 if not cursor_link.exists():
                     os.symlink(f"../../skills/{rel_path}", str(cursor_link))
+
+            # Copy non-markdown support files (scripts, licenses, etc.)
+            for support_file in sorted(self.skills_source_dir.rglob("*")):
+                if support_file.is_dir() or support_file.suffix == ".md":
+                    continue
+                rel_path = support_file.relative_to(self.skills_source_dir)
+                dest_file = skills_dest / rel_path
+                dest_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(support_file, dest_file)
+                created.append(f"skills/{rel_path}")
 
         # 3. Screenshots (docs/screenshots/)
         if self.screenshots_source_dir.is_dir():

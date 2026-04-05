@@ -55,7 +55,7 @@ cd .iblai && pytest tests/test_generators.py -k "test_name" -v
 │       ├── shared/           # Shared templates (layout, SSO, components, e2e)
 │       ├── add/              # iblai add templates
 │       ├── tauri/            # Tauri templates (src-tauri/, CI, MSIX)
-│       ├── skills/           # 13 skill .md files (4 categories)
+│       ├── skills/           # 14 skill .md files (4 categories)
 │       ├── screenshots/      # 4 .png files referenced by skills
 │       └── icons/            # Pre-generated ibl.ai logo icons
 ├── tests/                    # 255+ tests

@@ -150,7 +150,7 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".claude" / "skills"
         assert skills_dir.is_dir()
         skills = sorted(f.name for f in skills_dir.iterdir() if f.suffix == ".md")
-        assert len(skills) == 12
+        assert len(skills) == 13
         assert "iblai-setup.md" in skills
         assert "iblai-add-profile.md" in skills
         assert "iblai-add-account.md" in skills
@@ -166,7 +166,7 @@ class TestBaseAppGenerator:
         skills_dir = generated_dir / ".opencode" / "skills"
         assert skills_dir.is_dir()
         skill_dirs = sorted(d.name for d in skills_dir.iterdir() if d.is_dir())
-        assert len(skill_dirs) == 12
+        assert len(skill_dirs) == 13
         assert "iblai-setup" in skill_dirs
         assert "iblai-add-analytics" in skill_dirs
         assert "iblai-add-notification" in skill_dirs
@@ -199,7 +199,7 @@ class TestBaseAppGenerator:
         # Total count
         all_skills = sorted(skills_dir.rglob("*.md"))
         skill_files = [f for f in all_skills if f.name != "README.md"]
-        assert len(skill_files) == 12
+        assert len(skill_files) == 17
 
     def test_generates_cursor_rules(self, generated_dir):
         """Cursor .cursor/rules/ directory with symlinks."""

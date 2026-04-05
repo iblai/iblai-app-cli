@@ -37,6 +37,12 @@ Invoke them with `/` in your AI assistant.
 |-------|-------------|
 | `/iblai-add-test` | Playwright E2E test patterns |
 
+### Code Quality
+
+| Skill | Description |
+|-------|-------------|
+| `/iblai-deslop` | Audit and harden codebases for production readiness |
+
 ## Tool Integration
 
 Skills are symlinked to tool-specific directories:

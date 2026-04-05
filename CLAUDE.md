@@ -132,7 +132,7 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-mentor-id
 
 Available in `skills/` (invoke with `/` in Claude Code, OpenCode, or Cursor):
 
-### App Skills (13)
+### App Skills (14)
 
 | Skill | Description |
 |-------|-------------|
@@ -148,6 +148,7 @@ Available in `skills/` (invoke with `/` in Claude Code, OpenCode, or Cursor):
 | `/iblai-add-test` | Playwright E2E test patterns |
 | `/iblai-build-windows-msix` | Windows MSIX build for test and release |
 | `/iblai-iconography` | Generate all icon sizes from a source image |
+| `/iblai-deslop` | Audit and harden codebases for production readiness |
 
 ### CLI Dev Skills (6)
 
