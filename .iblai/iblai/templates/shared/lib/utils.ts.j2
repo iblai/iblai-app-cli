@@ -9,12 +9,12 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Redirect to the Auth SPA for login/logout
  */
-export async function redirectToAuthSpa(
+export function redirectToAuthSpa(
   redirectTo?: string,
   platformKey?: string,
   logout?: boolean,
   saveRedirect = true
-): Promise<void> {
+): void {
   const AUTH_URL = config.authUrl();
   const AGENT_URL = config.agentUrl();
   const tenant = platformKey || config.mainTenantKey();
@@ -30,30 +30,10 @@ export async function redirectToAuthSpa(
     localStorage.setItem("redirect_to", currentPath);
   }
 
-  // Build auth URL with parameters
-  const params = new URLSearchParams({
-    app: "agent",
-    "redirect-to": redirectTo || AGENT_URL,
-  });
+  // Build auth URL manually to avoid URLSearchParams percent-encoding
+  let authUrl = `${AUTH_URL}/login?app=agent&redirect-to=${redirectTo || AGENT_URL}`;
+  if (tenant) authUrl += `&tenant=${encodeURIComponent(tenant)}`;
+  if (logout) authUrl += "&logout=1";
 
-  if (tenant) {
-    params.set("tenant", tenant);
-  }
-
-  if (logout) {
-    params.set("logout", "true");
-  }
-
-  const authUrl = `${AUTH_URL}/login?${params.toString()}`;
-
-  // On Tauri mobile, window.location.href is blocked by the Android WebView
-  // for external URLs. Use the navigate_to command to bypass the filter.
-  if (typeof window !== "undefined" && "__TAURI__" in window) {
-    const { invoke } = await import("@tauri-apps/api/core");
-    try {
-      await invoke("navigate_to", { url: authUrl });
-      return;
-    } catch { /* fall through */ }
-  }
   window.location.href = authUrl;
 }

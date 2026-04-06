@@ -68,8 +68,6 @@ export function checkTenantMismatch(): boolean {
 
   if (appTenant && sdkTenant && sdkTenant !== appTenant) {
     // Use dynamic import to avoid hard dependency on auth-utils from tenant module.
-    // On Tauri mobile this routes through the navigate_to command to bypass
-    // Android WebView's external URL blocking.
     import("./auth-utils").then(({ redirectToAuthSpa }) => {
       redirectToAuthSpa(undefined, appTenant, false, false);
     });

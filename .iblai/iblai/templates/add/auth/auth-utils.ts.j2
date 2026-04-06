@@ -9,24 +9,10 @@
 import config from "./config";
 import { resolveAppTenant } from "./tenant";
 
-/**
- * Navigate to a URL.
- *
- * On Tauri mobile, `window.location.href` is blocked by the Android
- * WebView for external URLs. This helper calls the `navigate_to` Tauri
- * command which uses `Webview::navigate()` (maps to `WebView.loadUrl()`),
- * bypassing the system filter.
- */
-function navigateTo(url: string) {
-  if (typeof window !== "undefined" && "__TAURI__" in window) {
-    import("@tauri-apps/api/core").then(({ invoke }) => {
-      invoke("navigate_to", { url }).catch(() => {
-        window.location.href = url;
-      });
-    });
-  } else {
-    window.location.href = url;
-  }
+/** Check if running inside a Tauri app. */
+function isTauriApp(): boolean {
+  if (typeof window === "undefined") return false;
+  return "__TAURI_INTERNALS__" in window || "__TAURI__" in window;
 }
 
 /** Redirect the browser to the ibl.ai Auth SPA for login. */
@@ -44,14 +30,11 @@ export function redirectToAuthSpa(
   }
 
   const tenant = platformKey || resolveAppTenant();
-  const params = new URLSearchParams({
-    "redirect-to": origin,
-    app: "custom",
-  });
-  if (tenant) params.set("tenant", tenant);
-  if (logout) params.set("logout", "1");
+  let authUrl = `${config.authUrl()}/login?app=custom&redirect-to=${origin}`;
+  if (tenant) authUrl += `&tenant=${encodeURIComponent(tenant)}`;
+  if (logout) authUrl += "&logout=1";
 
-  navigateTo(`${config.authUrl()}/login?${params.toString()}`);
+  window.location.href = authUrl;
 }
 
 /** Check whether a non-expired auth token exists in localStorage. */
@@ -69,6 +52,6 @@ export function handleLogout() {
   const tenant = resolveAppTenant();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   localStorage.clear();
-  navigateTo(`${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`);
+  window.location.href = `${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`;
 }
 {% endraw %}
