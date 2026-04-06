@@ -4,7 +4,7 @@ __version__ = "1.0.0"
 __author__ = "ibl.ai"
 __email__ = "support@ibl.ai"
 __repo__ = "https://github.com/iblai/iblai-app-cli"
-__commit__ = "6b17fcf"  # Set by build script for binary builds
+__commit__ = ""  # Set by build script for binary builds
 
 
 def get_commit() -> str:
