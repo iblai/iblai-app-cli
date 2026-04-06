@@ -150,12 +150,32 @@ def _require_tauri_cli():
     sys.exit(1)
 
 
+def _regenerate_platform_icons():
+    """After ios/android init, regenerate icons from src-tauri/icons/icon.png.
+
+    ``tauri ios init`` and ``tauri android init`` create platform asset
+    catalogs with default Tauri icons.  This replaces them with the app's
+    own icons by running ``cargo tauri icon``.
+    """
+    icon_src = Path("src-tauri/icons/icon.png")
+    if not icon_src.exists():
+        return
+    console.print("[cyan]Updating platform icons from src-tauri/icons/icon.png...[/cyan]")
+    cmd = _tauri_cmd("icon", str(icon_src))
+    subprocess.run(cmd)
+
+
 def _passthrough(args: Tuple[str, ...]):
     """Check prerequisites and forward args to the tauri CLI."""
     _require_rust()
     _require_tauri_cli()
     cmd = _tauri_cmd(*args)
     result = subprocess.run(cmd)
+    # After ios/android init, regenerate icons so platform assets use
+    # the app's icons instead of the default Tauri icon.
+    if result.returncode == 0 and len(args) >= 2 and args[1] == "init":
+        if args[0] in ("ios", "android"):
+            _regenerate_platform_icons()
     sys.exit(result.returncode)
 
 
