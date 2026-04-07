@@ -191,6 +191,25 @@ class AddBuildsGenerator:
         )
         created.append("src-tauri/build.rs")
 
+        # Dev redirect HTML — copied to out/ by beforeDevCommand so the
+        # WebView origin is http://localhost:3000 during development.
+        # Production builds overwrite out/ with the real Next.js export.
+        dev_fe_dir = self.root / "src-tauri" / "dev-fe"
+        dev_fe_dir.mkdir(parents=True, exist_ok=True)
+        import shutil as _shutil
+
+        src_dev_fe = self._generator.template_dir / "tauri" / "src-tauri" / "dev-fe" / "index.html"
+        if src_dev_fe.exists():
+            _shutil.copy2(src_dev_fe, dev_fe_dir / "index.html")
+        else:
+            (dev_fe_dir / "index.html").write_text(
+                '<!DOCTYPE html>\n<html>\n<body>\n<script>\n'
+                '  window.location.href = "http://localhost:3000";\n'
+                '</script>\n</body>\n</html>\n',
+                encoding="utf-8",
+            )
+        created.append("src-tauri/dev-fe/index.html")
+
         # Icons — copy pre-generated ibl.ai logo icons from templates,
         # or fall back to solid-color RGBA placeholders.
         icon_files = self._copy_icons()

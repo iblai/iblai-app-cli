@@ -73,13 +73,19 @@ class TestAddBuildsGenerator:
         assert "_" not in name, f"Name '{name}' contains underscores"
         assert name == "com.test.app.application"
 
-    def test_tauri_conf_has_dev_url(self, generated_dir):
-        data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
-        assert data["build"]["devUrl"] == "http://localhost:3000"
-
     def test_tauri_conf_has_frontend_dist(self, generated_dir):
         data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
         assert data["build"]["frontendDist"] == "../out"
+
+    def test_tauri_conf_before_dev_copies_dev_fe(self, generated_dir):
+        data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
+        assert "dev-fe" in data["build"]["beforeDevCommand"]
+
+    def test_generates_dev_fe_html(self, generated_dir):
+        dev_fe = generated_dir / "src-tauri" / "dev-fe" / "index.html"
+        assert dev_fe.exists()
+        content = dev_fe.read_text()
+        assert "http://localhost:3000" in content
 
     def test_generates_cargo_toml(self, generated_dir):
         cargo = generated_dir / "src-tauri" / "Cargo.toml"
