@@ -210,6 +210,12 @@ class AddBuildsGenerator:
             )
         created.append("src-tauri/dev-fe/index.html")
 
+        # Android dev helper — detects host IP and patches dev-fe for emulator
+        src_setup = self._generator.template_dir / "tauri" / "src-tauri" / "dev-fe" / "setup-android.js"
+        if src_setup.exists():
+            _shutil.copy2(src_setup, dev_fe_dir / "setup-android.js")
+            created.append("src-tauri/dev-fe/setup-android.js")
+
         # Icons — copy pre-generated ibl.ai logo icons from templates,
         # or fall back to solid-color RGBA placeholders.
         icon_files = self._copy_icons()
