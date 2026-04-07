@@ -91,10 +91,11 @@ class TestAddAuthGenerator:
 
     def test_auth_generates_all_files(self, generated):
         _, created = generated
-        # 7 generated files + lib/iblai/tenant.ts + next.config (patched)
+        # 8 generated files + lib/iblai/tenant.ts + next.config (patched)
         # + globals.css (patched) + .env.local + SDK symlink
         # + vitest.config.ts + __tests__/source-paths.test.ts
-        assert len(created) == 14
+        # + 4 e2e files + package.json (e2e scripts)
+        assert len(created) == 19
 
     def test_auth_creates_sso_page(self, generated):
         project, _ = generated
@@ -151,6 +152,48 @@ class TestAddAuthGenerator:
         assert path.exists()
         content = path.read_text()
         assert "@iblai/iblai-js/web-containers/styles" in content
+
+    def test_auth_generates_playwright_config(self, generated):
+        project, _ = generated
+        path = project.root / "e2e" / "playwright.config.ts"
+        assert path.exists()
+        content = path.read_text()
+        assert "setup" in content
+        assert "storageState" in content
+
+    def test_auth_generates_auth_setup(self, generated):
+        project, _ = generated
+        path = project.root / "e2e" / "auth.setup.ts"
+        assert path.exists()
+        content = path.read_text()
+        assert "PLAYWRIGHT_USERNAME" in content
+        assert "PLAYWRIGHT_PASSWORD" in content
+        assert "Continue with Password" in content
+        assert "axd_token" in content
+
+    def test_auth_generates_e2e_env(self, generated):
+        project, _ = generated
+        path = project.root / "e2e" / ".env.development"
+        assert path.exists()
+        content = path.read_text()
+        assert "PLAYWRIGHT_USERNAME=" in content
+        assert "PLAYWRIGHT_PASSWORD=" in content
+
+    def test_auth_generates_auth_journey(self, generated):
+        project, _ = generated
+        path = project.root / "e2e" / "journeys" / "auth.journey.spec.ts"
+        assert path.exists()
+        content = path.read_text()
+        assert "authenticated user lands on the home page" in content
+        assert "auth tokens are stored in localStorage" in content
+
+    def test_auth_adds_e2e_scripts_to_package_json(self, generated):
+        project, _ = generated
+        data = json.loads((project.root / "package.json").read_text())
+        assert "test:e2e" in data["scripts"]
+        assert "test:e2e:ui" in data["scripts"]
+        assert "test:e2e:headed" in data["scripts"]
+        assert "playwright" in data["scripts"]["test:e2e"]
 
 
 # ---------------------------------------------------------------------------

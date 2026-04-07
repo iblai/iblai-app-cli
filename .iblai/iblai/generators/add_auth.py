@@ -1,5 +1,6 @@
 """Generator for adding ibl.ai auth to an existing Next.js project."""
 
+import json
 import os
 from pathlib import Path
 from typing import List
@@ -29,6 +30,9 @@ AUTH_DEPS = [
 AUTH_DEV_DEPS = [
     "tailwind-scrollbar",
     "vitest",
+    "@playwright/test",
+    "cross-env",
+    "dotenv",
 ]
 
 # Default env vars for .env.local.
@@ -172,4 +176,60 @@ class AddAuthGenerator:
             )
             created.append("__tests__/source-paths.test.ts")
 
+        # 14. Generate Playwright e2e tests
+        created.extend(self._generate_e2e())
+
+        # 15. Patch package.json with e2e scripts
+        if self._patch_e2e_scripts():
+            created.append("package.json (e2e scripts)")
+
         return created
+
+    def _generate_e2e(self) -> List[str]:
+        """Generate Playwright e2e test files in e2e/."""
+        created: List[str] = []
+        e2e_dir = self.project.root / "e2e"
+
+        e2e_files = {
+            "shared/e2e/playwright.config.ts.j2": "e2e/playwright.config.ts",
+            "shared/e2e/auth.setup.ts.j2": "e2e/auth.setup.ts",
+            "shared/e2e/.env.development.j2": "e2e/.env.development",
+            "shared/e2e/journeys/auth.journey.spec.ts.j2": "e2e/journeys/auth.journey.spec.ts",
+        }
+
+        for template_path, output_path in e2e_files.items():
+            dest = self.project.root / output_path
+            if not dest.exists():
+                self._write(dest, self._render(template_path))
+                created.append(output_path)
+
+        return created
+
+    def _patch_e2e_scripts(self) -> bool:
+        """Add e2e test scripts to package.json. Returns True if modified."""
+        pkg_path = self.project.root / "package.json"
+        if not pkg_path.exists():
+            return False
+
+        data = json.loads(pkg_path.read_text(encoding="utf-8"))
+        scripts = data.setdefault("scripts", {})
+        modified = False
+
+        e2e_scripts = {
+            "test:e2e": "playwright test --config e2e/playwright.config.ts",
+            "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
+            "test:e2e:headed": "cross-env HEADED=true playwright test --config e2e/playwright.config.ts",
+        }
+
+        for key, val in e2e_scripts.items():
+            if key not in scripts:
+                scripts[key] = val
+                modified = True
+
+        if modified:
+            pkg_path.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+
+        return modified
