@@ -165,33 +165,32 @@ def _regenerate_platform_icons():
     subprocess.run(cmd)
 
 
-def _run_android_setup():
-    """Run setup-android.js to detect host IP and patch dev-fe + next.config."""
-    script = Path("src-tauri/dev-fe/setup-android.js")
-    if not script.exists():
-        return
-    node = shutil.which("node")
-    if not node:
-        console.print("[yellow]node not found, skipping Android dev setup[/yellow]")
-        return
-    subprocess.run([node, str(script)], check=True)
+def _run_frontend_build():
+    """Run the frontend build to generate the static export in out/."""
+    from iblai.package_manager import detect_package_manager
+
+    pm = detect_package_manager(Path.cwd())
+    # npm and bun require "run" for package.json scripts
+    cmd = [pm, "run", "build"] if pm in ("npm", "bun") else [pm, "build"]
+    console.print(f"[cyan]Building frontend ({' '.join(cmd)})...[/cyan]")
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
+        console.print("[red]Frontend build failed.[/red]")
+        sys.exit(result.returncode)
 
 
 def _passthrough(args: Tuple[str, ...]):
     """Check prerequisites and forward args to the tauri CLI."""
     _require_rust()
     _require_tauri_cli()
-    # Auto-add --host for `android dev` so the emulator can reach the host
-    args_list = list(args)
+    # Mobile dev uses a static build — run frontend build first
     if (
-        len(args_list) >= 2
-        and args_list[0] == "android"
-        and args_list[1] == "dev"
+        len(args) >= 2
+        and args[0] in ("android", "ios")
+        and args[1] == "dev"
     ):
-        _run_android_setup()
-        if "--host" not in args_list:
-            args_list.append("--host")
-    cmd = _tauri_cmd(*args_list)
+        _run_frontend_build()
+    cmd = _tauri_cmd(*args)
     result = subprocess.run(cmd)
     # After ios/android init, regenerate icons so platform assets use
     # the app's icons instead of the default Tauri icon.

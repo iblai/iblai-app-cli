@@ -172,6 +172,7 @@ class AddBuildsGenerator:
             "tauri/src-tauri/src/lib.rs.j2": "src-tauri/src/lib.rs",
             "tauri/src-tauri/capabilities/default.json.j2": "src-tauri/capabilities/default.json",
             "tauri/src-tauri/tauri.android.conf.json": "src-tauri/tauri.android.conf.json",
+            "tauri/src-tauri/tauri.ios.conf.json": "src-tauri/tauri.ios.conf.json",
             "tauri/src-tauri/AppxManifest.xml.j2": "src-tauri/AppxManifest.xml",
             "tauri/src-tauri/build-msix.ps1.j2": "src-tauri/build-msix.ps1",
             "tauri/src-tauri/setup-test-cert.ps1.j2": "src-tauri/setup-test-cert.ps1",
@@ -190,31 +191,6 @@ class AddBuildsGenerator:
             "fn main() {\n    tauri_build::build()\n}\n", encoding="utf-8"
         )
         created.append("src-tauri/build.rs")
-
-        # Dev redirect HTML — copied to out/ by beforeDevCommand so the
-        # WebView origin is http://localhost:3000 during development.
-        # Production builds overwrite out/ with the real Next.js export.
-        dev_fe_dir = self.root / "src-tauri" / "dev-fe"
-        dev_fe_dir.mkdir(parents=True, exist_ok=True)
-        import shutil as _shutil
-
-        src_dev_fe = self._generator.template_dir / "tauri" / "src-tauri" / "dev-fe" / "index.html"
-        if src_dev_fe.exists():
-            _shutil.copy2(src_dev_fe, dev_fe_dir / "index.html")
-        else:
-            (dev_fe_dir / "index.html").write_text(
-                '<!DOCTYPE html>\n<html>\n<body>\n<script>\n'
-                '  window.location.href = "http://localhost:3000";\n'
-                '</script>\n</body>\n</html>\n',
-                encoding="utf-8",
-            )
-        created.append("src-tauri/dev-fe/index.html")
-
-        # Android dev helper — detects host IP and patches dev-fe for emulator
-        src_setup = self._generator.template_dir / "tauri" / "src-tauri" / "dev-fe" / "setup-android.js"
-        if src_setup.exists():
-            _shutil.copy2(src_setup, dev_fe_dir / "setup-android.js")
-            created.append("src-tauri/dev-fe/setup-android.js")
 
         # Icons — copy pre-generated ibl.ai logo icons from templates,
         # or fall back to solid-color RGBA placeholders.
