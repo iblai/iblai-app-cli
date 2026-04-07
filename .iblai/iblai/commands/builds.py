@@ -165,11 +165,33 @@ def _regenerate_platform_icons():
     subprocess.run(cmd)
 
 
+def _run_android_setup():
+    """Run setup-android.js to detect host IP and patch dev-fe + next.config."""
+    script = Path("src-tauri/dev-fe/setup-android.js")
+    if not script.exists():
+        return
+    node = shutil.which("node")
+    if not node:
+        console.print("[yellow]node not found, skipping Android dev setup[/yellow]")
+        return
+    subprocess.run([node, str(script)], check=True)
+
+
 def _passthrough(args: Tuple[str, ...]):
     """Check prerequisites and forward args to the tauri CLI."""
     _require_rust()
     _require_tauri_cli()
-    cmd = _tauri_cmd(*args)
+    # Auto-add --host for `android dev` so the emulator can reach the host
+    args_list = list(args)
+    if (
+        len(args_list) >= 2
+        and args_list[0] == "android"
+        and args_list[1] == "dev"
+    ):
+        _run_android_setup()
+        if "--host" not in args_list:
+            args_list.append("--host")
+    cmd = _tauri_cmd(*args_list)
     result = subprocess.run(cmd)
     # After ios/android init, regenerate icons so platform assets use
     # the app's icons instead of the default Tauri icon.
