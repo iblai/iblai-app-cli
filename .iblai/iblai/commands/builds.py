@@ -746,6 +746,8 @@ for (const [device, viewport] of Object.entries(VIEWPORTS)) {{
     for (const page of PAGES) {{
       test(page.name, async ({{ page: p }}) => {{
         await p.goto(`${{BASE_URL}}${{page.path}}`);
+        // Hide the Next.js dev indicator (bottom-left logo)
+        await p.addStyleTag({{ content: "nextjs-portal {{ display: none !important; }}" }});
         await p.waitForTimeout(2000);
         await p.screenshot({{
           path: `{output_dir}/${{slug(device)}}/${{page.name}}.png`,
