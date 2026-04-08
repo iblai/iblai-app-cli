@@ -145,11 +145,11 @@ class TestCache:
         monkeypatch.setattr("iblai.updater.CACHE_DIR", tmp_path)
         monkeypatch.setattr("iblai.updater.CACHE_FILE", cache_file)
 
-        _write_cache("1.1.0")
+        _write_cache("1.1.2")
         data = _read_cache()
         assert data is not None
-        assert data["latest_version"] == "1.1.0"
-        assert data["current_version"] == "1.1.0"
+        assert data["latest_version"] == "1.1.2"
+        assert data["current_version"] == "1.1.2"
 
     def test_fresh_cache_prevents_network_check(self, monkeypatch, tmp_path):
         cache_file = tmp_path / "update-check.json"
@@ -161,8 +161,8 @@ class TestCache:
             json.dumps(
                 {
                     "checked_at": time.time(),
-                    "current_version": "1.1.0",
-                    "latest_version": "1.1.0",
+                    "current_version": "1.1.2",
+                    "latest_version": "1.1.2",
                 }
             )
         )
@@ -187,15 +187,15 @@ class TestCache:
             json.dumps(
                 {
                     "checked_at": time.time() - CACHE_TTL - 3600,
-                    "current_version": "1.1.0",
-                    "latest_version": "1.1.0",
+                    "current_version": "1.1.2",
+                    "latest_version": "1.1.2",
                 }
             )
         )
 
-        monkeypatch.setattr("iblai.updater.get_latest_version", lambda m: "1.2.0")
+        monkeypatch.setattr("iblai.updater.get_latest_version", lambda m: "1.3.0")
         result = check_for_update("pip")
-        assert result == "1.2.0"
+        assert result == "1.3.0"
 
     def test_cache_returns_update_when_newer(self, monkeypatch, tmp_path):
         cache_file = tmp_path / "update-check.json"
@@ -206,7 +206,7 @@ class TestCache:
             json.dumps(
                 {
                     "checked_at": time.time(),
-                    "current_version": "1.1.0",
+                    "current_version": "1.1.2",
                     "latest_version": "1.5.0",
                 }
             )
