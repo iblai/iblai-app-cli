@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3]
+
 ## [1.1.2]
 
 ### Fixed
 
 - Version numbers updated across all 8 distribution files (pyproject.toml, \_\_init\_\_.py, 6 npm package.json files). v1.1.1 only updated the CHANGELOG.
+- Linux binaries now built on Ubuntu 24.04 (was 22.04), bundling OpenSSL 3.2.x. Fixes `OPENSSL_3.2.0 not found` error on Debian trixie and Ubuntu 24.04+ where system libcurl requires OpenSSL 3.2.0 symbols.
 
 ## [1.1.1]
 ### Updated
