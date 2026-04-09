@@ -27,24 +27,6 @@ Interactive CLI for building apps on the [ibl.ai](https://ibl.ai) platform. Scaf
 
 ## Install
 
-### npm (recommended)
-
-```bash
-npx @iblai/cli --help
-```
-
-Or install globally:
-
-```bash
-npm install -g @iblai/cli
-```
-
-### pip
-
-```bash
-pip install iblai-app-cli
-```
-
 ### Source
 
 ```bash
