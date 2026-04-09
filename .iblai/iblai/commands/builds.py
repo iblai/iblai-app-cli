@@ -183,11 +183,10 @@ def _passthrough(args: Tuple[str, ...]):
     """Check prerequisites and forward args to the tauri CLI."""
     _require_rust()
     _require_tauri_cli()
-    # Mobile dev uses a static build — run frontend build first
+    # All dev builds use a static frontend — run frontend build first
     if (
-        len(args) >= 2
-        and args[0] in ("android", "ios")
-        and args[1] == "dev"
+        (len(args) >= 1 and args[0] == "dev")
+        or (len(args) >= 2 and args[1] == "dev")
     ):
         _run_frontend_build()
     cmd = _tauri_cmd(*args)

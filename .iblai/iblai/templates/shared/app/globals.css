@@ -160,6 +160,14 @@ body {
     'Noto Color Emoji' !important;
 }
 
+/* Safe area insets for mobile status bar / notch / home indicator */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 /* Prevent zoom on input focus for mobile devices */
 @supports (-webkit-overflow-scrolling: touch) {
   input,

@@ -77,15 +77,17 @@ class TestAddBuildsGenerator:
         data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
         assert data["build"]["frontendDist"] == "../out"
 
-    def test_tauri_conf_has_dev_url(self, generated_dir):
+    def test_tauri_conf_no_dev_url(self, generated_dir):
         data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
-        assert data["build"]["devUrl"] == "http://localhost:3000"
+        assert "devUrl" not in data["build"]
 
-    def test_mobile_confs_use_static_build(self, generated_dir):
-        for name in ("tauri.android.conf.json", "tauri.ios.conf.json"):
-            data = json.loads((generated_dir / "src-tauri" / name).read_text())
-            assert data["build"]["beforeDevCommand"] == ""
-            assert data["build"]["frontendDist"] == "../out"
+    def test_tauri_conf_no_before_dev_command(self, generated_dir):
+        data = json.loads((generated_dir / "src-tauri" / "tauri.conf.json").read_text())
+        assert "beforeDevCommand" not in data["build"]
+
+    def test_no_mobile_conf_files(self, generated_dir):
+        assert not (generated_dir / "src-tauri" / "tauri.android.conf.json").exists()
+        assert not (generated_dir / "src-tauri" / "tauri.ios.conf.json").exists()
 
     def test_generates_cargo_toml(self, generated_dir):
         cargo = generated_dir / "src-tauri" / "Cargo.toml"

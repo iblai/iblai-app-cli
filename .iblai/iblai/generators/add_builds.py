@@ -171,8 +171,6 @@ class AddBuildsGenerator:
             "tauri/src-tauri/src/main.rs.j2": "src-tauri/src/main.rs",
             "tauri/src-tauri/src/lib.rs.j2": "src-tauri/src/lib.rs",
             "tauri/src-tauri/capabilities/default.json.j2": "src-tauri/capabilities/default.json",
-            "tauri/src-tauri/tauri.android.conf.json": "src-tauri/tauri.android.conf.json",
-            "tauri/src-tauri/tauri.ios.conf.json": "src-tauri/tauri.ios.conf.json",
             "tauri/src-tauri/AppxManifest.xml.j2": "src-tauri/AppxManifest.xml",
             "tauri/src-tauri/build-msix.ps1.j2": "src-tauri/build-msix.ps1",
             "tauri/src-tauri/setup-test-cert.ps1.j2": "src-tauri/setup-test-cert.ps1",
