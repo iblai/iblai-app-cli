@@ -65,11 +65,15 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
       authURL={config.authUrl()}
       onLogout={handleLogout}
       onTenantChange={(tenant: string) => {
+        localStorage.setItem("app_tenant", tenant);
         localStorage.setItem("tenant", tenant);
         redirectToAuthSpa(undefined, tenant, false, true);
       }}
       onTenantUpdate={(tenant: any) => {
-        if (tenant?.key) localStorage.setItem("tenant", tenant.key);
+        if (tenant?.key) {
+          localStorage.setItem("app_tenant", tenant.key);
+          localStorage.setItem("tenant", tenant.key);
+        }
       }}
       className={className}
     />
