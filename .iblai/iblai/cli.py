@@ -13,6 +13,7 @@ from iblai.commands.startapp import startapp
 from iblai.commands.add import add
 from iblai.commands.builds import builds
 from iblai.commands.config import config
+from iblai.commands.deploy import deploy
 from iblai.commands.update_gallery import update_gallery
 
 # Load .env and .env.{DEV_STAGE} before Click parses options.
@@ -59,6 +60,9 @@ def _show_welcome():
     table.add_row("  iblai builds iconography", "Generate app icons")
     table.add_row("  iblai builds device", "List simulators/emulators")
     table.add_row("  iblai builds screenshot", "Generate screenshot script")
+    table.add_row("", "")
+    table.add_row("[bold]Deploy[/bold]", "")
+    table.add_row("  iblai deploy vercel", "Deploy frontend to Vercel")
     table.add_row("", "")
     table.add_row("[bold]Quick actions[/bold]", "")
     table.add_row("  iblai init", "Configure AI-assisted development")
@@ -244,6 +248,7 @@ cli.add_command(startapp)
 cli.add_command(add)
 cli.add_command(builds)
 cli.add_command(config)
+cli.add_command(deploy)
 cli.add_command(update_gallery)
 
 
