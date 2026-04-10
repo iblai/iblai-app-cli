@@ -163,9 +163,6 @@ def vercel(scope):
         console.print(f"[red]Vercel deploy failed:[/red]\n{result.stderr}")
         sys.exit(result.returncode)
 
-    deploy_url = result.stdout.strip().splitlines()[-1].strip()
-    console.print(f"[green]Deployed:[/green] {deploy_url}")
-
     # 7. Read project.json for projectId and orgId
     project_json = out_dir / ".vercel" / "project.json"
     project_id = None
@@ -177,7 +174,31 @@ def vercel(scope):
         except (json.JSONDecodeError, OSError):
             pass
 
-    # 8. Disable auth protection (pass teamId if scoped)
+    # 8. Get deployment URL from Vercel API
+    deploy_url = None
+    if project_id:
+        deployments = _vercel_api(
+            "GET",
+            f"/v6/deployments?projectId={project_id}&limit=1",
+            token,
+            team_id=org_id,
+        )
+        if deployments and deployments.get("deployments"):
+            latest = deployments["deployments"][0]
+            deploy_url = f"https://{latest['url']}"
+
+    if not deploy_url:
+        # Fallback: parse stdout (last line is the URL)
+        lines = result.stdout.strip().splitlines()
+        deploy_url = lines[-1].strip() if lines else None
+
+    if not deploy_url:
+        console.print("[red]Could not determine deployment URL.[/red]")
+        sys.exit(1)
+
+    console.print(f"[green]Deployed:[/green] {deploy_url}")
+
+    # 9. Disable auth protection (pass teamId if scoped)
     if project_id:
         console.print("[cyan]Disabling Vercel authentication...[/cyan]")
         resp = _vercel_api(
@@ -194,7 +215,7 @@ def vercel(scope):
                 "[yellow]Warning: Could not disable auth protection.[/yellow]"
             )
 
-    # 9. Update tauri.conf.json devUrl
+    # 10. Update tauri.conf.json devUrl
     tauri_conf = Path("src-tauri/tauri.conf.json")
     if tauri_conf.exists():
         try:
@@ -211,7 +232,7 @@ def vercel(scope):
                 f"[yellow]Warning: Could not update tauri.conf.json: {exc}[/yellow]"
             )
 
-    # 10. Summary
+    # 11. Summary
     scope_info = f"\n[bold]Scope:[/bold] {scope_label}" if scope_label else ""
     console.print()
     console.print(
