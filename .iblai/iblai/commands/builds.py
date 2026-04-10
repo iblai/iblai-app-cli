@@ -7,6 +7,7 @@ through to the ``tauri`` binary resolved from node_modules.
 Requires the Rust toolchain (rustc + cargo) for compilation.
 """
 
+import json
 import shutil
 import subprocess
 import sys
@@ -179,16 +180,32 @@ def _run_frontend_build():
         sys.exit(result.returncode)
 
 
+def _has_dev_url() -> bool:
+    """Return True if tauri.conf.json has a devUrl (e.g. Vercel deployment)."""
+    conf = Path("src-tauri/tauri.conf.json")
+    if not conf.exists():
+        return False
+    try:
+        data = json.loads(conf.read_text(encoding="utf-8"))
+        return bool(data.get("build", {}).get("devUrl"))
+    except (json.JSONDecodeError, OSError):
+        return False
+
+
 def _passthrough(args: Tuple[str, ...]):
     """Check prerequisites and forward args to the tauri CLI."""
     _require_rust()
     _require_tauri_cli()
-    # All dev builds use a static frontend — run frontend build first
+    # Run frontend build for dev commands, but skip if devUrl is set
+    # (frontend was already deployed via `iblai deploy vercel`)
     if (
         (len(args) >= 1 and args[0] == "dev")
         or (len(args) >= 2 and args[1] == "dev")
     ):
-        _run_frontend_build()
+        if _has_dev_url():
+            console.print("[cyan]devUrl set — skipping frontend build[/cyan]")
+        else:
+            _run_frontend_build()
     cmd = _tauri_cmd(*args)
     result = subprocess.run(cmd)
     # After ios/android init, regenerate icons so platform assets use
