@@ -8,9 +8,10 @@ built-in envvar= mechanism picks them up automatically. Existing
 system environment variables are never overwritten.
 
 Shorthand variables:
-    DOMAIN   → derives NEXT_PUBLIC_API_BASE_URL, AUTH_URL, BASE_WS_URL, PLATFORM_BASE_DOMAIN
-    PLATFORM → derives NEXT_PUBLIC_MAIN_TENANT_KEY
-    TOKEN    → derives IBLAI_API_KEY (server-side, not NEXT_PUBLIC_)
+    DOMAIN             → derives NEXT_PUBLIC_API_BASE_URL, AUTH_URL, BASE_WS_URL, PLATFORM_BASE_DOMAIN
+    PLATFORM           → derives NEXT_PUBLIC_MAIN_TENANT_KEY
+    TOKEN              → derives IBLAI_API_KEY (server-side, not NEXT_PUBLIC_)
+    TAURI_CUSTOM_SCHEME → derives NEXT_PUBLIC_TAURI_CUSTOM_SCHEME
 """
 
 import os
@@ -45,6 +46,10 @@ def _derive_env_vars() -> None:
     token = os.environ.get("TOKEN")
     if token and "IBLAI_API_KEY" not in os.environ:
         os.environ["IBLAI_API_KEY"] = token
+
+    tauri_scheme = os.environ.get("TAURI_CUSTOM_SCHEME")
+    if tauri_scheme and "NEXT_PUBLIC_TAURI_CUSTOM_SCHEME" not in os.environ:
+        os.environ["NEXT_PUBLIC_TAURI_CUSTOM_SCHEME"] = tauri_scheme
 
 
 def load_config(

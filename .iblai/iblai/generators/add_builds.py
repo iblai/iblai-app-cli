@@ -1,6 +1,7 @@
 """Generator for adding Tauri v2 desktop shell to a Next.js project."""
 
 import json
+import os
 import re
 import struct
 import zlib
@@ -163,6 +164,7 @@ class AddBuildsGenerator:
         created = []
         context = {
             "app_name": self.app_name,
+            "tauri_custom_scheme": os.environ.get("TAURI_CUSTOM_SCHEME", self.app_name),
         }
 
         template_map = {
@@ -282,6 +284,12 @@ class AddBuildsGenerator:
         deps = data.setdefault("dependencies", {})
         if "@tauri-apps/api" not in deps:
             deps["@tauri-apps/api"] = "^2.9.1"
+            modified = True
+        if "@tauri-apps/plugin-opener" not in deps:
+            deps["@tauri-apps/plugin-opener"] = "^2"
+            modified = True
+        if "@tauri-apps/plugin-deep-link" not in deps:
+            deps["@tauri-apps/plugin-deep-link"] = "^2"
             modified = True
 
         # Add devDependencies
