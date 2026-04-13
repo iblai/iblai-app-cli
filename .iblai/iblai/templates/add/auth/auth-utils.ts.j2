@@ -10,19 +10,86 @@ import config from "./config";
 import { resolveAppTenant } from "./tenant";
 
 /** Check if running inside a Tauri app. */
-function isTauriApp(): boolean {
+function isTauri(): boolean {
   if (typeof window === "undefined") return false;
   return "__TAURI_INTERNALS__" in window || "__TAURI__" in window;
 }
 
+/** Check if running inside a Tauri mobile app (iOS/Android). */
+function isTauriMobile(): boolean {
+  if (!isTauri()) return false;
+  return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+/** Get the redirect origin for the Auth SPA.
+ *  - Mobile Tauri: custom scheme (e.g. `iblai-skills://`)
+ *  - Desktop Tauri / Web: window.location.origin
+ */
+function getRedirectOrigin(): string {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  if (isTauriMobile()) {
+    const scheme = config.tauriCustomScheme();
+    if (scheme) return `${scheme}://`;
+  }
+  return origin;
+}
+
+/**
+ * Start a desktop OAuth flow: open system browser → local callback server.
+ * Returns a promise that resolves with the redirect URL containing tokens.
+ */
+async function desktopOAuthFlow(authUrl: string): Promise<string> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  const { listen } = await import("@tauri-apps/api/event");
+  const { openUrl } = await import("@tauri-apps/plugin-opener");
+
+  const port: number = await invoke("start_oauth_server");
+  const callbackUrl = `http://127.0.0.1:${port}`;
+
+  // Replace the redirect-to in the auth URL with the local callback
+  const finalAuthUrl = authUrl.replace(
+    /redirect-to=[^&]*/,
+    `redirect-to=${encodeURIComponent(callbackUrl)}`,
+  );
+
+  return new Promise((resolve) => {
+    listen<string>("oauth://redirect", (event) => {
+      resolve(event.payload);
+    });
+    openUrl(finalAuthUrl);
+  });
+}
+
+/**
+ * Parse SSO tokens from a callback URL and store them in localStorage.
+ * The Auth SPA passes tokens as query parameters.
+ */
+function storeSsoTokensFromUrl(url: string): void {
+  const params = new URL(url).searchParams;
+  const keyMap: Record<string, string> = {
+    axd_token: "axd_token",
+    axd_token_expires: "axd_token_expires",
+    dm_token: "dm_token",
+    dm_token_expires: "dm_token_expires",
+    edx_jwt_cookie_header_payload: "edx_jwt_token",
+    current_tenant: "current_tenant",
+    userData: "userData",
+    tenants: "tenants",
+  };
+  for (const [param, storageKey] of Object.entries(keyMap)) {
+    const value = params.get(param);
+    if (value) localStorage.setItem(storageKey, value);
+  }
+}
+
 /** Redirect the browser to the ibl.ai Auth SPA for login. */
-export function redirectToAuthSpa(
+export async function redirectToAuthSpa(
   redirectTo?: string,
   platformKey?: string,
   logout?: boolean,
   saveRedirect?: boolean,
 ) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const redirectOrigin = getRedirectOrigin();
   const path = redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
 
   if (saveRedirect) {
@@ -30,10 +97,23 @@ export function redirectToAuthSpa(
   }
 
   const tenant = platformKey || resolveAppTenant();
-  let authUrl = `${config.authUrl()}/login?app=custom&redirect-to=${origin}`;
+  let authUrl = `${config.authUrl()}/login?app=custom&redirect-to=${redirectOrigin}`;
   if (tenant) authUrl += `&tenant=${encodeURIComponent(tenant)}`;
   if (logout) authUrl += "&logout=1";
 
+  // Desktop Tauri: open system browser with local callback server
+  if (isTauri() && !isTauriMobile()) {
+    try {
+      const callbackUrl = await desktopOAuthFlow(authUrl);
+      storeSsoTokensFromUrl(callbackUrl);
+      window.location.reload();
+      return;
+    } catch {
+      // Fallback to in-WebView redirect if oauth server fails
+    }
+  }
+
+  // Web and mobile Tauri: redirect within the WebView
   window.location.href = authUrl;
 }
 
@@ -50,8 +130,8 @@ export function hasNonExpiredAuthToken(): boolean {
 /** Handle logout: clear state and redirect to the Auth SPA logout page. */
 export function handleLogout() {
   const tenant = resolveAppTenant();
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const redirectOrigin = getRedirectOrigin();
   localStorage.clear();
-  window.location.href = `${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`;
+  window.location.href = `${config.authUrl()}/logout?redirect-to=${redirectOrigin}&tenant=${tenant}`;
 }
 {% endraw %}

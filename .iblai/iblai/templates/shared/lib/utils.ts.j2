@@ -6,34 +6,101 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function isTauri(): boolean {
+  if (typeof window === "undefined") return false;
+  return "__TAURI_INTERNALS__" in window || "__TAURI__" in window;
+}
+
+function isTauriMobile(): boolean {
+  if (!isTauri()) return false;
+  return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function getRedirectOrigin(): string {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  if (isTauriMobile()) {
+    const scheme = config.tauriCustomScheme();
+    if (scheme) return `${scheme}://`;
+  }
+  return origin;
+}
+
+async function desktopOAuthFlow(authUrl: string): Promise<string> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  const { listen } = await import("@tauri-apps/api/event");
+  const { openUrl } = await import("@tauri-apps/plugin-opener");
+
+  const port: number = await invoke("start_oauth_server");
+  const callbackUrl = `http://127.0.0.1:${port}`;
+  const finalAuthUrl = authUrl.replace(
+    /redirect-to=[^&]*/,
+    `redirect-to=${encodeURIComponent(callbackUrl)}`,
+  );
+
+  return new Promise((resolve) => {
+    listen<string>("oauth://redirect", (event) => {
+      resolve(event.payload);
+    });
+    openUrl(finalAuthUrl);
+  });
+}
+
+function storeSsoTokensFromUrl(url: string): void {
+  const params = new URL(url).searchParams;
+  const keyMap: Record<string, string> = {
+    axd_token: "axd_token",
+    axd_token_expires: "axd_token_expires",
+    dm_token: "dm_token",
+    dm_token_expires: "dm_token_expires",
+    edx_jwt_cookie_header_payload: "edx_jwt_token",
+    current_tenant: "current_tenant",
+    userData: "userData",
+    tenants: "tenants",
+  };
+  for (const [param, storageKey] of Object.entries(keyMap)) {
+    const value = params.get(param);
+    if (value) localStorage.setItem(storageKey, value);
+  }
+}
+
 /**
  * Redirect to the Auth SPA for login/logout
  */
-export function redirectToAuthSpa(
+export async function redirectToAuthSpa(
   redirectTo?: string,
   platformKey?: string,
   logout?: boolean,
   saveRedirect = true
-): void {
+): Promise<void> {
   const AUTH_URL = config.authUrl();
   const AGENT_URL = config.agentUrl();
   const tenant = platformKey || config.mainTenantKey();
 
-  // Clear local storage on logout
   if (logout) {
     localStorage.clear();
   }
 
-  // Save redirect path
   if (saveRedirect && !logout) {
     const currentPath = window.location.pathname + window.location.search;
     localStorage.setItem("redirect_to", currentPath);
   }
 
-  // Build auth URL manually to avoid URLSearchParams percent-encoding
-  let authUrl = `${AUTH_URL}/login?app=agent&redirect-to=${redirectTo || AGENT_URL}`;
+  const redirectOrigin = getRedirectOrigin();
+  let authUrl = `${AUTH_URL}/login?app=agent&redirect-to=${redirectTo || redirectOrigin || AGENT_URL}`;
   if (tenant) authUrl += `&tenant=${encodeURIComponent(tenant)}`;
   if (logout) authUrl += "&logout=1";
+
+  // Desktop Tauri: open system browser with local callback server
+  if (isTauri() && !isTauriMobile()) {
+    try {
+      const callbackUrl = await desktopOAuthFlow(authUrl);
+      storeSsoTokensFromUrl(callbackUrl);
+      window.location.reload();
+      return;
+    } catch {
+      // Fallback to in-WebView redirect
+    }
+  }
 
   window.location.href = authUrl;
 }

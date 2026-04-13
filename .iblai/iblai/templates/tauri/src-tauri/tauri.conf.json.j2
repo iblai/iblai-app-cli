@@ -30,6 +30,13 @@
       }
     }
   },
+  "plugins": {
+    "deep-link": {
+      "mobile": [
+        { "host": "auth", "scheme": ["{{ tauri_custom_scheme | default(app_name) }}"], "pathPrefix": ["/"] }
+      ]
+    }
+  },
   "app": {
     "withGlobalTauri": true,
     "security": {
