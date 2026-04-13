@@ -60,7 +60,7 @@ The ChatWidget wraps the `<mentor-ai>` Web Component from `@iblai/iblai-web-ment
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `mentorId` | `string` | (required) | The mentor unique ID to chat with |
-| `tenantKey` | `string` | from localStorage/config | Override the tenant/org key |
+| `tenantKey` | `string` | from localStorage/config | Override the platform key |
 | `mentorUrl` | `string` | `https://mentorai.{domain}` | Override the MentorAI platform URL |
 | `theme` | `"light" \| "dark"` | `"light"` | Color theme |
 | `width` | `number \| string` | `720` | Width in pixels (number) or CSS value (string) |
@@ -85,7 +85,7 @@ The ChatWidget wraps the `<mentor-ai>` Web Component from `@iblai/iblai-web-ment
 // Dark theme
 <ChatWidget mentorId="..." theme="dark" />
 
-// Custom tenant
+// Custom platform
 <ChatWidget mentorId="..." tenantKey="my-org" />
 
 // Override mentor URL
@@ -95,7 +95,7 @@ The ChatWidget wraps the `<mentor-ai>` Web Component from `@iblai/iblai-web-ment
 ### How It Works
 
 1. The component dynamically imports `@iblai/iblai-web-mentor` (client-only, SSR disabled)
-2. It resolves the tenant key from props → `localStorage.current_tenant` → `localStorage.tenant` → `config.mainTenantKey()`
+2. It resolves the platform key from props → `localStorage.current_tenant` → `localStorage.tenant` → `config.mainTenantKey()`
 3. It renders a `<mentor-ai>` custom element with `authrelyonhost` mode
 4. The web component creates a Shadow DOM with an iframe to the MentorAI platform
 5. All chat UI, WebSocket streaming, session management, and markdown rendering happen inside the iframe

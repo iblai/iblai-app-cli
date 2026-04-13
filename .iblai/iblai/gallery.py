@@ -117,7 +117,7 @@ COMPONENT_MAP: Dict[str, Tuple[str, str]] = {
     # --- User Profile & Account ---
     "UserProfileDropdown": (
         "profile",
-        "Avatar dropdown with profile link, tenant switcher, logout",
+        "Avatar dropdown with profile link, platform switcher, logout",
     ),
     "UserProfileModal": (
         "profile",
@@ -129,7 +129,7 @@ COMPONENT_MAP: Dict[str, Tuple[str, str]] = {
         "Account/org settings with tabs (Organization, Management, Integrations, Advanced, Billing)",
     ),
     "OrganizationTab": ("profile", "Organization settings tab"),
-    "InviteUserDialog": ("profile", "Dialog to invite users to a tenant"),
+    "InviteUserDialog": ("profile", "Dialog to invite users to a platform"),
     "InvitedUsersDialog": ("profile", "Dialog showing pending invitations"),
     "EducationTab": ("profile", "Education background management"),
     "ExperienceTab": ("profile", "Professional experience management"),
@@ -142,7 +142,7 @@ COMPONENT_MAP: Dict[str, Tuple[str, str]] = {
     # --- Tenant & Organization ---
     "TenantSwitcher": (
         "tenant",
-        "Switch between tenants/organizations with RBAC support",
+        "Switch between platforms/organizations with RBAC support",
     ),
     # --- Analytics ---
     "AnalyticsOverview": ("analytics", "Overview dashboard with key metrics"),
@@ -278,7 +278,7 @@ COMPONENT_MAP: Dict[str, Tuple[str, str]] = {
 CATEGORIES = [
     ("auth", "Authentication & SSO"),
     ("profile", "User Profile & Account"),
-    ("tenant", "Tenant & Organization"),
+    ("tenant", "Platform & Organization"),
     ("analytics", "Analytics"),
     ("notifications", "Notifications"),
     ("mentor", "Mentor UI (App Shell)"),

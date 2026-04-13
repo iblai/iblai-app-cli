@@ -33,7 +33,7 @@ class BaseGenerator:
 
         Args:
             app_name: Name of the app
-            platform_key: Platform/tenant key
+            platform_key: Platform key
             output_dir: Output directory path
             mentor_id: Optional mentor/agent ID
             use_ai: Whether to use AI assistance

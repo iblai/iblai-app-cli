@@ -23,7 +23,7 @@ console = Console()
     "--platform",
     envvar="IBLAI_PLATFORM_KEY",
     default=None,
-    help="Platform/tenant key (required with --screenshots).",
+    help="Platform key (required with --screenshots).",
 )
 @click.option(
     "--username",

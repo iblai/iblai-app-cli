@@ -526,7 +526,7 @@ class TestAddAuthAutoApply:
         assert "resolveAppTenant" in content
         assert "checkTenantMismatch" in content
         assert "app_tenant" in content
-        assert "PLACEHOLDER_TENANTS" in content
+        assert "PLACEHOLDER_PLATFORMS" in content
 
     def test_auth_generates_vitest_config(self, generated):
         project, _ = generated

@@ -21,7 +21,7 @@ console = Console()
 @click.option(
     "--platform",
     "-p",
-    help="Platform key (tenant identifier) for the app",
+    help="Platform key for the app",
     type=str,
     envvar=["IBLAI_PLATFORM_KEY", "PLATFORM"],
 )
@@ -244,7 +244,7 @@ def startapp(
         questions = [
             inquirer.Text(
                 "platform",
-                message="Enter the platform key (tenant identifier)",
+                message="Enter the platform key",
                 validate=lambda _, x: len(x) > 0,
             ),
         ]
