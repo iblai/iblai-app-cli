@@ -66,13 +66,13 @@ def add():
 
 
 @add.command()
-@click.option("--platform", "-p", help="Platform/tenant key", type=str, default=None, envvar=["IBLAI_PLATFORM_KEY", "PLATFORM"])
+@click.option("--platform", "-p", help="Platform key", type=str, default=None, envvar=["IBLAI_PLATFORM_KEY", "PLATFORM"])
 def auth(platform: Optional[str]):
     """Add ibl.ai SSO authentication to your project."""
     project = _require_nextjs()
 
     if not platform:
-        platform = click.prompt("Platform key (tenant identifier)")
+        platform = click.prompt("Platform key")
 
     from iblai.generators.add_auth import AddAuthGenerator
 
@@ -256,7 +256,7 @@ def account():
             "  Organization info, User Management, Integrations,\n"
             "  Advanced settings, Billing (when configured)\n\n"
             "[bold]Note:[/bold] Requires admin privileges for most tabs.\n"
-            "  The isAdmin flag is derived from the tenants array in localStorage.",
+            "  The isAdmin flag is derived from the platforms array in localStorage.",
             border_style="green",
             title="iblai add account",
         )

@@ -58,7 +58,7 @@ NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
 NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
 NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
 NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
-NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform
 ```
 
 ### 10. Verify

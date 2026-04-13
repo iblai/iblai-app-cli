@@ -61,7 +61,7 @@ NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
 NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
 NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
 NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
-NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform
 NEXT_PUBLIC_DEFAULT_AGENT_ID=your-mentor-id  # agent app only
 ```
 
@@ -77,9 +77,9 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-mentor-id  # agent app only
 | `dm_token_expires` | Expiry timestamp | SSO callback |
 | `edx_jwt_token` | LMS JWT token | SSO callback |
 | `userData` | JSON: `{ user_nicename, email, ... }` | SSO callback |
-| `tenant` | Current tenant key | SSO callback / TenantProvider |
-| `current_tenant` | Tenant object JSON | TenantProvider |
-| `tenants` | JSON array of all user tenants | TenantProvider |
+| `tenant` | Current platform key | SSO callback / TenantProvider |
+| `current_tenant` | Platform object JSON | TenantProvider |
+| `tenants` | JSON array of all user platforms | TenantProvider |
 
 ### Standard Pattern for Reading Auth Data in a Page
 
@@ -91,7 +91,7 @@ useEffect(() => {
     if (raw) setUsername(JSON.parse(raw).user_nicename ?? "");
   } catch {}
 
-  // tenant key (handles both plain string and JSON object)
+  // platform key (handles both plain string and JSON object)
   const stored = localStorage.getItem("current_tenant") ?? localStorage.getItem("tenant");
   const resolved = resolveTenantKey(stored) || config.mainTenantKey();
   setTenantKey(resolved);

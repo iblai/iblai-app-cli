@@ -20,7 +20,7 @@ Interactive CLI for scaffolding [ibl.ai](https://ibl.ai) frontend applications, 
 - **Python 3.8+**
 - **[uv](https://docs.astral.sh/uv/)** (recommended) or pip
 - **[Node.js 18+](https://nodejs.org/)** and **[pnpm](https://pnpm.io/)** for running generated apps
-- **An ibl.ai platform account** with a tenant and at least one agent configured
+- **An ibl.ai platform account** with a platform and at least one agent configured
 
 ### Dependencies installed automatically
 
@@ -129,7 +129,7 @@ iblai startapp agent --platform acme --agent my-bot-123
 
 Interactive wizard that walks you through:
 
-1. **Platform key** -- your ibl.ai tenant identifier
+1. **Platform key** -- your ibl.ai platform identifier
 2. **Agent ID** -- the agent/mentor to connect to (optional, can be set later)
 3. **App name** -- directory name for the generated project
 
@@ -137,7 +137,7 @@ Interactive wizard that walks you through:
 
 ```
 Options:
-  --platform, -p TEXT         Platform key (tenant identifier)
+  --platform, -p TEXT         Platform key
   --agent, -a TEXT            Agent ID
   --app-name TEXT             App name (used for directory and package.json)
   --output, -o PATH           Output directory (default: current directory)
@@ -190,7 +190,7 @@ CLI flags > System env vars > .env.{DEV_STAGE} > .env > interactive prompts
 
 | Variable | CLI Flag | Description |
 |----------|----------|-------------|
-| `IBLAI_PLATFORM_KEY` | `--platform` | Platform key (tenant identifier) |
+| `IBLAI_PLATFORM_KEY` | `--platform` | Platform key |
 | `IBLAI_AGENT_ID` | `--agent` | Agent / mentor ID |
 | `IBLAI_APP_NAME` | `--app-name` | App name for directory and package.json |
 | `IBLAI_OUTPUT_DIR` | `--output` | Output directory |
@@ -348,7 +348,7 @@ NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
 NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
 NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
 NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
-NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform
 ```
 
 ## What gets generated
