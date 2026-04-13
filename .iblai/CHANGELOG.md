@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1]
+
+### Changed
+
+- Deployment URL retrieval in `iblai deploy vercel` now uses the Vercel API (`GET /v6/deployments`) instead of parsing stdout, with stdout as fallback.
+- User-facing terminology updated from "tenant" to "platform" across CLI help text, prompts, templates, skills, and documentation. SDK-bound names (`TenantProvider`, `tenantKey`, localStorage keys) are unchanged.
+- `your-main-platform` added as the default placeholder for `NEXT_PUBLIC_MAIN_TENANT_KEY` in templates and examples.
+- macOS and Surface dev build sections in `/iblai-build` skill now deploy to Vercel by default (matching iOS/Android).
+
 ## [1.2.0]
 
 ### Added
