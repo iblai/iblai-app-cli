@@ -60,28 +60,6 @@ async function desktopOAuthFlow(authUrl: string): Promise<string> {
   });
 }
 
-/**
- * Parse SSO tokens from a callback URL and store them in localStorage.
- * The Auth SPA passes tokens as query parameters.
- */
-function storeSsoTokensFromUrl(url: string): void {
-  const params = new URL(url).searchParams;
-  const keyMap: Record<string, string> = {
-    axd_token: "axd_token",
-    axd_token_expires: "axd_token_expires",
-    dm_token: "dm_token",
-    dm_token_expires: "dm_token_expires",
-    edx_jwt_cookie_header_payload: "edx_jwt_token",
-    current_tenant: "current_tenant",
-    userData: "userData",
-    tenants: "tenants",
-  };
-  for (const [param, storageKey] of Object.entries(keyMap)) {
-    const value = params.get(param);
-    if (value) localStorage.setItem(storageKey, value);
-  }
-}
-
 /** Redirect the browser to the ibl.ai Auth SPA for login. */
 export async function redirectToAuthSpa(
   redirectTo?: string,
@@ -105,9 +83,14 @@ export async function redirectToAuthSpa(
   if (isTauri() && !isTauriMobile()) {
     try {
       const callbackUrl = await desktopOAuthFlow(authUrl);
-      storeSsoTokensFromUrl(callbackUrl);
-      window.location.reload();
-      return;
+      // Navigate the WebView to the SsoLogin page with the same query params
+      // so the SsoLogin component handles token storage (same as the web flow).
+      const qIdx = callbackUrl.indexOf("?");
+      const search = qIdx !== -1 ? callbackUrl.substring(qIdx) : "";
+      if (search) {
+        window.location.href = `/sso-login-complete${search}`;
+        return;
+      }
     } catch {
       // Fallback to in-WebView redirect if oauth server fails
     }
