@@ -227,24 +227,30 @@ class BaseAppGenerator(BaseGenerator):
                 skill_name = skill_file.stem
 
                 # Symlink for Claude Code (flat)
-                os.symlink(
-                    f"../../skills/{rel_path}",
-                    str(claude_dest / skill_file.name),
-                )
+                claude_link = claude_dest / skill_file.name
+                if not claude_link.exists():
+                    os.symlink(
+                        f"../../skills/{rel_path}",
+                        str(claude_link),
+                    )
 
                 # Symlink for OpenCode (directory per skill, flat)
                 oc_dir = opencode_dest / skill_name
                 oc_dir.mkdir(parents=True, exist_ok=True)
-                os.symlink(
-                    f"../../../skills/{rel_path}",
-                    str(oc_dir / "SKILL.md"),
-                )
+                oc_link = oc_dir / "SKILL.md"
+                if not oc_link.exists():
+                    os.symlink(
+                        f"../../../skills/{rel_path}",
+                        str(oc_link),
+                    )
 
                 # Symlink for Cursor (flat)
-                os.symlink(
-                    f"../../skills/{rel_path}",
-                    str(cursor_dest / skill_file.name),
-                )
+                cursor_link = cursor_dest / skill_file.name
+                if not cursor_link.exists():
+                    os.symlink(
+                        f"../../skills/{rel_path}",
+                        str(cursor_link),
+                    )
 
             # Copy non-markdown support files (scripts, licenses, etc.)
             for support_file in sorted(skills_src.rglob("*")):

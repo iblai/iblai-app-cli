@@ -64,7 +64,7 @@ async function redirectToAuthSpa(
 ) {
   const redirectOrigin = getRedirectOrigin();
   const path = redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
-  if (saveRedirect) localStorage.setItem("redirect-to", path);
+  if (saveRedirect) localStorage.setItem("redirectTo", path);
 
   let authUrl = `${config.authUrl()}/login?app=agent&redirect-to=${redirectOrigin}`;
   if (platformKey) authUrl += `&tenant=${encodeURIComponent(platformKey)}`;
@@ -143,7 +143,7 @@ export function Providers({ children }: { children: ReactNode }) {
       localStorage.setItem("current_tenant", JSON.stringify({ key: tenant }));
       localStorage.setItem("tenant", tenant);
       if (saveRedirect && typeof window !== "undefined") {
-        localStorage.setItem("redirect-to", window.location.pathname);
+        localStorage.setItem("redirectTo", window.location.pathname);
       }
       // Reload so the app re-initializes with the new tenant
       window.location.reload();

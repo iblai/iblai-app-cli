@@ -45,7 +45,7 @@ export async function redirectToAuthSpa(
   const path = redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
 
   if (saveRedirect) {
-    localStorage.setItem("redirect-to", path);
+    localStorage.setItem("redirectTo", path);
   }
 
   const tenant = platformKey || resolveAppTenant();
@@ -75,6 +75,6 @@ export function handleLogout() {
   const tenant = resolveAppTenant();
   const redirectOrigin = getRedirectOrigin();
   localStorage.clear();
-  window.location.href = `${config.authUrl()}/logout?redirect-to=${redirectOrigin}&tenant=${tenant}`;
+  window.location.href = `${config.authUrl()}/logout?redirect-to=${redirectOrigin}&tenant=${encodeURIComponent(tenant)}`;
 }
 {% endraw %}

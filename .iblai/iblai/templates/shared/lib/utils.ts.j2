@@ -44,7 +44,7 @@ export async function redirectToAuthSpa(
 
   if (saveRedirect && !logout) {
     const currentPath = window.location.pathname + window.location.search;
-    localStorage.setItem("redirect_to", currentPath);
+    localStorage.setItem("redirectTo", currentPath);
   }
 
   const redirectOrigin = getRedirectOrigin();
