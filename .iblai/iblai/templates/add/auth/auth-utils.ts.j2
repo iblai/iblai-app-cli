@@ -10,13 +10,13 @@ import config from "./config";
 import { resolveAppTenant } from "./tenant";
 
 /** Check if running inside a Tauri app. */
-function isTauri(): boolean {
+export function isTauri(): boolean {
   if (typeof window === "undefined") return false;
   return "__TAURI_INTERNALS__" in window || "__TAURI__" in window;
 }
 
 /** Check if running inside a Tauri mobile app (iOS/Android). */
-function isTauriMobile(): boolean {
+export function isTauriMobile(): boolean {
   if (!isTauri()) return false;
   return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 }
@@ -32,32 +32,6 @@ function getRedirectOrigin(): string {
     if (scheme) return `${scheme}://`;
   }
   return origin;
-}
-
-/**
- * Start a desktop OAuth flow: open system browser → local callback server.
- * Returns a promise that resolves with the redirect URL containing tokens.
- */
-async function desktopOAuthFlow(authUrl: string): Promise<string> {
-  const { invoke } = await import("@tauri-apps/api/core");
-  const { listen } = await import("@tauri-apps/api/event");
-  const { openUrl } = await import("@tauri-apps/plugin-opener");
-
-  const port: number = await invoke("start_oauth_server");
-  const callbackUrl = `http://127.0.0.1:${port}`;
-
-  // Replace the redirect-to in the auth URL with the local callback
-  const finalAuthUrl = authUrl.replace(
-    /redirect-to=[^&]*/,
-    `redirect-to=${encodeURIComponent(callbackUrl)}`,
-  );
-
-  return new Promise((resolve) => {
-    listen<string>("oauth://redirect", (event) => {
-      resolve(event.payload);
-    });
-    openUrl(finalAuthUrl);
-  });
 }
 
 /** Redirect the browser to the ibl.ai Auth SPA for login. */
@@ -79,24 +53,10 @@ export async function redirectToAuthSpa(
   if (tenant) authUrl += `&tenant=${encodeURIComponent(tenant)}`;
   if (logout) authUrl += "&logout=1";
 
-  // Desktop Tauri: open system browser with local callback server
-  if (isTauri() && !isTauriMobile()) {
-    try {
-      const callbackUrl = await desktopOAuthFlow(authUrl);
-      // Navigate the WebView to the SsoLogin page with the same query params
-      // so the SsoLogin component handles token storage (same as the web flow).
-      const qIdx = callbackUrl.indexOf("?");
-      const search = qIdx !== -1 ? callbackUrl.substring(qIdx) : "";
-      if (search) {
-        window.location.href = `/sso-login-complete${search}`;
-        return;
-      }
-    } catch {
-      // Fallback to in-WebView redirect if oauth server fails
-    }
-  }
-
-  // Web and mobile Tauri: redirect within the WebView
+  // All platforms (web, desktop Tauri, mobile Tauri): navigate the window
+  // to the Auth SPA.  On desktop Tauri the auth page loads in-app, and
+  // the Rust on_navigation filter opens OAuth providers (Google, Apple)
+  // in a popup window automatically.
   window.location.href = authUrl;
 }
 

@@ -6,12 +6,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-function isTauri(): boolean {
+export function isTauri(): boolean {
   if (typeof window === "undefined") return false;
   return "__TAURI_INTERNALS__" in window || "__TAURI__" in window;
 }
 
-function isTauriMobile(): boolean {
+export function isTauriMobile(): boolean {
   if (!isTauri()) return false;
   return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 }
@@ -23,26 +23,6 @@ function getRedirectOrigin(): string {
     if (scheme) return `${scheme}://`;
   }
   return origin;
-}
-
-async function desktopOAuthFlow(authUrl: string): Promise<string> {
-  const { invoke } = await import("@tauri-apps/api/core");
-  const { listen } = await import("@tauri-apps/api/event");
-  const { openUrl } = await import("@tauri-apps/plugin-opener");
-
-  const port: number = await invoke("start_oauth_server");
-  const callbackUrl = `http://127.0.0.1:${port}`;
-  const finalAuthUrl = authUrl.replace(
-    /redirect-to=[^&]*/,
-    `redirect-to=${encodeURIComponent(callbackUrl)}`,
-  );
-
-  return new Promise((resolve) => {
-    listen<string>("oauth://redirect", (event) => {
-      resolve(event.payload);
-    });
-    openUrl(finalAuthUrl);
-  });
 }
 
 /**
@@ -71,21 +51,6 @@ export async function redirectToAuthSpa(
   let authUrl = `${AUTH_URL}/login?app=agent&redirect-to=${redirectTo || redirectOrigin || AGENT_URL}`;
   if (tenant) authUrl += `&tenant=${encodeURIComponent(tenant)}`;
   if (logout) authUrl += "&logout=1";
-
-  // Desktop Tauri: open system browser with local callback server
-  if (isTauri() && !isTauriMobile()) {
-    try {
-      const callbackUrl = await desktopOAuthFlow(authUrl);
-      const qIdx = callbackUrl.indexOf("?");
-      const search = qIdx !== -1 ? callbackUrl.substring(qIdx) : "";
-      if (search) {
-        window.location.href = `/sso-login-complete${search}`;
-        return;
-      }
-    } catch {
-      // Fallback to in-WebView redirect
-    }
-  }
 
   window.location.href = authUrl;
 }
