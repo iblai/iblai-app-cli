@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -33,7 +34,7 @@ def _vercel_api(method, path, token, data=None, team_id=None):
     try:
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read())
-    except Exception:
+    except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
 
 
@@ -158,9 +159,20 @@ def vercel(scope):
     if org_id:
         deploy_cmd.extend(["--scope", org_id])
 
-    result = subprocess.run(deploy_cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(
+            deploy_cmd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=None,  # stream to terminal so user sees progress
+            text=True,
+            timeout=600,
+        )
+    except subprocess.TimeoutExpired:
+        console.print("[red]Vercel deploy timed out after 10 minutes.[/red]")
+        sys.exit(1)
     if result.returncode != 0:
-        console.print(f"[red]Vercel deploy failed:[/red]\n{result.stderr}")
+        console.print("[red]Vercel deploy failed.[/red]")
         sys.exit(result.returncode)
 
     # 7. Read project.json for projectId and orgId

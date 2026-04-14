@@ -304,6 +304,11 @@ def startapp(
         if answers:
             builds = answers["builds"]
 
+    # Validate app name to prevent path traversal
+    if ".." in app_name or "/" in app_name or "\\" in app_name:
+        console.print("[red]Error: App name must not contain path separators or '..'[/red]")
+        return
+
     # Determine output directory
     output_path = Path(output) / app_name
     if output_path.exists():
