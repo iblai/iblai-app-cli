@@ -1,6 +1,6 @@
 {
   "name": "@iblai/cli-win32-x64",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Windows x64 binary for @iblai/cli",
   "license": "MIT",
   "repository": {
