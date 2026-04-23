@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0]
+
+### Added
+
+- SSO support for Tauri desktop and mobile builds. Auth callbacks use a custom URI scheme (`myapp://`) instead of HTTPS so the OAuth flow returns to the app instead of stranding the user in the system browser.
+- `TAURI_CUSTOM_SCHEME` shorthand env var in `iblai.env` — derives `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` into `.env.local` automatically.
+- Tauri deep-link plugin wiring in `src-tauri/` templates: `Cargo.toml`, `capabilities/default.json`, and `src/lib.rs` now handle `myapp://` callbacks and forward them to the WebView.
+- `isTauriMobile()` helper and mobile-aware redirect logic in `auth-utils.ts` and `providers/index.tsx` templates.
+
+### Changed
+
+- Desktop OAuth handling simplified — the app now relies on the deep-link plugin's single-path callback instead of branching on platform and webview state.
+- `shared/lib/utils.ts` and `providers/index.tsx` refactored for readability; duplicated logic consolidated.
+- Typo and terminology fixes across templates, CLI help text, and skills.
+
+### Fixed
+
+- SSO login on desktop no longer leaves the user in the system browser after sign-in.
+- `iblai deploy vercel` output handling hardened against unexpected stdout formats.
+- Path-traversal guard in `iblai startapp` output path resolution.
+- Symlink race condition in base app generation.
+- XSS hole in the logout URL construction in `auth-utils.ts.j2`.
+- Storage key inconsistency between auth-utils and providers.
+
 ## [1.2.1]
 
 ### Changed
