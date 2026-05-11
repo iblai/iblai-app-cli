@@ -40,7 +40,7 @@ const domain = () =>
   getEnv("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.app");
 
 const config = {
-  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", `https://auth.${domain()}`),
+  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", `https://login.${domain()}`),
 
   lmsUrl: () => {
     const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
