@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-05-11
+
 ### Added
 
 - `iblai deploy vercel` now supports server-rendered Next.js apps (server actions, dynamic routes, API routes). Mode is auto-detected from `next.config`: `output: 'export'` deploys the static `out/` directory (Tauri shells, unchanged); otherwise deploys the repo root and lets Vercel run the build remotely with serverless functions. New `--mode {auto,static,server}` flag overrides detection.
