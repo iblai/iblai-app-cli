@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `iblai deploy vercel` now supports server-rendered Next.js apps (server actions, dynamic routes, API routes). Mode is auto-detected from `next.config`: `output: 'export'` deploys the static `out/` directory (Tauri shells, unchanged); otherwise deploys the repo root and lets Vercel run the build remotely with serverless functions. New `--mode {auto,static,server}` flag overrides detection.
+- In server mode, `iblai deploy vercel` automatically uploads env vars from `.env.local` to the Vercel project (production + preview) after the first deploy. `NEXT_PUBLIC_*` vars are stored as `plain`; everything else as `encrypted`. Reserved keys (`VERCEL_*`, `NODE_ENV`) and placeholder values (`your-...`, empty) are skipped. If any vars were created or updated, the CLI automatically re-runs the deploy with `--force` and `VERCEL_FORCE_NO_BUILD_CACHE=1` in the environment, so Vercel's remote builder skips cache restore and Next.js re-inlines `process.env.NEXT_PUBLIC_*` from the freshly-uploaded env — without the no-cache hint, Vercel reuses the previous build's compiled bundle and the new values never reach the client.
+
 ## [1.3.0]
 
 ### Added
